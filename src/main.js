@@ -1,11 +1,24 @@
 import { createApp } from "vue";
 import App from "./App.vue";
-
-// import { router } from "./router/index.js";
+import { router } from "./router/index.js";
 import axios from "axios";
+import Header from "./components/layout/Header.vue";
+import MainNav from "./components/layout/MainNav.vue";
+
+import { library } from "@fortawesome/fontawesome-svg-core";
+import {
+  faHatWizard,
+  faMagnifyingGlass,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+
+library.add(faHatWizard, faMagnifyingGlass);
 
 const vue = createApp(App);
-// vue.use(router);
+vue.component("demp-header", Header);
+vue.component("main-navigation", MainNav);
+vue.component("font-awesome-icon", FontAwesomeIcon);
+vue.use(router);
 
 vue.config.globalProperties.axios = axios;
 

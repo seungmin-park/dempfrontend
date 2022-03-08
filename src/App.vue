@@ -1,27 +1,57 @@
 <template>
+  <demp-header></demp-header>
   <router-view></router-view>
-  <button @click="saveMember">포스트 테스트</button>
+  <span>id = 1 회원 조회</span>
+  <p>
+    username: {{ member.username }}, age: {{ member.age }}, password:
+    {{ member.password }}
+  </p>
+  <form action="/" @submit.prevent="saveMember">
+    <input type="text" placeholder="your username" v-model="form.username" />
+    <input type="number" placeholder="your age" v-model="form.age" />
+    <input
+      type="password"
+      placeholder="your password"
+      v-model="form.password"
+    />
+    <button type="submit">포스트 테스트</button>
+  </form>
 </template>
 
 <script>
 import axios from "axios";
 export default {
   name: "App",
-  data() {},
+  data() {
+    return {
+      form: {
+        username: "",
+        age: 0,
+        password: 0,
+      },
+      member: {},
+    };
+  },
   mounted() {
     this.getMember();
   },
   methods: {
     getMember() {
       axios.get("/member").then((res) => {
+        this.member.username = res.data.username;
+        this.member.age = res.data.age;
+        this.member.password = res.data.password;
         console.log(res.data);
       });
     },
     saveMember() {
       axios
-        .post("members/save", { username: "member1", age: 10, password: 11111 })
+        .post("/member/save", this.form)
         .then((res) => {
-          console.log(res.data);
+          if (res.status == "200") {
+            this.$router.push("/");
+            console.log(res.data);
+          }
         })
         .catch((error) => {
           console.log(error);
@@ -30,3 +60,9 @@ export default {
   },
 };
 </script>
+
+<style>
+body {
+  margin: 0;
+}
+</style>
