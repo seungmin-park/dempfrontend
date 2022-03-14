@@ -1,7 +1,7 @@
 <template>
   <demp-header></demp-header>
   <router-view></router-view>
-  <span>id = 1 회원 조회</span>
+  <!-- <span>id = 1 회원 조회</span>
   <p>
     username: {{ member.username }}, age: {{ member.age }}, password:
     {{ member.password }}
@@ -15,7 +15,7 @@
       v-model="form.password"
     />
     <button type="submit">포스트 테스트</button>
-  </form>
+  </form> -->
 </template>
 
 <script>
@@ -32,9 +32,9 @@ export default {
       member: {},
     };
   },
-  mounted() {
-    this.getMember();
-  },
+  // mounted() {
+  //   this.getMember();
+  // },
   methods: {
     getMember() {
       axios.get("/member").then((res) => {
@@ -45,17 +45,9 @@ export default {
       });
     },
     saveMember() {
-      axios
-        .post("/member/save", this.form)
-        .then((res) => {
-          if (res.status == "200") {
-            this.$router.push("/");
-            console.log(res.data);
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      axios.post("/member/save", this.form).then((res) => {
+        console.log(res.data);
+      });
     },
   },
 };
