@@ -4,12 +4,17 @@
     v-for="(item, index) in BoardData"
     :key="index"
   >
-    <div class="announcement-tile-logo-box">
-      <img class="announcement-logo" :src="require(`@/assets/${item.image}`)" />
-    </div>
-    <p class="info title">{{ item.title }}</p>
-    <p class="info skill">{{ item.skill }}</p>
-    <p class="info career">{{ item.career }}</p>
+    <a :href="`/detail/${item.id}`">
+      <div class="announcement-tile-logo-box">
+        <img
+          class="announcement-logo"
+          :src="require(`@/assets/${item.image}`)"
+        />
+      </div>
+      <p class="info title">{{ item.title }}</p>
+      <p class="info skill">{{ item.skill }}</p>
+      <p class="info career">{{ item.career }}</p>
+    </a>
   </div>
 </template>
 
@@ -18,10 +23,35 @@ import axios from "axios";
 export default {
   name: "demp-announcement",
   props: ["typeName"],
+  mounted() {
+    {
+      this.getAnnounce();
+    }
+  },
   data() {
     return {
       BoardData: {},
     };
+  },
+  methods: {
+    getAnnounce() {
+      axios
+        .post("/announce", JSON.stringify({ typeName: "emp" }), {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+        .then((res) => {
+          this.BoardData = res.data;
+        });
+    },
+    detailPage(itemId) {
+      this.$router.push({
+        name: "detail",
+        query: { itemId: itemId },
+        params: { itemId: itemId },
+      });
+    },
   },
   watch: {
     typeName: function () {
@@ -42,7 +72,7 @@ export default {
 <style>
 .announcement-tile {
   float: left;
-  margin-top: 15px;
+  margin: 15px 15px 15px 10px;
   width: 250px;
   height: 245px;
 }

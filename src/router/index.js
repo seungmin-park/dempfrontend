@@ -21,6 +21,11 @@ const routes = [
     name: "bootCamp",
     component: () => import("@/components/layout/BCBoard"),
   },
+  {
+    path: "/detail/:itemId",
+    name: "detail",
+    component: () => import("@/components/layout/DetailPage"),
+  },
 ];
 
 export const router = createRouter({
