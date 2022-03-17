@@ -1,7 +1,7 @@
 <template>
   <main>
     <div class="testPage">
-      <span>뭘로 채우지?</span>
+      <span></span>
     </div>
     <div class="detall-announce">
       <h1 class="detall-announce-title">{{ DetailAnnounce.title }}</h1>
@@ -19,7 +19,7 @@
             경력 : {{ DetailAnnounce.career }}
           </p>
           <p class="detall-announce-content-sub">
-            요구사항 : {{ DetailAnnounce.content }}
+            지원 자격 : {{ DetailAnnounce.content }}
           </p>
         </span>
       </div>
@@ -64,7 +64,7 @@ export default {
 <style>
 main {
   display: flex;
-  margin: 50px 0 0 0;
+  margin: 50px 200px 0 200px;
   padding: 0 30px 0 30px;
 }
 

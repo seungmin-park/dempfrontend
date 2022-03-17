@@ -12,19 +12,14 @@ const routes = [
     component: () => import("@/components/HelloWorld"),
   },
   {
-    path: "/emp",
-    name: "emp",
-    component: () => import("@/components/layout/EmpBoard"),
-  },
-  {
-    path: "/boot-camp",
-    name: "bootCamp",
-    component: () => import("@/components/layout/BCBoard"),
-  },
-  {
     path: "/detail/:itemId",
     name: "detail",
     component: () => import("@/components/layout/DetailPage"),
+  },
+  {
+    path: "/question",
+    name: "question",
+    component: () => import("@/components/layout/Question"),
   },
 ];
 

@@ -18,7 +18,7 @@ export default {
 <style>
 .menu {
   display: flex;
-  background: darkslateblue;
+  background: #95cacf;
   padding: 15px;
   justify-content: space-between;
 }
