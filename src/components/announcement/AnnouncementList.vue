@@ -1,11 +1,13 @@
 <template>
   <main>
     <div v-for="notice in BoardData" :key="notice.id" class="item">
-      <img
-        @click="$router.push(`/detail/${notice.id}`)"
-        :src="require(`@/assets/${notice.image}`)"
-        class="white--text align-end card-image"
-      />
+      <div class="item-image-box">
+        <img
+          @click="$router.push(`/detail/${notice.id}`)"
+          :src="require(`@/assets/${notice.image}`)"
+          class="white--text align-end card-image"
+        />
+      </div>
       <div align="left" class="big-font notice-title" style="font-weight: bold">
         <p>{{ notice.title }}</p>
       </div>
@@ -16,39 +18,40 @@
 </template>
 
 <script>
-import axios from "axios";
+// import axios from "axios";
+import BoardData from "../../data/announcement";
 export default {
   name: "demp-announcement",
   props: ["typeName"],
   mounted() {
     {
-      this.getAnnounce();
+      // this.getAnnounce();
     }
   },
   data() {
     return {
-      BoardData: {},
+      BoardData: BoardData,
     };
   },
   methods: {
-    getAnnounce() {
-      axios
-        .post("/announce", JSON.stringify({ typeName: this.typeName }), {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-        .then((res) => {
-          this.BoardData = res.data;
-        });
-    },
-    detailPage(itemId) {
-      this.$router.push({
-        name: "detail",
-        query: { itemId: itemId },
-        params: { itemId: itemId },
-      });
-    },
+    // getAnnounce() {
+    //   axios
+    //     .post("/announce", JSON.stringify({ typeName: this.typeName }), {
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //     })
+    //     .then((res) => {
+    //       this.BoardData = res.data;
+    //     });
+    // },
+    // detailPage(itemId) {
+    //   this.$router.push({
+    //     name: "detail",
+    //     query: { itemId: itemId },
+    //     params: { itemId: itemId },
+    //   });
+    // },
   },
   watch: {
     typeName: function () {
@@ -65,12 +68,29 @@ main {
   float: left;
 }
 
+.item-image-box {
+  border-radius: 15px 15px 0 0;
+  padding: 0%;
+  width: 260px;
+  height: 150px;
+  overflow: hidden;
+  margin: 0;
+}
+
+.item-image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .item {
+  display: table;
   border: 1px solid rgba(0, 0, 0, 0.5);
   border-radius: 15px;
   margin: 0 15px 0px 15px;
   box-sizing: border-box;
 }
+
 .notice-detail {
   margin-top: 50px;
   align-items: center;

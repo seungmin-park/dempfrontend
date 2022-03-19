@@ -1,0 +1,31 @@
+export default [
+  {
+    id: 0,
+    image: "line.png",
+    company: "LINE",
+    title: "2021 라인 공채",
+    period: "2021.03.04 ~ 2021.03.21",
+    language: "Java, Spring, JPA",
+    position: "BACKEND",
+    payment: "5000만원",
+    career: "3년 이하",
+    content: "채용 공고에 대한 설명",
+    accessUrl:
+      "https://recruit.linepluscorp.com/lineplus/login/login?annoId=20007660&classId=&jobId=&entTypeCd=001&sysCompanyCd=LP",
+    typeName: "emp",
+  },
+  {
+    id: 1,
+    image: "wootech.jpg",
+    company: "우아한 형제틀",
+    title: "2021 우아한 테크코스",
+    period: "2021.10.03 ~ 2021.10.27",
+    language: "Java, Spring, JPA",
+    position: "BACKEND",
+    payment: "무료",
+    career: "경력 무관",
+    content: "모집 요강에 대한 설명",
+    accessUrl: "https://woowacourse.github.io/apply.html",
+    typeName: "edu",
+  },
+];

@@ -3,8 +3,8 @@ import { createWebHistory, createRouter } from "vue-router";
 const routes = [
   {
     path: "/",
-    name: "mainFrame",
-    component: () => import("@/components/layout/MainFrame"),
+    name: "AnnouncementList",
+    component: () => import("../views/announcement/AnnouncementList"),
   },
   {
     path: "/hello",
@@ -14,12 +14,12 @@ const routes = [
   {
     path: "/detail/:itemId",
     name: "detail",
-    component: () => import("@/components/layout/DetailPage"),
+    component: () => import("../views/announcement/AnnouncementDetail"),
   },
   {
     path: "/question",
     name: "question",
-    component: () => import("@/components/layout/Question"),
+    component: () => import("@/components/question/Question"),
   },
 ];
 
