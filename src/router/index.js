@@ -19,7 +19,7 @@ const routes = [
   {
     path: "/question",
     name: "question",
-    component: () => import("@/components/question/Question"),
+    component: () => import("../views/qusetion/QuestionList"),
   },
 ];
 
