@@ -21,6 +21,11 @@ const routes = [
     name: "question",
     component: () => import("../views/qusetion/QuestionList"),
   },
+  {
+    path: "/questions/:questionId",
+    name: "questions",
+    component: () => import("../views/qusetion/QuestionDetail"),
+  },
 ];
 
 export const router = createRouter({

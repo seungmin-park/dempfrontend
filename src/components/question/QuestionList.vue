@@ -7,7 +7,12 @@
           추천 수 : {{ question.recomend }}
         </p>
       </div>
-      <span class="question-list-title">Q. {{ question.title }}</span>
+      <span
+        class="question-list-title"
+        @click="$router.push(`/questions/${question.id}`)"
+      >
+        Q. {{ question.title }}
+      </span>
     </div>
   </main>
 </template>

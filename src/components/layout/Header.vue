@@ -1,6 +1,6 @@
 <template>
   <header class="menu">
-    <span id="title">DEMP</span>
+    <span id="title"><a href="/">DEMP</a></span>
     <span>
       <a href="/">공고</a>
       <a href="/question">면접 질문</a>
