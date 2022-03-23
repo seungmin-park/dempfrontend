@@ -3,9 +3,9 @@ export default [
     id: 0,
     questionId: 0,
     userId: 0,
-    content: "오우 너무 멍청하고 \n그냥 개 멍청해 버리고~",
-    recomend: 7,
-    dislike: 1,
+    content: "질문\n 답변\n 테스트",
+    recomend: 0,
+    dislike: 11,
   },
   {
     id: 1,

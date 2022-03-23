@@ -1,9 +1,13 @@
 <template>
   <main>
-    <div v-for="notice in BoardData" :key="notice.id" class="item">
+    <div
+      v-for="notice in BoardData"
+      :key="notice.id"
+      class="item"
+      @click="$router.push(`/detail/${notice.id}`)"
+    >
       <div class="item-image-box">
         <img
-          @click="$router.push(`/detail/${notice.id}`)"
           :src="require(`@/assets/${notice.image}`)"
           class="white--text align-end card-image"
         />
@@ -11,7 +15,7 @@
       <div align="left" class="big-font notice-title" style="font-weight: bold">
         <p>{{ notice.title }}</p>
       </div>
-      <div class="medium-font">언어 : {{ notice.skill }}</div>
+      <div class="medium-font">언어 : {{ notice.language }}</div>
       <div class="medium-font">포지션 : {{ notice.career }}</div>
     </div>
   </main>

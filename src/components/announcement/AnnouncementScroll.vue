@@ -1,7 +1,7 @@
 <template>
   <div class="anncoucement-scroll">
     <div class="anncoucement-scroll-header">
-      <span @click="$router.go(-1)" class="anncoucement-scroll-history">
+      <span @click="$router.push('/')" class="anncoucement-scroll-history">
         &lt;-
       </span>
       <span>전체 공고</span>

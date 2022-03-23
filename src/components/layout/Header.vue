@@ -3,7 +3,11 @@
     <span id="title"><a href="/">DEMP</a></span>
     <span>
       <a href="/">공고</a>
-      <a href="/question">면접 질문</a>
+      <router-link
+        :to="{ path: '/question', query: { orderBy: 'createdDate' } }"
+      >
+        면접 질문
+      </router-link>
       <button id="login">LOGIN WITH GITHUB</button>
     </span>
   </header>
