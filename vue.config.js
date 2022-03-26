@@ -10,7 +10,7 @@ module.exports = {
     port: 8080,
     proxy: {
       //proxy 요청을 보낼 api 시작 부분
-      "^/announce": {
+      "^/api": {
         target,
         changeOrigin: true,
       },

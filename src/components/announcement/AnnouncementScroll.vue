@@ -8,13 +8,18 @@
     </div>
 
     <div
-      @click="$router.push(`/detail/${item.id}`)"
+      @click="
+        this.$router.push({
+          name: 'detail',
+          params: { itemId: item.id, announcement: this.announcement },
+        })
+      "
       class="anncoucement-scroll-items"
       v-for="item in announcement"
       :key="item.id"
     >
       <div class="anncoucement-scroll-items-img">
-        <img :src="require(`@/assets/${item.image}`)" alt="" />
+        <!-- <img :src="require(`@/assets/${item.image}`)" alt="" /> -->
       </div>
       <div class="anncoucement-scroll-items-description">
         <p class="item-title">{{ item.company }}</p>
@@ -25,13 +30,25 @@
 </template>
 
 <script>
-import announcement from "../../data/announcement";
+import axios from "axios";
 export default {
   name: "announcement-scroll",
+  mounted() {
+    {
+      this.getScroll();
+    }
+  },
   data() {
     return {
-      announcement: announcement,
+      announcement: {},
     };
+  },
+  methods: {
+    getScroll() {
+      axios.post("/api/announce/scroll").then((res) => {
+        this.announcement = res.data;
+      });
+    },
   },
 };
 </script>

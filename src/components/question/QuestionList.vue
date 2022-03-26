@@ -19,12 +19,28 @@
 
 <script>
 import questions from "../../data/questions";
-
 export default {
   data() {
     return {
       questions: questions,
     };
+  },
+  methods: {
+    testMethod(value) {
+      console.log(value);
+    },
+    mounted() {
+      this.emitter.on("date", this.testMethod);
+    },
+    // eventBus.$on("data", (data) => {
+    //   console.log(data);
+    // });
+    // eventBus.$on("hits", (data) => {
+    //   console.log(data);
+    // });
+    // eventBus.$on("recomend", (data) => {
+    //   console.log(data);
+    // });
   },
 };
 </script>
