@@ -6,7 +6,7 @@
       </h1>
       <div class="detall-announce-info">
         <div class="detall-announce-info-img">
-          <img :src="require(`../../assets/${DetailAnnounce.image}`)" />
+          <!-- <img :src="require(`@/assets/${DetailAnnounce.image}`)" /> -->
         </div>
         <div class="detall-announce-info-location">
           <p>
@@ -26,14 +26,17 @@
 
       <span class="detall-announce-content">
         <p class="detall-announce-content-sub">
-          회사명 : {{ DetailAnnounce.company }}
+          회사명 : {{ DetailAnnounce.company.name }}
         </p>
         <p
           class="detall-announce-content-sub"
+          v-text="
+            DetailAnnounce.payment == 0
+              ? '교육비 : 무료'
+              : '교육비 : ' + DetailAnnounce.payment + ` 만원`
+          "
           v-if="DetailAnnounce.announcementType == 'edu'"
-        >
-          교육비 : {{ DetailAnnounce.payment }} 만원
-        </p>
+        ></p>
         <p
           class="detall-announce-content-sub"
           v-if="DetailAnnounce.announcementType == 'emp'"
@@ -63,7 +66,6 @@
 
 <script>
 import axios from "axios";
-// import BoardData from "../../data/announcement";
 
 export default {
   mounted() {
@@ -73,31 +75,31 @@ export default {
   },
   data() {
     return {
-      DetailAnnounce: {},
+      DetailAnnounce: {
+        image: "",
+        company: {
+          name: "",
+        },
+        payment: "",
+        position: "",
+        content: "",
+      },
     };
   },
   methods: {
     getDetailAnnounce() {
       axios
-        .post(
-          "/api/announce/detail",
-          JSON.stringify({ id: this.$route.params.itemId }),
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        )
+        .get(`/api/announce/detail/${this.$route.params.itemId}`)
         .then((res) => {
           this.DetailAnnounce = res.data;
         });
     },
   },
-  watch: {
-    DetailAnnounce: function () {
-      this.getDetailAnnounce();
-    },
-  },
+  // watch: {
+  //   DetailAnnounce: function () {
+  //     this.getDetailAnnounce();
+  //   },
+  // },
 };
 </script>
 

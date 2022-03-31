@@ -18,29 +18,32 @@
 </template>
 
 <script>
-import questions from "../../data/questions";
+import axios from "axios";
 export default {
   data() {
     return {
-      questions: questions,
+      orderBy: this.$route.query.orderBy,
+      questions: [],
     };
   },
+  mounted() {
+    this.getQuestions();
+  },
   methods: {
-    testMethod(value) {
-      console.log(value);
+    getQuestions() {
+      axios
+        .get("/api/question", {
+          params: { orderBy: this.orderBy },
+        })
+        .then((res) => {
+          this.questions = res.data;
+        });
     },
-    mounted() {
-      this.emitter.on("date", this.testMethod);
+  },
+  watch: {
+    orderBy: function () {
+      this.getQuestions();
     },
-    // eventBus.$on("data", (data) => {
-    //   console.log(data);
-    // });
-    // eventBus.$on("hits", (data) => {
-    //   console.log(data);
-    // });
-    // eventBus.$on("recomend", (data) => {
-    //   console.log(data);
-    // });
   },
 };
 </script>

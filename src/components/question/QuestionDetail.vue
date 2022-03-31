@@ -1,47 +1,58 @@
 <template>
   <div class="qusetion-detail-title">
-    <span>Q. {{ questions[questionId].title }}</span>
+    <span>Q. {{ question.title }}</span>
     <div class="qusetion-detail-info">
       <div class="qusetion-detail-info-additional">
         <span class="qusetion-detail-info-additional-user">
-          🙋‍♂️{{ user[0].username }}
+          🙋‍♂️{{ question.username }}
         </span>
         <span class="qusetion-detail-info-additional-hits">
-          👁 : {{ questions[questionId].hits }}
+          👁 : {{ question.hits }}
         </span>
       </div>
       <div class="qusetion-detail-info-reaction">
-        <button @click="recomendUp">
-          👍{{ questions[questionId].recomend }}
-        </button>
-        <button @click="dislikedUp">
-          👎{{ questions[questionId].dislike }}
-        </button>
+        <button @click="recomendUp">👍{{ question.recomend }}</button>
+        <button @click="dislikedUp">👎{{ question.dislike }}</button>
       </div>
     </div>
   </div>
   <div class="qusetion-detail-content">
-    <span>{{ questions[questionId].content }}</span>
+    <span>{{ question.content }}</span>
   </div>
 </template>
 
 <script>
-import questions from "../../data/questions";
-import user from "../../data/user";
+import axios from "axios";
 export default {
   data() {
     return {
-      questionId: this.$route.params.questionId,
-      questions: questions,
-      user: user,
+      question: {
+        id: 0,
+        title: "",
+        content: "",
+        hits: 0,
+        recomend: 0,
+        dislike: 0,
+        username: "",
+      },
     };
+  },
+  mounted() {
+    this.getQuestion();
   },
   methods: {
     recomendUp() {
-      this.questions[this.questionId].recomend++;
+      this.question.recomend++;
     },
     dislikedUp() {
-      this.questions[this.questionId].dislike++;
+      this.question.dislike++;
+    },
+    getQuestion() {
+      axios
+        .get(`/api/question/${this.$route.params.questionId}`)
+        .then((res) => {
+          this.question = res.data;
+        });
     },
   },
 };

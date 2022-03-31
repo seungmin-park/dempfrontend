@@ -11,7 +11,7 @@
       @click="
         this.$router.push({
           name: 'detail',
-          params: { itemId: item.id, announcement: this.announcement },
+          params: { itemId: item.id },
         })
       "
       class="anncoucement-scroll-items"
@@ -22,7 +22,7 @@
         <!-- <img :src="require(`@/assets/${item.image}`)" alt="" /> -->
       </div>
       <div class="anncoucement-scroll-items-description">
-        <p class="item-title">{{ item.company }}</p>
+        <p class="item-title">{{ item.company.name }}</p>
         <p class="item-company">{{ item.title }}</p>
       </div>
     </div>
@@ -45,7 +45,7 @@ export default {
   },
   methods: {
     getScroll() {
-      axios.post("/api/announce/scroll").then((res) => {
+      axios.get("/api/announce/scroll").then((res) => {
         this.announcement = res.data;
       });
     },

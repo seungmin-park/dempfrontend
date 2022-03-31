@@ -16,46 +16,42 @@
         <p>{{ notice.title }}</p>
       </div>
       <div class="medium-font">언어 : {{ notice.language }}</div>
-      <div class="medium-font">포지션 : {{ notice.career }}</div>
+      <div class="medium-font">포지션 : {{ notice.position }}</div>
     </div>
   </main>
 </template>
 
 <script>
-// import axios from "axios";
-import BoardData from "../../data/announcement";
+import axios from "axios";
 export default {
   name: "demp-announcement",
-  props: ["typeName"],
   mounted() {
     {
-      // this.getAnnounce();
+      this.emitter.on("emp", (e) => {
+        this.typeParam = e;
+        this.getAnnounce();
+      });
+      this.emitter.on("edu", (e) => {
+        this.typeParam = e;
+        this.getAnnounce();
+      });
+      this.getAnnounce();
     }
   },
   data() {
     return {
-      BoardData: BoardData,
+      BoardData: {},
+      typeParam: "",
     };
   },
   methods: {
-    // getAnnounce() {
-    //   axios
-    //     .post("/announce", JSON.stringify({ typeName: this.typeName }), {
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //       },
-    //     })
-    //     .then((res) => {
-    //       this.BoardData = res.data;
-    //     });
-    // },
-    // detailPage(itemId) {
-    //   this.$router.push({
-    //     name: "detail",
-    //     query: { itemId: itemId },
-    //     params: { itemId: itemId },
-    //   });
-    // },
+    getAnnounce() {
+      axios
+        .get("/api/announce", { params: { typeName: this.typeParam } })
+        .then((res) => {
+          this.BoardData = res.data;
+        });
+    },
   },
   watch: {
     typeName: function () {

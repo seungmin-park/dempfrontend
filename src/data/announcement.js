@@ -1,12 +1,12 @@
 export default [
   {
-    id: 0,
+    id: 3,
     image: "line.png",
     company: "LINE",
     title: "2021 라인 공채",
     period: "2021.03.04 ~ 2021.03.21",
-    language: "Java, Spring, JPA",
-    position: "BACKEND",
+    language: "React, HTML, CSS",
+    position: "FRONTEND",
     payment: "5000만원",
     career: "3년 이하",
     content: "채용 공고에 대한 설명",
@@ -15,7 +15,7 @@ export default [
     typeName: "emp",
   },
   {
-    id: 1,
+    id: 4,
     image: "wootech.jpg",
     company: "우아한 형제틀",
     title: "2021 우아한 테크코스",

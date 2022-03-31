@@ -1,7 +1,5 @@
 <template>
-  <button class="question-answer-btn" @click="$router.push('/question')">
-    돌아가기
-  </button>
+  <button class="question-answer-btn" @click="$router.go(-1)">돌아가기</button>
 </template>
 
 <script>

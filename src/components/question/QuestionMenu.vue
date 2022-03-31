@@ -8,7 +8,7 @@
     </router-link>
     <router-link
       class="question-menus"
-      :to="{ path: '/question', query: { orderBy: 'popular' } }"
+      :to="{ path: '/question', query: { orderBy: 'hits' } }"
     >
       인기 질문
     </router-link>
@@ -22,18 +22,7 @@
 </template>
 
 <script>
-export default {
-  data() {
-    return {
-      testData: 1,
-    };
-  },
-  methods: {
-    date() {
-      this.emitter.emit("date", this.testData);
-    },
-  },
-};
+export default {};
 </script>
 
 <style>

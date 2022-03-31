@@ -1,31 +1,37 @@
 <template>
-  <div class="question-answer">
+  <div class="question-answer" v-for="answer in answers" :key="answer.id">
     <div class="question-answer-info">
       <div class="question-answer-info-user">
-        🙋‍♂️ 작성자 : {{ user[userId].username }}
+        🙋‍♂️ 작성자 : {{ answer.username }}
       </div>
       <div class="question-answer-info-content">
-        <pre>{{ answer[questionId].content }}</pre>
+        <pre>{{ answer.content }}</pre>
       </div>
     </div>
     <div class="question-answer-reaction">
-      <button>👍{{ answer[questionId].recomend }}</button>
-      <button>👎{{ answer[questionId].dislike }}</button>
+      <button>👍{{ answer.recomend }}</button>
+      <button>👎{{ answer.dislike }}</button>
     </div>
   </div>
 </template>
 
 <script>
-import answer from "../../data/answer";
-import user from "../../data/user";
+import axios from "axios";
 export default {
   data() {
     return {
-      user: user,
-      answer: answer,
-      questionId: this.$route.params.questionId,
-      userId: this.$route.params.questionId,
+      answers: [],
     };
+  },
+  mounted() {
+    this.getAnswer();
+  },
+  methods: {
+    getAnswer() {
+      axios.get(`/api/answer/${this.$route.params.questionId}`).then((res) => {
+        this.answers = res.data;
+      });
+    },
   },
 };
 </script>

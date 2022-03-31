@@ -10,16 +10,14 @@
 <script>
 export default {
   data() {
-    return {
-      index: "emp",
-    };
+    return {};
   },
   methods: {
     emp() {
-      this.index = "emp";
+      this.emitter.emit("emp", "emp");
     },
     edu() {
-      this.index = "edu";
+      this.emitter.emit("edu", "edu");
     },
   },
 };
