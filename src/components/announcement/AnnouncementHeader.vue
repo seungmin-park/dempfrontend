@@ -4,6 +4,9 @@
       <button v-on:click="emp">채용</button>
       <button v-on:click="edu">교육</button>
     </div>
+    <div>
+      <router-link :to="{ path: '/addAnnounce' }">글쓰기</router-link>
+    </div>
   </div>
 </template>
 

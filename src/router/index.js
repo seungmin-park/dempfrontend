@@ -17,6 +17,11 @@ const routes = [
     component: () => import("../views/announcement/AnnouncementDetail"),
   },
   {
+    path: "/addAnnounce",
+    name: "addAnnounce",
+    component: () => import("../views/announcement/AnnouncementWrite"),
+  },
+  {
     path: "/question",
     name: "question",
     component: () => import("../views/qusetion/QuestionList"),
