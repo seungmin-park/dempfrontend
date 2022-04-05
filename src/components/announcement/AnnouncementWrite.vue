@@ -1,93 +1,154 @@
 <template>
-  <div class="add-frame">
-    <form v-on:submit="saveAnnounce" enctype="multipart/form-data">
+  <form v-on:submit="saveAnnounce" enctype="multipart/form-data">
+    <div class="add-form">
       <div>
-        <label for="emp">
-          <input type="radio" id="emp" name="type" value="emp" v-model="type" />
-          채용
-        </label>
-        <label for="edu">
-          <input type="radio" id="edu" name="type" value="edu" v-model="type" />
-          교육
-        </label>
-        <label for="announce-title">제목: </label>
-        <input
-          type="text"
-          id="announce-title"
-          v-model="title"
-          placeholder="제목"
-        />
-        <label for="company">회사명: </label>
-        <input
-          type="text"
-          id="company"
-          v-model="company"
-          placeholder="회사명"
-        />
-        <label for="accessUrl">지원 페이지: </label>
-        <input
-          type="text"
-          id="accessUrl"
-          v-model="accessUrl"
-          placeholder="지원 페이지"
-        />
+        <table>
+          <tr>
+            <td>
+              <label for="announce-title">제목: </label>
+            </td>
+            <td>
+              <input
+                type="text"
+                id="announce-title"
+                v-model="title"
+                placeholder="제목"
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="company"> 회사/교육기관: </label>
+            </td>
+            <td>
+              <input
+                type="text"
+                id="company"
+                v-model="company"
+                placeholder="회사/교육기관"
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="accessUrl"> 지원 페이지: </label>
+            </td>
+            <td>
+              <input
+                type="text"
+                id="accessUrl"
+                v-model="accessUrl"
+                placeholder="지원 페이지"
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>종류 :</td>
+            <td>
+              <label for="emp">
+                채용 :
+                <input
+                  type="radio"
+                  id="emp"
+                  name="type"
+                  value="emp"
+                  v-model="type"
+                />
+              </label>
+              <label for="edu">
+                교육 :
+                <input
+                  type="radio"
+                  id="edu"
+                  name="type"
+                  value="edu"
+                  v-model="type"
+                />
+              </label>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="startedDate"> 지원기간: </label>
+            </td>
+            <td>
+              <input type="date" id="startedDate" v-model="startedDate" />
+              ~
+              <input type="date" id="deadLineDate" v-model="deadLineDate" />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="career"> 경력 : </label>
+            </td>
+            <td>
+              <select id="career" v-model="career">
+                <option value="">====경력====</option>
+                <option value="0">경력 무관</option>
+                <option value="1">1년 이상~ 3년 미만</option>
+                <option value="2">3년 이상 ~ 5년 미만</option>
+                <option value="3">5년 이상 ~ 7년 미만</option>
+                <option value="4">7년 이상 ~ 10년 미만</option>
+                <option value="5">10년 이상</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="position"> 분야 : </label>
+            </td>
+            <td>
+              <select id="position" v-model="position">
+                <option value="">====분야====</option>
+                <option
+                  v-for="position in positions"
+                  :key="position.id"
+                  :value="position"
+                >
+                  {{ position }}
+                </option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td>연봉/교육비:</td>
+            <td><input type="number" v-model="payment" id="payment" />만원</td>
+          </tr>
+          <tr>
+            <td>
+              <label for="announce_img"> 이미지: </label>
+            </td>
+            <td>
+              <input
+                type="file"
+                id="announce_img"
+                accept="image/*"
+                ref="announceImg"
+                @change="uploadImg"
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="content"> 내용 : </label>
+            </td>
+            <td>
+              <textarea
+                v-model="content"
+                id="content"
+                cols="30"
+                rows="10"
+              ></textarea>
+            </td>
+          </tr>
+        </table>
       </div>
-      <div class="career-down" @click="switchStatus">경력</div>
-      <div class="dropdown" v-if="careerStatus == true">
-        <div class="minCareer">
-          <label>
-            <input type="radio" name="minCareer" value="" />
-            전체
-          </label>
-        </div>
-        <div class="minCareer">
-          <label>
-            <input type="radio" name="minCareer" value="0" />
-            신입
-          </label>
-        </div>
-        <div class="minCareer">
-          <label>
-            <input type="radio" name="minCareer" value="1" />
-            1년 경력
-          </label>
-        </div>
-        <div class="minCareer">
-          <label>
-            <input type="radio" name="minCareer" value="2" />
-            2년 경력
-          </label>
-        </div>
+      <div class="form-action-button">
+        <button type="reset">취소</button>
+        <button type="submit">작성하기</button>
       </div>
-      <div>
-        <label for="startedDate">지원기간: </label>
-        <input type="date" id="startedDate" v-model="startedDate" />
-        ~
-        <input type="date" id="deadLineDate" v-model="deadLineDate" />
-        <label for="announce_img">이미지: </label>
-        <input
-          type="file"
-          id="announce_img"
-          accept="image/*"
-          ref="announceImg"
-          @change="uploadImg"
-        />
-        <label for="position">분야: </label>
-        <select id="position" v-model="position">
-          <option
-            v-for="position in positions"
-            :key="position.id"
-            :value="position"
-          >
-            {{ position }}
-          </option>
-        </select>
-        <label for="content">내용</label>
-        <textarea v-model="content" id="content" cols="30" rows="10"></textarea>
-      </div>
-      <button type="submit">login</button>
-    </form>
-  </div>
+    </div>
+  </form>
 </template>
 
 <script>
@@ -96,28 +157,26 @@ import axios from "axios";
 export default {
   data() {
     return {
-      careerStatus: false,
-      positions: positions,
-      company: "",
       title: "",
-      position: "",
-      content: "",
-      iamge: null,
-      deadLineDate: "",
-      type: "",
+      company: "",
       accessUrl: "",
+      type: "",
       startedDate: "",
+      deadLineDate: "",
+      career: "",
+      positions: positions,
+      position: "",
+      payment: 2400,
+      iamge: null,
+      content: "",
     };
   },
+  // created:function(){
+  //   this.$validator.extend('notBlank'{
+
+  //   })
+  // },
   methods: {
-    switchStatus() {
-      if (this.careerStatus) {
-        this.careerStatus = false;
-      } else {
-        this.careerStatus = true;
-      }
-      console.log(this.careerStatus);
-    },
     uploadImg() {
       this.image = this.$refs.announceImg.files[0];
       console.log(this.image);
@@ -142,7 +201,57 @@ export default {
 </script>
 
 <style>
-.dropdown {
-  background-color: aquamarine;
+.add-form {
+  display: flex;
+}
+
+textarea {
+  width: 500px;
+  height: 100vh;
+  resize: none;
+}
+
+input[type="text"] {
+  width: 500px;
+  height: 32px;
+  font-size: 15px;
+  border: 0;
+  border-radius: 15px;
+  outline: none;
+  padding-left: 10px;
+  background-color: rgb(233, 233, 233);
+}
+
+input[type="number"] {
+  width: 55px;
+  text-align: center;
+}
+
+option {
+  text-align: center;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+td:first-child {
+  text-align: right;
+  vertical-align: top;
+}
+
+.form-action-button button {
+  display: block;
+  color: white;
+  background-color: #a9cbdd;
+  width: 100px;
+  height: 41px;
+  border: none;
+  border-radius: 5px;
+  margin: 10px 10px 10px 10px;
+  font-size: 15px;
+  font-weight: 600;
 }
 </style>
