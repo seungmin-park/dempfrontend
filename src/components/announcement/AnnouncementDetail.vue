@@ -6,7 +6,7 @@
       </h1>
       <div class="detall-announce-info">
         <div class="detall-announce-info-img">
-          <!-- <img :src="require(`@/assets/${DetailAnnounce.image}`)" /> -->
+          <img :src="require(`@/assets/${DetailAnnounce.image}`)" />
         </div>
         <div class="detall-announce-info-location">
           <p>
@@ -76,13 +76,10 @@ export default {
   data() {
     return {
       DetailAnnounce: {
-        image: "",
+        image: "noimg.jpg",
         company: {
           name: "",
         },
-        payment: "",
-        position: "",
-        content: "",
       },
     };
   },
@@ -92,6 +89,8 @@ export default {
         .get(`/api/announce/detail/${this.$route.params.itemId}`)
         .then((res) => {
           this.DetailAnnounce = res.data;
+          console.log(this.DetailAnnounce);
+          console.log(this.DetailAnnounce.image.saveFileName);
         });
     },
   },

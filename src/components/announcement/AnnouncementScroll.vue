@@ -19,7 +19,7 @@
       :key="item.id"
     >
       <div class="anncoucement-scroll-items-img">
-        <!-- <img :src="require(`@/assets/${item.image}`)" alt="" /> -->
+        <img :src="require(`@/assets/${item.image}`)" alt="" />
       </div>
       <div class="anncoucement-scroll-items-description">
         <p class="item-title">{{ item.company.name }}</p>
