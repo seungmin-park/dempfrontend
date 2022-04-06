@@ -1,5 +1,5 @@
 <template>
-  <form v-on:submit="saveAnnounce" enctype="multipart/form-data">
+  <form v-on:submit="saveAnnounce" action="/" enctype="multipart/form-data">
     <div class="add-form">
       <div>
         <table>
@@ -43,6 +43,19 @@
             </td>
           </tr>
           <tr>
+            <td>
+              <label for="language"> 기술 스택 : </label>
+            </td>
+            <td>
+              <input
+                type="text"
+                id="language"
+                v-model="language"
+                placeholder="기술 스택"
+              />
+            </td>
+          </tr>
+          <tr>
             <td>종류 :</td>
             <td>
               <label for="emp">
@@ -72,9 +85,17 @@
               <label for="startedDate"> 지원기간: </label>
             </td>
             <td>
-              <input type="date" id="startedDate" v-model="startedDate" />
+              <input
+                type="datetime-local"
+                id="startedDate"
+                v-model="startedDate"
+              />
               ~
-              <input type="date" id="deadLineDate" v-model="deadLineDate" />
+              <input
+                type="datetime-local"
+                id="deadLineDate"
+                v-model="deadLineDate"
+              />
             </td>
           </tr>
           <tr>
@@ -84,12 +105,14 @@
             <td>
               <select id="career" v-model="career">
                 <option value="">====경력====</option>
-                <option value="0">경력 무관</option>
-                <option value="1">1년 이상~ 3년 미만</option>
-                <option value="2">3년 이상 ~ 5년 미만</option>
-                <option value="3">5년 이상 ~ 7년 미만</option>
-                <option value="4">7년 이상 ~ 10년 미만</option>
-                <option value="5">10년 이상</option>
+                <option value="경력 무관">경력 무관</option>
+                <option value="1년 이상~ 3년 미만">1년 이상~ 3년 미만</option>
+                <option value="3년 이상 ~ 5년 미만">3년 이상 ~ 5년 미만</option>
+                <option value="5년 이상 ~ 7년 미만">5년 이상 ~ 7년 미만</option>
+                <option value="7년 이상 ~ 10년 미만">
+                  7년 이상 ~ 10년 미만
+                </option>
+                <option value="10년 이상">10년 이상</option>
               </select>
             </td>
           </tr>
@@ -153,6 +176,7 @@
 
 <script>
 import positions from "../../data/positon";
+// import { extend } from "vee-validate";
 import axios from "axios";
 export default {
   data() {
@@ -164,6 +188,7 @@ export default {
       startedDate: "",
       deadLineDate: "",
       career: "",
+      language: "",
       positions: positions,
       position: "",
       payment: 2400,
@@ -171,30 +196,38 @@ export default {
       content: "",
     };
   },
-  // created:function(){
-  //   this.$validator.extend('notBlank'{
-
-  //   })
+  // created: function () {
+  //   extend("notBlank", {
+  //     validate(value) {
+  //       if (!value) {
+  //         return "{_field_}에 값이 비어있습니다.";
+  //       }
+  //     },
+  //   });
   // },
   methods: {
     uploadImg() {
       this.image = this.$refs.announceImg.files[0];
-      console.log(this.image);
     },
     saveAnnounce() {
       var announcement = new FormData();
       announcement.append("title", this.title);
       announcement.append("company", this.company);
+      announcement.append("accessUrl", this.accessUrl);
+      announcement.append("type", this.type);
+      announcement.append("startedDate", this.startedDate);
+      announcement.append("deadLineDate", this.deadLineDate);
+      announcement.append("career", this.career);
+      announcement.append("language", this.language);
+      announcement.append("payment", this.payment);
       announcement.append("position", this.position);
       announcement.append("content", this.content);
       announcement.append("image", this.image);
-      axios
-        .post("/api/announce/test", announcement, {
-          headers: {
-            "Content-type": "multipart/form-data",
-          },
-        })
-        .then((res) => console.log(res));
+      axios.post("/api/announce/test", announcement, {
+        headers: {
+          "Content-type": "multipart/form-data",
+        },
+      });
     },
   },
 };
