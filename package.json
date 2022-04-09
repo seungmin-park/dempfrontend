@@ -10,6 +10,7 @@
   "dependencies": {
     "@fortawesome/free-regular-svg-icons": "^6.1.0",
     "@fortawesome/vue-fontawesome": "^3.0.0-5",
+    "@vee-validate/rules": "^4.5.10",
     "axios": "^0.26.0",
     "babel-preset-es2015": "^6.24.1",
     "core-js": "^3.8.3",

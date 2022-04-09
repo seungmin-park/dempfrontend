@@ -1,5 +1,5 @@
 <template>
-  <form v-on:submit="saveAnnounce" action="/" enctype="multipart/form-data">
+  <Form @submit="saveAnnounce" action="/" enctype="multipart/form-data">
     <div class="add-form">
       <div>
         <table>
@@ -8,11 +8,18 @@
               <label for="announce-title">제목: </label>
             </td>
             <td>
-              <input
+              <Field
                 type="text"
                 id="announce-title"
+                name="announce-title"
                 v-model="title"
                 placeholder="제목"
+                rules="required"
+              />
+              <ErrorMessage
+                class="errorMessage"
+                name="announce-title"
+                as="div"
               />
             </td>
           </tr>
@@ -21,12 +28,15 @@
               <label for="company"> 회사/교육기관: </label>
             </td>
             <td>
-              <input
+              <Field
                 type="text"
                 id="company"
+                name="company"
                 v-model="company"
                 placeholder="회사/교육기관"
+                rules="required"
               />
+              <ErrorMessage class="errorMessage" name="company" as="div" />
             </td>
           </tr>
           <tr>
@@ -34,12 +44,15 @@
               <label for="accessUrl"> 지원 페이지: </label>
             </td>
             <td>
-              <input
+              <Field
                 type="text"
                 id="accessUrl"
+                name="accessUrl"
                 v-model="accessUrl"
                 placeholder="지원 페이지"
+                rules="required|url"
               />
+              <ErrorMessage class="errorMessage" name="accessUrl" as="div" />
             </td>
           </tr>
           <tr>
@@ -47,12 +60,15 @@
               <label for="language"> 기술 스택 : </label>
             </td>
             <td>
-              <input
+              <Field
                 type="text"
                 id="language"
+                name="language"
                 v-model="language"
                 placeholder="기술 스택"
+                rules="required"
               />
+              <ErrorMessage class="errorMessage" name="language" as="div" />
             </td>
           </tr>
           <tr>
@@ -60,23 +76,25 @@
             <td>
               <label for="emp">
                 채용 :
-                <input
+                <Field
                   type="radio"
                   id="emp"
                   name="type"
                   value="emp"
                   v-model="type"
+                  rules="required"
                 />
               </label>
               <label for="edu">
                 교육 :
-                <input
+                <Field
                   type="radio"
                   id="edu"
                   name="type"
                   value="edu"
                   v-model="type"
                 />
+                <ErrorMessage class="errorMessage" name="type" as="div" />
               </label>
             </td>
           </tr>
@@ -85,17 +103,23 @@
               <label for="startedDate"> 지원기간: </label>
             </td>
             <td>
-              <input
+              <Field
                 type="datetime-local"
                 id="startedDate"
+                name="startedDate"
                 v-model="startedDate"
+                rules="required"
               />
               ~
-              <input
+              <Field
                 type="datetime-local"
                 id="deadLineDate"
+                name="deadLineDate"
                 v-model="deadLineDate"
+                rules="required"
               />
+              <ErrorMessage class="errorMessage" name="startedDate" as="div" />
+              <ErrorMessage class="errorMessage" name="deadLineDate" as="div" />
             </td>
           </tr>
           <tr>
@@ -103,7 +127,13 @@
               <label for="career"> 경력 : </label>
             </td>
             <td>
-              <select id="career" v-model="career">
+              <Field
+                as="select"
+                name="career"
+                id="career"
+                v-model="career"
+                rules="required"
+              >
                 <option value="">====경력====</option>
                 <option value="경력 무관">경력 무관</option>
                 <option value="1년 이상~ 3년 미만">1년 이상~ 3년 미만</option>
@@ -113,7 +143,8 @@
                   7년 이상 ~ 10년 미만
                 </option>
                 <option value="10년 이상">10년 이상</option>
-              </select>
+              </Field>
+              <ErrorMessage class="errorMessage" name="career" as="div" />
             </td>
           </tr>
           <tr>
@@ -121,7 +152,13 @@
               <label for="position"> 분야 : </label>
             </td>
             <td>
-              <select id="position" v-model="position">
+              <Field
+                as="select"
+                name="position"
+                id="position"
+                v-model="position"
+                rules="required"
+              >
                 <option value="">====분야====</option>
                 <option
                   v-for="position in positions"
@@ -130,25 +167,38 @@
                 >
                   {{ position }}
                 </option>
-              </select>
+              </Field>
+              <ErrorMessage class="errorMessage" name="position" as="div" />
             </td>
           </tr>
           <tr>
             <td>연봉/교육비:</td>
-            <td><input type="number" v-model="payment" id="payment" />만원</td>
+            <td>
+              <Field
+                type="number"
+                v-model="payment"
+                id="payment"
+                name="payment"
+                rules="required|min_value:2400"
+              />만원
+              <ErrorMessage class="errorMessage" name="payment" as="div" />
+            </td>
           </tr>
           <tr>
             <td>
               <label for="announce_img"> 이미지: </label>
             </td>
             <td>
-              <input
+              <Field
                 type="file"
                 id="announce_img"
+                name="announce_img"
                 accept="image/*"
+                rules="image"
                 ref="announceImg"
                 @change="uploadImg"
               />
+              <ErrorMessage class="errorMessage" name="announce_img" as="div" />
             </td>
           </tr>
           <tr>
@@ -156,12 +206,16 @@
               <label for="content"> 내용 : </label>
             </td>
             <td>
-              <textarea
+              <Field
                 v-model="content"
                 id="content"
+                name="content"
                 cols="30"
                 rows="10"
-              ></textarea>
+                as="textarea"
+                rules="required"
+              ></Field>
+              <ErrorMessage class="errorMessage" name="content" as="div" />
             </td>
           </tr>
         </table>
@@ -171,14 +225,27 @@
         <button type="submit">작성하기</button>
       </div>
     </div>
-  </form>
+  </Form>
 </template>
 
 <script>
 import positions from "../../data/positon";
-// import { extend } from "vee-validate";
+import { Form, Field, ErrorMessage } from "vee-validate";
+import { defineRule } from "vee-validate";
+import { required, url, min_value, image } from "@vee-validate/rules";
 import axios from "axios";
+
+defineRule("required", required);
+defineRule("url", url);
+defineRule("min_value", min_value);
+defineRule("image", image);
+
 export default {
+  components: {
+    Form,
+    Field,
+    ErrorMessage,
+  },
   data() {
     return {
       title: "",
@@ -192,7 +259,7 @@ export default {
       positions: positions,
       position: "",
       payment: 2400,
-      iamge: null,
+      iamge: "noimg.jpg",
       content: "",
     };
   },
@@ -208,6 +275,12 @@ export default {
   methods: {
     uploadImg() {
       this.image = this.$refs.announceImg.files[0];
+    },
+    isRequired(value) {
+      if (value && value.trim()) {
+        return true;
+      }
+      return "해당 값은 필수 항목 입니다.";
     },
     saveAnnounce() {
       var announcement = new FormData();
@@ -286,5 +359,10 @@ td:first-child {
   margin: 10px 10px 10px 10px;
   font-size: 15px;
   font-weight: 600;
+}
+
+.errorMessage {
+  border: red;
+  color: red;
 }
 </style>
