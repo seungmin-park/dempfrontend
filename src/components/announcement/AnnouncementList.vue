@@ -27,11 +27,7 @@ export default {
   name: "demp-announcement",
   mounted() {
     {
-      this.emitter.on("emp", (e) => {
-        this.typeParam = e;
-        this.getAnnounce();
-      });
-      this.emitter.on("edu", (e) => {
+      this.emitter.on("type", (e) => {
         this.typeParam = e;
         this.getAnnounce();
       });

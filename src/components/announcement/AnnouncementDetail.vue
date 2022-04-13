@@ -56,9 +56,11 @@
         <p class="detall-announce-content-sub">
           경력 : {{ DetailAnnounce.career }}
         </p>
-        <p class="detall-announce-content-sub">
-          지원 자격 : {{ DetailAnnounce.content }}
-        </p>
+        지원 자격 :
+        <p
+          class="detall-announce-content-sub"
+          v-html="DetailAnnounce.content"
+        ></p>
       </span>
     </div>
   </main>

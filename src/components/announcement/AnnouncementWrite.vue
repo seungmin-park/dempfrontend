@@ -1,5 +1,5 @@
 <template>
-  <Form @submit="saveAnnounce" action="/" enctype="multipart/form-data">
+  <Form as="form" @submit="saveAnnounce" enctype="multipart/form-data">
     <div class="add-form">
       <div>
         <table>
@@ -16,11 +16,9 @@
                 placeholder="제목"
                 rules="required"
               />
-              <ErrorMessage
-                class="errorMessage"
-                name="announce-title"
-                as="div"
-              />
+              <ErrorMessage class="errorMessage" name="announce-title" as="div">
+                제목을 입력해 주세요.
+              </ErrorMessage>
             </td>
           </tr>
           <tr>
@@ -36,7 +34,9 @@
                 placeholder="회사/교육기관"
                 rules="required"
               />
-              <ErrorMessage class="errorMessage" name="company" as="div" />
+              <ErrorMessage class="errorMessage" name="company" as="div">
+                회사/교육기관을 입력해 주세요.
+              </ErrorMessage>
             </td>
           </tr>
           <tr>
@@ -52,7 +52,9 @@
                 placeholder="지원 페이지"
                 rules="required|url"
               />
-              <ErrorMessage class="errorMessage" name="accessUrl" as="div" />
+              <ErrorMessage class="errorMessage" name="accessUrl" as="div">
+                지원 페이지를 형식에 맞게 입력해 주세요.(https://)
+              </ErrorMessage>
             </td>
           </tr>
           <tr>
@@ -68,7 +70,9 @@
                 placeholder="기술 스택"
                 rules="required"
               />
-              <ErrorMessage class="errorMessage" name="language" as="div" />
+              <ErrorMessage class="errorMessage" name="language" as="div">
+                기술 스택을 입력해 주세요.
+              </ErrorMessage>
             </td>
           </tr>
           <tr>
@@ -94,7 +98,9 @@
                   value="edu"
                   v-model="type"
                 />
-                <ErrorMessage class="errorMessage" name="type" as="div" />
+                <ErrorMessage class="errorMessage" name="type" as="div">
+                  종류를 선택해 주세요.
+                </ErrorMessage>
               </label>
             </td>
           </tr>
@@ -118,8 +124,12 @@
                 v-model="deadLineDate"
                 rules="required"
               />
-              <ErrorMessage class="errorMessage" name="startedDate" as="div" />
-              <ErrorMessage class="errorMessage" name="deadLineDate" as="div" />
+              <ErrorMessage class="errorMessage" name="startedDate" as="div">
+                시작 기간을 지정해 주세요.
+              </ErrorMessage>
+              <ErrorMessage class="errorMessage" name="deadLineDate" as="div">
+                마감 기간을 지정해 주세요.
+              </ErrorMessage>
             </td>
           </tr>
           <tr>
@@ -144,7 +154,9 @@
                 </option>
                 <option value="10년 이상">10년 이상</option>
               </Field>
-              <ErrorMessage class="errorMessage" name="career" as="div" />
+              <ErrorMessage class="errorMessage" name="career" as="div">
+                경력 사항을 선택해 주세요.
+              </ErrorMessage>
             </td>
           </tr>
           <tr>
@@ -168,7 +180,9 @@
                   {{ position }}
                 </option>
               </Field>
-              <ErrorMessage class="errorMessage" name="position" as="div" />
+              <ErrorMessage class="errorMessage" name="position" as="div">
+                분야를 선택해 주세요.
+              </ErrorMessage>
             </td>
           </tr>
           <tr>
@@ -181,7 +195,9 @@
                 name="payment"
                 rules="required|min_value:2400"
               />만원
-              <ErrorMessage class="errorMessage" name="payment" as="div" />
+              <ErrorMessage class="errorMessage" name="payment" as="div">
+                연봉/교육비를 입력해 주세요.
+              </ErrorMessage>
             </td>
           </tr>
           <tr>
@@ -189,16 +205,14 @@
               <label for="announce_img"> 이미지: </label>
             </td>
             <td>
-              <Field
+              <input
                 type="file"
                 id="announce_img"
                 name="announce_img"
                 accept="image/*"
-                rules="image"
                 ref="announceImg"
                 @change="uploadImg"
               />
-              <ErrorMessage class="errorMessage" name="announce_img" as="div" />
             </td>
           </tr>
           <tr>
@@ -214,8 +228,11 @@
                 rows="10"
                 as="textarea"
                 rules="required"
+                wrap="hard"
               ></Field>
-              <ErrorMessage class="errorMessage" name="content" as="div" />
+              <ErrorMessage class="errorMessage" name="content" as="div">
+                내용을 입력해 주세요.
+              </ErrorMessage>
             </td>
           </tr>
         </table>
@@ -252,8 +269,8 @@ export default {
       company: "",
       accessUrl: "",
       type: "",
-      startedDate: "",
-      deadLineDate: "",
+      startedDate: null,
+      deadLineDate: null,
       career: "",
       language: "",
       positions: positions,
@@ -296,11 +313,18 @@ export default {
       announcement.append("position", this.position);
       announcement.append("content", this.content);
       announcement.append("image", this.image);
-      axios.post("/api/announce/test", announcement, {
-        headers: {
-          "Content-type": "multipart/form-data",
-        },
-      });
+      axios
+        .post("/api/announce/add", announcement, {
+          headers: {
+            "Content-type": "multipart/form-data",
+          },
+        })
+        .then(() => {
+          this.$router.push("/");
+        })
+        .catch((e) => {
+          console.log(e);
+        });
     },
   },
 };
@@ -362,7 +386,7 @@ td:first-child {
 }
 
 .errorMessage {
-  border: red;
+  display: flex;
   color: red;
 }
 </style>
