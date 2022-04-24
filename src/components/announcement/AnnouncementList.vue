@@ -27,8 +27,8 @@ export default {
   name: "demp-announcement",
   mounted() {
     {
-      this.emitter.on("type", (e) => {
-        this.typeParam = e;
+      this.emitter.on("announceSearchCondition", (e) => {
+        this.announceSearchCondition = e;
         this.getAnnounce();
       });
       this.getAnnounce();
@@ -37,13 +37,28 @@ export default {
   data() {
     return {
       BoardData: {},
-      typeParam: "",
+      announceSearchCondition: {
+        typeName: "",
+        positions: [],
+        // languages: [],
+        career: "",
+        payment: 0,
+        title: "",
+      },
     };
   },
   methods: {
     getAnnounce() {
       axios
-        .get("/api/announce", { params: { typeName: this.typeParam } })
+        .get("/api/announce", {
+          params: {
+            typeName: this.announceSearchCondition.typeName,
+            positions: this.announceSearchCondition.positions,
+            career: this.announceSearchCondition.career,
+            payment: this.announceSearchCondition.payment,
+            title: this.announceSearchCondition.title,
+          },
+        })
         .then((res) => {
           this.BoardData = res.data;
         });
