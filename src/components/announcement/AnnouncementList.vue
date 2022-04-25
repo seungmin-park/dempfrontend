@@ -27,8 +27,8 @@ export default {
   name: "demp-announcement",
   mounted() {
     {
-      this.emitter.on("announceSearchCondition", (e) => {
-        this.announceSearchCondition = e;
+      this.emitter.on("announcementSearchCondition", (e) => {
+        this.announcementSearchCondition = e;
         this.getAnnounce();
       });
       this.getAnnounce();
@@ -37,7 +37,7 @@ export default {
   data() {
     return {
       BoardData: {},
-      announceSearchCondition: {
+      announcementSearchCondition: {
         typeName: "",
         positions: [],
         // languages: [],
@@ -52,11 +52,11 @@ export default {
       axios
         .get("/api/announce", {
           params: {
-            typeName: this.announceSearchCondition.typeName,
-            positions: this.announceSearchCondition.positions,
-            career: this.announceSearchCondition.career,
-            payment: this.announceSearchCondition.payment,
-            title: this.announceSearchCondition.title,
+            typeName: this.announcementSearchCondition.typeName,
+            positions: this.announcementSearchCondition.positions.join(","),
+            career: this.announcementSearchCondition.career,
+            payment: this.announcementSearchCondition.payment,
+            title: this.announcementSearchCondition.title,
           },
         })
         .then((res) => {
