@@ -56,7 +56,12 @@ export default {
 <style>
 body {
   margin: 0;
-  width: 100vw;
-  height: 100vh;
+}
+
+button {
+  cursor: pointer;
+}
+img {
+  cursor: pointer;
 }
 </style>

@@ -71,17 +71,6 @@
                   <input
                     type="radio"
                     name="career"
-                    :value="null"
-                    v-model="announcementSearchCondition.career"
-                  />
-                  전체
-                </label>
-              </div>
-              <div class="dropdown-item">
-                <label>
-                  <input
-                    type="radio"
-                    name="career"
                     :value="0"
                     v-model="announcementSearchCondition.career"
                   />
@@ -119,7 +108,7 @@
                   <input
                     type="radio"
                     name="payment"
-                    :value="null"
+                    :value="0"
                     v-model="announcementSearchCondition.payment"
                   />
                   전체
@@ -151,9 +140,79 @@
           />
         </div>
       </div>
-    </div>
-    <div>
-      <router-link :to="{ path: '/addAnnounce' }">글쓰기</router-link>
+      <div class="search-condition-selected">
+        <span
+          class="selected-condition-element element-typeName"
+          v-if="announcementSearchCondition.typeName"
+        >
+          {{
+            announcementSearchCondition.typeName == "emp"
+              ? "채용 공고"
+              : "부트캠프"
+          }}
+          <button
+            class="delete-condition"
+            @click="
+              () => {
+                announcementSearchCondition.typeName = ``;
+                this.changeCondition();
+              }
+            "
+          >
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </span>
+        <span
+          class="selected-condition-element element-position"
+          v-for="position in announcementSearchCondition.positions"
+          :key="position.id"
+        >
+          {{ position }}
+          <button class="delete-condition" @click="removePosition(position)">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </span>
+        <span
+          class="selected-condition-element element-career"
+          v-if="announcementSearchCondition.career"
+        >
+          {{ announcementSearchCondition.career }}년 경력
+          <button
+            class="delete-condition"
+            @click="
+              () => {
+                announcementSearchCondition.career = ``;
+                this.changeCondition();
+              }
+            "
+          >
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </span>
+        <span
+          class="selected-condition-element element-payment"
+          v-if="announcementSearchCondition.payment != 0"
+        >
+          {{ announcementSearchCondition.payment.toLocaleString("ko-KR") }} 이상
+          <button
+            class="delete-condition"
+            @click="
+              () => {
+                announcementSearchCondition.payment = 0;
+                this.changeCondition();
+              }
+            "
+          >
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </span>
+        <span class="selected-condition-element element-init">
+          전체 초기화
+          <button class="delete-condition" @click="initCondition">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </span>
+      </div>
     </div>
   </div>
 </template>
@@ -216,6 +275,25 @@ export default {
         this.paymentStatus = true;
       }
     },
+    initCondition() {
+      this.announcementSearchCondition = {
+        typeName: "",
+        positions: [],
+        // languages: [],
+        career: "",
+        payment: 0,
+        title: "",
+      };
+      this.changeCondition();
+    },
+    removePosition(position) {
+      console.log(position);
+      this.announcementSearchCondition.positions =
+        this.announcementSearchCondition.positions.filter(
+          (element) => element !== position
+        );
+      this.changeCondition();
+    },
   },
 };
 </script>
@@ -223,6 +301,7 @@ export default {
 <style scoped>
 .search-condition {
   padding: 25px;
+  margin-right: 10px;
 }
 
 .search-condition-second {
@@ -241,7 +320,6 @@ export default {
   background-color: white;
   border-radius: 5px;
   border: 1px solid rgba(0, 0, 0, 0.5);
-  padding: 0px 10px 0px 10px;
 }
 
 ul {
@@ -303,5 +381,54 @@ li {
 .career-btn,
 .payment-btn {
   width: 200px;
+}
+
+.search-condition-selected {
+  display: flex;
+  align-items: center;
+  height: 45px;
+  margin-top: 10px;
+}
+
+.selected-condition-element {
+  border: none;
+  padding: 10px 5px 10px 5px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-right: 15px;
+}
+
+.element-typeName,
+.element-typeName i {
+  background-color: #ffd3ae;
+  color: #ff6a00;
+}
+
+.element-position,
+.element-position i {
+  background-color: #e0d0f0;
+  color: #a585d4;
+}
+.element-career,
+.element-career i {
+  background-color: #faebd6;
+  color: #efb870;
+}
+.element-payment,
+.element-payment i {
+  background-color: #e0f2f1;
+  color: #00a2b4;
+}
+
+.delete-condition,
+.element-condition i {
+  background-color: inherit;
+  border: none;
+  padding: 0;
+}
+.element-init,
+.element-init i {
+  background-color: #cfc6ca;
 }
 </style>

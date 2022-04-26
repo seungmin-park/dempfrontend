@@ -45,10 +45,12 @@ export default {
         payment: 0,
         title: "",
       },
+      totalPage: 0,
     };
   },
   methods: {
     getAnnounce() {
+      console.log("페이지 파라미터", this.$route.query.page);
       axios
         .get("/api/announce", {
           params: {
@@ -57,11 +59,21 @@ export default {
             career: this.announcementSearchCondition.career,
             payment: this.announcementSearchCondition.payment,
             title: this.announcementSearchCondition.title,
+            page: this.$route.query.page - 1,
+            size: 12,
           },
         })
         .then((res) => {
-          this.BoardData = res.data;
+          this.BoardData = res.data.result;
+          this.totalPage = res.data.pageNum;
+          if (this.totalPage > this.$route.query.page) {
+            this.$router.push("/?page=1");
+          }
+          this.getTotalPage();
         });
+    },
+    getTotalPage() {
+      this.emitter.emit("totalPage", this.totalPage);
     },
   },
   watch: {
@@ -77,6 +89,7 @@ main {
   display: flex;
   width: 100%;
   float: left;
+  flex-wrap: wrap;
 }
 
 .item-image-box {
@@ -98,7 +111,7 @@ main {
   display: table;
   border: 1px solid rgba(0, 0, 0, 0.5);
   border-radius: 15px;
-  margin: 0 15px 0px 15px;
+  margin: 0 15px 25px 15px;
   box-sizing: border-box;
 }
 
