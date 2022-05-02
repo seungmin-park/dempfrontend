@@ -220,26 +220,20 @@
               <label for="content"> 내용 : </label>
             </td>
             <td>
-              <Field
+              <textarea
                 v-model="content"
                 id="content"
                 name="content"
-                cols="30"
-                rows="10"
                 as="textarea"
-                rules="required"
                 wrap="hard"
-              ></Field>
-              <ErrorMessage class="errorMessage" name="content" as="div">
-                내용을 입력해 주세요.
-              </ErrorMessage>
+              ></textarea>
             </td>
           </tr>
         </table>
       </div>
       <div class="form-action-button">
         <button type="reset">취소</button>
-        <button type="submit">작성하기</button>
+        <button type="submit" @click="writeSummer">작성하기</button>
       </div>
     </div>
   </Form>
@@ -258,6 +252,23 @@ defineRule("min_value", min_value);
 defineRule("image", image);
 
 export default {
+  mounted() {
+    // eslint-disable-next-line
+    $("#content").summernote({
+      height: 800,
+      minHeight: null,
+      maxHeight: null,
+      focus: true,
+      toolbar: [
+        ["style", ["bold", "italic", "underline", "clear"]],
+        ["font", ["strikethrough", "superscript", "subscript", "forecolor"]],
+        ["fontsize", ["fontsize"]],
+        ["color", ["color"]],
+        ["para", ["ul", "ol", "paragraph"]],
+        ["height", ["height"]],
+      ],
+    });
+  },
   components: {
     Form,
     Field,
@@ -290,16 +301,18 @@ export default {
   //   });
   // },
   methods: {
-    uploadImg() {
-      this.image = this.$refs.announceImg.files[0];
-    },
     isRequired(value) {
       if (value && value.trim()) {
         return true;
       }
       return "해당 값은 필수 항목 입니다.";
     },
+    uploadImg() {
+      this.image = this.$refs.announceImg.files[0];
+    },
     saveAnnounce() {
+      // eslint-disable-next-line
+      this.content = $("#content").summernote("code");
       var announcement = new FormData();
       announcement.append("title", this.title);
       announcement.append("company", this.company);

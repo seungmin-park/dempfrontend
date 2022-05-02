@@ -5,6 +5,79 @@
   />
   <div>
     <div class="search-condition" @change="changeCondition">
+      <div class="search-condition-selected">
+        <span class="selected-condition-element element-init">
+          전체 초기화
+          <button class="delete-condition" @click="initCondition">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </span>
+        <span
+          class="selected-condition-element element-typeName"
+          v-if="announcementSearchCondition.typeName"
+        >
+          {{
+            announcementSearchCondition.typeName == "emp"
+              ? "채용 공고"
+              : "부트캠프"
+          }}
+          <button
+            class="delete-condition"
+            @click="
+              () => {
+                announcementSearchCondition.typeName = ``;
+                this.changeCondition();
+              }
+            "
+          >
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </span>
+        <span
+          class="selected-condition-element element-position"
+          v-for="position in announcementSearchCondition.positions"
+          :key="position.id"
+        >
+          {{ position }}
+          <button class="delete-condition" @click="removePosition(position)">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </span>
+        <span
+          class="selected-condition-element element-career"
+          v-if="announcementSearchCondition.career"
+        >
+          {{ announcementSearchCondition.career }}년 경력
+          <button
+            class="delete-condition"
+            @click="
+              () => {
+                announcementSearchCondition.career = ``;
+                this.changeCondition();
+              }
+            "
+          >
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </span>
+        <span
+          class="selected-condition-element element-payment"
+          v-if="announcementSearchCondition.payment != 0"
+        >
+          {{ announcementSearchCondition.payment.toLocaleString("ko-KR") }} 이상
+          <button
+            class="delete-condition"
+            @click="
+              () => {
+                announcementSearchCondition.payment = 0;
+                this.changeCondition();
+              }
+            "
+          >
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </span>
+      </div>
       <div class="search-condition-first">
         <label for="emp">
           <input
@@ -38,7 +111,6 @@
               ><i class="fa-solid fa-angle-down"></i
             ></span>
           </button>
-
           <div class="dropdown-menu" v-if="positionStatus">
             <div class="dropdown-item-wraper">
               <ul>
@@ -140,79 +212,6 @@
           />
         </div>
       </div>
-      <div class="search-condition-selected">
-        <span
-          class="selected-condition-element element-typeName"
-          v-if="announcementSearchCondition.typeName"
-        >
-          {{
-            announcementSearchCondition.typeName == "emp"
-              ? "채용 공고"
-              : "부트캠프"
-          }}
-          <button
-            class="delete-condition"
-            @click="
-              () => {
-                announcementSearchCondition.typeName = ``;
-                this.changeCondition();
-              }
-            "
-          >
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
-        </span>
-        <span
-          class="selected-condition-element element-position"
-          v-for="position in announcementSearchCondition.positions"
-          :key="position.id"
-        >
-          {{ position }}
-          <button class="delete-condition" @click="removePosition(position)">
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
-        </span>
-        <span
-          class="selected-condition-element element-career"
-          v-if="announcementSearchCondition.career"
-        >
-          {{ announcementSearchCondition.career }}년 경력
-          <button
-            class="delete-condition"
-            @click="
-              () => {
-                announcementSearchCondition.career = ``;
-                this.changeCondition();
-              }
-            "
-          >
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
-        </span>
-        <span
-          class="selected-condition-element element-payment"
-          v-if="announcementSearchCondition.payment != 0"
-        >
-          {{ announcementSearchCondition.payment.toLocaleString("ko-KR") }} 이상
-          <button
-            class="delete-condition"
-            @click="
-              () => {
-                announcementSearchCondition.payment = 0;
-                this.changeCondition();
-              }
-            "
-          >
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
-        </span>
-        <span class="selected-condition-element element-init">
-          전체 초기화
-          <button class="delete-condition" @click="initCondition">
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
-        </span>
-      </div>
     </div>
   </div>
 </template>
@@ -247,6 +246,9 @@ export default {
         "announcementSearchCondition",
         this.announcementSearchCondition
       );
+      this.positionStatus = false;
+      this.careerStatus = false;
+      this.paymentStatus = false;
     },
     changePositionStatus() {
       if (this.positionStatus) {
