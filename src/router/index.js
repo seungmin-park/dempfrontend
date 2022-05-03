@@ -34,6 +34,11 @@ const routes = [
     name: "questions",
     component: () => import("../views/qusetion/QuestionDetail"),
   },
+  {
+    path: "/questions/new",
+    name: "addQuestion",
+    component: () => import("../views/qusetion/QuestionWrite"),
+  },
 ];
 
 export const router = createRouter({
