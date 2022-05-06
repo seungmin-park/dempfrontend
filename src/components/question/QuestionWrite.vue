@@ -41,9 +41,9 @@
         :placeholder="`#해시태그를작성하세요`"
         v-on:addHashtags="addHashtags"
       ></hashtags>
-      <div class="form-action-button">
+      <div class="question-form-action-button">
         <button type="reset">취소</button>
-        <button type="submit" @click="writeSummer">작성하기</button>
+        <button type="submit">작성하기</button>
       </div>
     </div>
   </Form>
@@ -152,7 +152,11 @@ td:first-child {
   vertical-align: top;
 }
 
-.form-action-button button {
+.question-form-action-button {
+  display: flex;
+}
+
+.question-form-action-button button {
   display: block;
   color: white;
   background-color: #a9cbdd;

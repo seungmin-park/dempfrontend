@@ -233,7 +233,7 @@
       </div>
       <div class="form-action-button">
         <button type="reset">취소</button>
-        <button type="submit" @click="writeSummer">작성하기</button>
+        <button type="submit">작성하기</button>
       </div>
     </div>
   </Form>

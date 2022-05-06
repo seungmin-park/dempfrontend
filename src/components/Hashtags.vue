@@ -175,7 +175,7 @@ export default {
   border: 1px solid #ddd;
   border-radius: 4px;
   min-height: 40px;
-  margin: 100px auto;
+  margin: 10px auto;
   text-align: left;
   box-sizing: border-box;
 
