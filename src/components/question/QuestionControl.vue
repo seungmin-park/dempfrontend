@@ -43,7 +43,7 @@ export default {
       });
     },
     print() {
-      console.log(this.searchTags);
+      this.emitter.emit("getByHashtags", this.searchTags);
     },
   },
 };

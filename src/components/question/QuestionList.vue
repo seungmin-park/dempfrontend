@@ -23,17 +23,22 @@ export default {
   data() {
     return {
       orderBy: this.$route.query.orderBy,
+      hashtags: [],
       questions: [],
     };
   },
   mounted() {
+    this.emitter.on("getByHashtags", (e) => {
+      this.hashtags = e;
+      this.getQuestions();
+    });
     this.getQuestions();
   },
   methods: {
     getQuestions() {
       axios
         .get("/api/question", {
-          params: { orderBy: this.orderBy },
+          params: { orderBy: this.orderBy, hashtags: this.hashtags.join(",") },
         })
         .then((res) => {
           this.questions = res.data;
