@@ -91,16 +91,16 @@ export default {
         .get(`/api/announce/detail/${this.$route.params.itemId}`)
         .then((res) => {
           this.DetailAnnounce = res.data;
-          console.log(this.DetailAnnounce);
-          console.log(this.DetailAnnounce.image.saveFileName);
         });
     },
   },
-  // watch: {
-  //   DetailAnnounce: function () {
-  //     this.getDetailAnnounce();
-  //   },
-  // },
+  watch: {
+    $route: {
+      handler() {
+        this.getDetailAnnounce();
+      },
+    },
+  },
 };
 </script>
 

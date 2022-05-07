@@ -25,9 +25,6 @@ const routes = [
     path: "/question",
     name: "question",
     component: () => import("../views/qusetion/QuestionList"),
-    // props: (route) => ({
-    //   orderBy: route.query.orderBy,
-    // }),
   },
   {
     path: "/questions/:questionId",

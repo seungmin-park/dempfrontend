@@ -22,12 +22,16 @@ import axios from "axios";
 export default {
   data() {
     return {
-      orderBy: this.$route.query.orderBy,
+      orderBy: "",
+      title: "",
+      content: "",
       hashtags: [],
       questions: [],
     };
   },
   mounted() {
+    if (this.$route.query.orderBy != null)
+      this.orderBy = this.$route.query.orderBy;
     this.emitter.on("getByHashtags", (e) => {
       this.hashtags = e;
       this.getQuestions();
@@ -38,7 +42,12 @@ export default {
     getQuestions() {
       axios
         .get("/api/question", {
-          params: { orderBy: this.orderBy, hashtags: this.hashtags.join(",") },
+          params: {
+            orderBy: this.orderBy,
+            title: this.title,
+            content: this.content,
+            hashtags: this.hashtags.join(","),
+          },
         })
         .then((res) => {
           this.questions = res.data;
@@ -46,8 +55,11 @@ export default {
     },
   },
   watch: {
-    orderBy: function () {
-      this.getQuestions();
+    $route: {
+      handler(newValue) {
+        this.orderBy = newValue.query.orderBy;
+        this.getQuestions();
+      },
     },
   },
 };
