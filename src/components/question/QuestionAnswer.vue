@@ -5,13 +5,23 @@
         🙋‍♂️ 작성자 : {{ answer.username }}
       </div>
       <div class="question-answer-info-content">
-        <pre>{{ answer.content }}</pre>
+        <span v-html="answer.content"></span>
       </div>
     </div>
     <div class="question-answer-reaction">
       <button>👍{{ answer.recomend }}</button>
       <button>👎{{ answer.dislike }}</button>
     </div>
+  </div>
+  <div>
+    <textarea
+      v-model="answer"
+      id="answer"
+      name="answer"
+      as="textarea"
+      wrap="hard"
+    ></textarea>
+    <button type="submit" @click="saveAnswer">댓글 달기</button>
   </div>
 </template>
 
@@ -21,15 +31,49 @@ export default {
   data() {
     return {
       answers: [],
+      answer: "",
+      answerForm: {
+        memberEmail: "",
+        questionId: 0,
+        answerContent: "",
+      },
     };
   },
   mounted() {
     this.getAnswer();
+    this.initSummernote();
   },
   methods: {
     getAnswer() {
       axios.get(`/api/answer/${this.$route.params.questionId}`).then((res) => {
         this.answers = res.data;
+      });
+    },
+    saveAnswer() {
+      // eslint-disable-next-line
+      this.answerForm.answerContent = $("#answer").summernote("code");
+      this.answerForm.questionId = this.$route.params.questionId;
+      this.answerForm.memberEmail = "memberB@memberB";
+      axios.post(`/api/answer/save`, this.answerForm).then((res) => {
+        this.answers = res.data;
+      });
+    },
+    initSummernote() {
+      // eslint-disable-next-line
+      $("#answer").summernote({
+        height: 250,
+        width: 1250,
+        minHeight: null,
+        maxHeight: null,
+        focus: true,
+        toolbar: [
+          ["style", ["bold", "italic", "underline", "clear"]],
+          ["font", ["strikethrough", "superscript", "subscript", "forecolor"]],
+          ["fontsize", ["fontsize"]],
+          ["color", ["color"]],
+          ["para", ["ul", "ol", "paragraph"]],
+          ["height", ["height"]],
+        ],
       });
     },
   },

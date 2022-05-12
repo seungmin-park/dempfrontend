@@ -32,6 +32,8 @@ export default {
   mounted() {
     if (this.$route.query.orderBy != null)
       this.orderBy = this.$route.query.orderBy;
+    if (this.$route.query.hashtags != null)
+      this.hashtags.push(this.$route.query.hashtags);
     this.emitter.on("getByHashtags", (e) => {
       this.hashtags = e;
       this.getQuestions();
@@ -58,6 +60,7 @@ export default {
     $route: {
       handler(newValue) {
         this.orderBy = newValue.query.orderBy;
+        this.hashtags = [newValue.query.hashtags];
         this.getQuestions();
       },
     },

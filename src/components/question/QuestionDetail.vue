@@ -20,12 +20,13 @@
     <div class="qusetion-detail-content">
       <span v-html="question.content"></span>
       <div>
-        <span
+        <router-link
           class="hashtags"
-          v-for="hastag in question.hashtags"
-          :key="hastag"
-          v-text="`#${hastag}`"
-        ></span>
+          v-for="hashtag in question.hashtags"
+          :key="hashtag"
+          v-text="`#${hashtag}`"
+          :to="{ name: 'question', query: { hashtags: hashtag } }"
+        ></router-link>
       </div>
     </div>
   </div>
@@ -64,6 +65,9 @@ export default {
           this.question = res.data;
         });
     },
+    testMethod(hashtag) {
+      this.emitter.emit("getByHashtags", [hashtag]);
+    },
   },
 };
 </script>
@@ -97,5 +101,8 @@ export default {
   border-radius: 10px;
   font-size: 15px;
   padding: 5px 10px 5px 10px;
+}
+a:visited {
+  text-decoration: none;
 }
 </style>

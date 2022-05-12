@@ -4,7 +4,10 @@
     <span>
       <a href="/">공고</a>
       <router-link
-        :to="{ path: '/question', query: { orderBy: 'createdDate' } }"
+        :to="{
+          path: '/question',
+          query: { orderBy: 'createdDate', hashtags: '' },
+        }"
       >
         면접 질문
       </router-link>
