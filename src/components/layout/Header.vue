@@ -11,19 +11,22 @@
       >
         면접 질문
       </router-link>
-      <div
-        id="g_id_onload"
-        data-client_id="YOUR_CLIENT_ID"
-        data-callback="handleCredentialResponse"
-      ></div>
-      <div class="g_id_signin" data-type="standard"></div>
+      <button id="login" @click="redirectGithubLogin">LOGIN WITH GITHUB</button>
     </span>
   </header>
 </template>
 
 <script>
+import axios from "axios";
 export default {
   name: "demp-header",
+  methods: {
+    redirectGithubLogin() {
+      axios.get("/api/auth/github").then((res) => {
+        window.location.href = res.data;
+      });
+    },
+  },
 };
 </script>
 
