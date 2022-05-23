@@ -35,11 +35,16 @@ export default {
       hashtags: [],
     };
   },
+  mounted() {
+    this.getHashtags();
+  },
   methods: {
     visibleHashtags() {
+      this.visible = this.visible ? false : true;
+    },
+    getHashtags() {
       axios.get("/api/question/hashtags").then((res) => {
         this.hashtags = res.data;
-        this.visible = true;
       });
     },
     print() {
