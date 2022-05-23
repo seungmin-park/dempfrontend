@@ -252,6 +252,11 @@ defineRule("min_value", min_value);
 defineRule("image", image);
 
 export default {
+  created(){
+    if (!this.$store.state.token) {
+      this.$router.push("/login");
+    }
+  },
   mounted() {
     // eslint-disable-next-line
     $("#content").summernote({
@@ -329,6 +334,7 @@ export default {
       axios
         .post("/api/announce/add", announcement, {
           headers: {
+              "X-AUTH-TOKEN": this.$store.state.token,
             "Content-type": "multipart/form-data",
           },
         })

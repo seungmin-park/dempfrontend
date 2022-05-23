@@ -48,6 +48,13 @@ export default {
       },
     };
   },
+  created(){
+    if (this.$store.state.token == "") {
+      this.$router.replace({
+        path: "/login",
+        query: { redirect: this.$router.currentRoute.value.fullPath },
+      });
+    }},
   mounted() {
     this.getQuestion();
   },
@@ -60,7 +67,11 @@ export default {
     },
     getQuestion() {
       axios
-        .get(`/api/question/${this.$route.params.questionId}`)
+        .get(`/api/question/detail/${this.$route.params.questionId}`,{
+          headers:{
+            'X-AUTH-TOKEN': this.$store.state.token
+          },
+        })
         .then((res) => {
           this.question = res.data;
         });

@@ -11,7 +11,9 @@
       >
         면접 질문
       </router-link>
-      <button id="login" @click="redirectGithubLogin">LOGIN WITH GITHUB</button>
+      <!-- <button id="login" @click="redirectGithubLogin">LOGIN WITH GITHUB</button> -->
+      <button v-if="this.$store.state.token == ``" id="login" @click="redirectLogin">로그인</button>
+      <button v-else id="logout" @click="logout">로그아웃</button>
     </span>
   </header>
 </template>
@@ -25,6 +27,12 @@ export default {
       axios.get("/api/auth/github").then((res) => {
         window.location.href = res.data;
       });
+    },
+    redirectLogin() {
+      this.$router.push("/login");
+    },
+    logout(){
+      this.$store.commit("logout");
     },
   },
 };
@@ -50,7 +58,7 @@ export default {
   font-weight: 600;
 }
 
-#login {
+#login, #logout{
   border: none;
   height: 30px;
 }

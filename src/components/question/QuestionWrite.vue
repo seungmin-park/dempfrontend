@@ -92,6 +92,7 @@ export default {
       questionForm: {
         title: "",
         content: "",
+        username:this.$store.state.username,
         hashtags: [],
       },
     };
@@ -110,6 +111,7 @@ export default {
       axios
         .post("/api/question/add", this.questionForm, {
           headers: {
+          'X-AUTH-TOKEN': this.$store.state.token,
             "Content-Type": `application/json`,
           },
         })

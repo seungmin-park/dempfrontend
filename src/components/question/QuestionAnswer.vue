@@ -33,7 +33,7 @@ export default {
       answers: [],
       answer: "",
       answerForm: {
-        memberEmail: "",
+        username: "",
         questionId: 0,
         answerContent: "",
       },
@@ -45,7 +45,11 @@ export default {
   },
   methods: {
     getAnswer() {
-      axios.get(`/api/answer/${this.$route.params.questionId}`).then((res) => {
+      axios.get(`/api/answer/${this.$route.params.questionId}`,{
+        headers:{
+          'X-AUTH-TOKEN': this.$store.state.token
+        },
+      }).then((res) => {
         this.answers = res.data;
       });
     },
@@ -53,8 +57,12 @@ export default {
       // eslint-disable-next-line
       this.answerForm.answerContent = $("#answer").summernote("code");
       this.answerForm.questionId = this.$route.params.questionId;
-      this.answerForm.memberEmail = "memberB@memberB";
-      axios.post(`/api/answer/save`, this.answerForm).then((res) => {
+      this.answerForm.username = this.$store.state.username;
+      axios.post(`/api/answer/save`, this.answerForm,{
+        headers:{
+          "X-AUTH-TOKEN": this.$store.state.token,
+        },
+      }).then((res) => {
         this.answers = res.data;
       });
     },

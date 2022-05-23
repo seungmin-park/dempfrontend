@@ -70,6 +70,13 @@
 import axios from "axios";
 
 export default {
+  created(){
+    if (this.$store.state.token == "") {
+      this.$router.replace({
+        path: "/login",
+        query: { redirect: this.$router.currentRoute.value.fullPath },
+      });
+  }},
   mounted() {
     {
       this.getDetailAnnounce();
@@ -88,7 +95,11 @@ export default {
   methods: {
     getDetailAnnounce() {
       axios
-        .get(`/api/announce/detail/${this.$route.params.itemId}`)
+        .get(`/api/announce/detail/${this.$route.params.itemId}`, {
+          headers: {
+            "X-AUTH-TOKEN": this.$store.state.token,
+          },
+        })
         .then((res) => {
           this.DetailAnnounce = res.data;
         });
