@@ -7,6 +7,16 @@ const routes = [
     component: () => import("../views/announcement/AnnouncementList"),
   },
   {
+    path: "/login",
+    name: "TestLoginForm",
+    component: () => import("@/components/TestLoginForm"),
+  },
+  {
+    path: "/account",
+    name: "TestAccountForm",
+    component: () => import("@/components/TestAccountForm"),
+  },
+  {
     path: "/hello",
     name: "hello",
     component: () => import("@/components/HelloWorld"),
