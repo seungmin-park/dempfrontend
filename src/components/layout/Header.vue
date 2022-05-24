@@ -29,10 +29,12 @@ export default {
       });
     },
     redirectLogin() {
-      this.$router.push("/login");
+      this.$router.push({path:"/login",
+        query: { redirect: this.$router.currentRoute.value.fullPath}});
     },
     logout(){
       this.$store.commit("logout");
+      this.$router.push("/");
     },
   },
 };

@@ -23,7 +23,7 @@
           rules="required"
         />
         <ErrorMessage class="errorMessage" name="password" as="div">
-          password
+          비밀번호를 입력해 주세요.
         </ErrorMessage>
       </div>
       <button type="submit">로그인</button>
@@ -60,8 +60,6 @@ export default {
   mounted() {
     if (this.$route.query){
       this.redirect = this.$route.query.redirect;
-    } else {
-      this.redirect = "/";
     }
   },
   methods: {
@@ -76,10 +74,13 @@ export default {
           },
         })
         .then((res) => {
-          this.token = res.data.jwt;
-          this.$store.commit("setToken", this.token);
+          this.$store.commit("setToken", res.data.jwt);
           this.$store.commit("setUsername", res.data.username);
-          this.$router.push({path: this.redirect});
+          if (this.redirect == "") {
+            this.$router.push("/");
+          } else {
+            this.$router.push({path: this.redirect});
+          }
         });
     },
   },

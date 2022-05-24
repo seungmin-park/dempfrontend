@@ -63,6 +63,13 @@ defineRule("min_value", min_value);
 defineRule("image", image);
 
 export default {
+  created(){
+    if (this.$store.state.token == "") {
+      this.$router.replace({
+        path: "/login",
+        query: { redirect: this.$router.currentRoute.value.fullPath },
+      });
+    }},
   mounted() {
     // eslint-disable-next-line
     $("#content").summernote({
