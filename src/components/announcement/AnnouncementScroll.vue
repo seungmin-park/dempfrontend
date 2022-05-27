@@ -47,7 +47,7 @@ export default {
     getScroll() {
       axios.get("/api/announce/scroll",{
         headers: {
-          "X-AUTH-TOKEN": this.$store.state.token,
+          "X-AUTH-TOKEN": this.$store.state.Login.token,
         },
       }).then((res) => {
         this.announcement = res.data;

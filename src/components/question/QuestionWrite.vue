@@ -64,7 +64,7 @@ defineRule("image", image);
 
 export default {
   created(){
-    if (this.$store.state.token == "") {
+    if (this.$store.state.Login.token == "") {
       this.$router.replace({
         path: "/login",
         query: { redirect: this.$router.currentRoute.value.fullPath },
@@ -99,7 +99,7 @@ export default {
       questionForm: {
         title: "",
         content: "",
-        username:this.$store.state.username,
+        username:this.$store.state.Login.username,
         hashtags: [],
       },
     };
@@ -118,7 +118,7 @@ export default {
       axios
         .post("/api/question/add", this.questionForm, {
           headers: {
-          'X-AUTH-TOKEN': this.$store.state.token,
+          'X-AUTH-TOKEN': this.$store.state.Login.token,
             "Content-Type": `application/json`,
           },
         })

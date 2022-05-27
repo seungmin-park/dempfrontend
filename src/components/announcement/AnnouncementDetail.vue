@@ -71,7 +71,7 @@ import axios from "axios";
 
 export default {
   created(){
-    if (this.$store.state.token == "") {
+    if (this.$store.state.Login.token == "") {
       this.$router.replace({
         path: "/login",
         query: { redirect: this.$router.currentRoute.value.fullPath },
@@ -97,7 +97,7 @@ export default {
       axios
         .get(`/api/announce/detail/${this.$route.params.itemId}`, {
           headers: {
-            "X-AUTH-TOKEN": this.$store.state.token,
+            "X-AUTH-TOKEN": this.$store.state.Login.token,
           },
         })
         .then((res) => {

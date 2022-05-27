@@ -253,7 +253,7 @@ defineRule("image", image);
 
 export default {
   created(){
-    if (!this.$store.state.token) {
+    if (!this.$store.state.Login.token) {
       this.$router.push("/login");
     }
   },
@@ -334,7 +334,7 @@ export default {
       axios
         .post("/api/announce/add", announcement, {
           headers: {
-              "X-AUTH-TOKEN": this.$store.state.token,
+              "X-AUTH-TOKEN": this.$store.state.Login.token,
             "Content-type": "multipart/form-data",
           },
         })

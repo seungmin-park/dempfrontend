@@ -12,7 +12,7 @@
         면접 질문
       </router-link>
       <!-- <button id="login" @click="redirectGithubLogin">LOGIN WITH GITHUB</button> -->
-      <button v-if="this.$store.state.token == ``" id="login" @click="redirectLogin">로그인</button>
+      <button v-if="this.$store.state.Login.token == ``" id="login" @click="redirectLogin">로그인</button>
       <button v-else id="logout" @click="logout">로그아웃</button>
     </span>
   </header>
@@ -33,7 +33,7 @@ export default {
         query: { redirect: this.$router.currentRoute.value.fullPath}});
     },
     logout(){
-      this.$store.commit("logout");
+      this.$store.commit("Login/logout");
       this.$router.push("/");
     },
   },

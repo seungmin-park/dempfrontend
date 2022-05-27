@@ -74,8 +74,8 @@ export default {
           },
         })
         .then((res) => {
-          this.$store.commit("setToken", res.data.jwt);
-          this.$store.commit("setUsername", res.data.username);
+          this.$store.commit("Login/setToken", res.data.jwt);
+          this.$store.commit("Login/setUsername", res.data.username);
           if (this.redirect == "") {
             this.$router.push("/");
           } else {
