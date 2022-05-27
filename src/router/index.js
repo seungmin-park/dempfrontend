@@ -34,17 +34,17 @@ const routes = [
   {
     path: "/question",
     name: "question",
-    component: () => import("../views/qusetion/QuestionList"),
+    component: () => import("../views/question/QuestionList"),
   },
   {
     path: "/questions/:questionId",
     name: "questions",
-    component: () => import("../views/qusetion/QuestionDetail"),
+    component: () => import("../views/question/QuestionDetail"),
   },
   {
     path: "/questions/new",
     name: "addQuestion",
-    component: () => import("../views/qusetion/QuestionWrite"),
+    component: () => import("../views/question/QuestionWrite"),
   },
 ];
 
