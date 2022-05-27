@@ -2,19 +2,19 @@
   <div class="question-menu">
     <router-link
       class="question-menus"
-      :to="{ path: '/question', query: { orderBy: 'createdDate' } }"
+      :to="{ path: '/question', query: { orderBy: 'createdDate',hashtags:this.$route.query.hashtags } }"
     >
       전체 질문
     </router-link>
     <router-link
       class="question-menus"
-      :to="{ path: '/question', query: { orderBy: 'hits' } }"
+      :to="{ path: '/question', query: { orderBy: 'hits',hashtags:this.$route.query.hashtags } }"
     >
       인기 질문
     </router-link>
     <router-link
       class="question-menus"
-      :to="{ path: '/question', query: { orderBy: 'recomend' } }"
+      :to="{ path: '/question', query: { orderBy: 'recomend',hashtags:this.$route.query.hashtags } }"
     >
       추천 질문
     </router-link>

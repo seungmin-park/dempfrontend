@@ -9,7 +9,7 @@
     >
       질문하기
     </button>
-    <div v-if="visible" @change="print">
+    <div v-if="visible" @change="getByHashtags">
       <div v-for="hashtag in hashtags" :key="hashtag.id">
         <label :for="hashtag" class="dropdown-item">
           <input
@@ -47,8 +47,10 @@ export default {
         this.hashtags = res.data;
       });
     },
-    print() {
-      this.emitter.emit("getByHashtags", this.searchTags);
+    getByHashtags() {
+      this.$router.push({path: '/question',
+        query:{orderBy:this.$route.query.orderBy,
+        hashtags:this.searchTags}});
     },
   },
 };

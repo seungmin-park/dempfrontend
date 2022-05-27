@@ -60,6 +60,8 @@ export default {
     $route: {
       handler(newValue) {
         this.orderBy = newValue.query.orderBy;
+        this.title = newValue.query.title;
+        this.content = newValue.query.content;
         this.hashtags = [newValue.query.hashtags];
         this.getQuestions();
       },
