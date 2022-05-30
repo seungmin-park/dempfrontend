@@ -12,7 +12,7 @@
         </a>
       </div>
       <div class="footer-menu-annoucemnet-write">
-        <router-link :to="{ path: '/addAnnounce' }">글쓰기</router-link>
+        <router-link :to="{ path: '/addAnnounce' }" v-if="$store.state.Login.token != ``">글쓰기</router-link>
       </div>
     </div>
   </footer>

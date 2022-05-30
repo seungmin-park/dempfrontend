@@ -74,6 +74,13 @@ export default {
     getTotalPage() {
       this.emitter.emit("totalPage", this.totalPage);
     },
+    getDetailAnnounce(id){
+      if (this.$store.state.Login.token != ""){
+        this.$router.push(`/detail/${id}`);
+      }else {
+        alert("로그인이 필요한 서비스 입니다.");
+      }
+    }
   },
   watch: {
     typeName: function () {

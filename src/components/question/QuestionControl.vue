@@ -52,6 +52,13 @@ export default {
         query:{orderBy:this.$route.query.orderBy,
         hashtags:this.searchTags}});
     },
+    directQuestionWritePage(){
+      if (this.$store.state.Login.token != "") {
+        this.$router.push(`/questions/new`)
+      }else {
+        alert("로그인이 필요한 서비스 입니다.");
+      }
+    }
   },
 };
 </script>
