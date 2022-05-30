@@ -1,14 +1,14 @@
 <template>
   <main>
-    <div class="detall-announce">
-      <h1 class="detall-announce-title">
+    <div class="detail-announce">
+      <h1 class="detail-announce-title">
         {{ DetailAnnounce.title }}
       </h1>
-      <div class="detall-announce-info">
-        <div class="detall-announce-info-img">
+      <div class="detail-announce-info">
+        <div class="detail-announce-info-img">
           <img :src="DetailAnnounce.image" style="width: 255px; height: 255px;"/>
         </div>
-        <div class="detall-announce-info-location">
+        <div class="detail-announce-info-location">
           <p>
             <a
               :href="DetailAnnounce.accessUrl"
@@ -24,12 +24,12 @@
         </div>
       </div>
 
-      <span class="detall-announce-content">
-        <p class="detall-announce-content-sub">
+      <span class="detail-announce-content">
+        <p class="detail-announce-content-sub">
           회사명 : {{ DetailAnnounce.company.name }}
         </p>
         <p
-          class="detall-announce-content-sub"
+          class="detail-announce-content-sub"
           v-text="
             DetailAnnounce.payment == 0
               ? '교육비 : 무료'
@@ -38,27 +38,27 @@
           v-if="DetailAnnounce.announcementType == 'edu'"
         ></p>
         <p
-          class="detall-announce-content-sub"
+          class="detail-announce-content-sub"
           v-if="DetailAnnounce.announcementType == 'emp'"
         >
           연봉 : {{ DetailAnnounce.payment }} 만원
         </p>
-        <p class="detall-announce-content-sub">
+        <p class="detail-announce-content-sub">
           지원기간 : {{ DetailAnnounce.startedDate }} ~
           {{ DetailAnnounce.deadLineDate }}
         </p>
-        <p class="detall-announce-content-sub">
+        <p class="detail-announce-content-sub">
           포지션 : {{ DetailAnnounce.position }}
         </p>
-        <p class="detall-announce-content-sub">
+        <p class="detail-announce-content-sub">
           언어 : {{ DetailAnnounce.language }}
         </p>
-        <p class="detall-announce-content-sub">
+        <p class="detail-announce-content-sub">
           경력 : {{ DetailAnnounce.career }}
         </p>
         지원 자격 :
         <p
-          class="detall-announce-content-sub"
+          class="detail-announce-content-sub"
           v-html="DetailAnnounce.content"
         ></p>
       </span>
@@ -116,19 +116,19 @@ export default {
 </script>
 
 <style>
-.detall-announce {
+.detail-announce {
   border-top: 1px solid rgba(0, 0, 0, 0.2);
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
   box-sizing: border-box;
 }
 
-.detall-announce-info {
+.detail-announce-info {
   display: flex;
   align-items: center;
   justify-content: left;
 }
 
-.detall-announce-info-img {
+.detail-announce-info-img {
   padding: 0%;
   overflow: hidden;
   width: auto;
@@ -136,17 +136,17 @@ export default {
   margin: 0;
 }
 
-.detall-announce-info-img img {
+.detail-announce-info-img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.detall-announce-info-location {
+.detail-announce-info-location {
   padding-left: 20px;
 }
 
-.detall-announce-info-location p {
+.detail-announce-info-location p {
   display: flex;
   border: 1px solid black;
   border-radius: 5px;
