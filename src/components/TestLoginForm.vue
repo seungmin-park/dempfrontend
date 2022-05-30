@@ -1,7 +1,10 @@
 <template>
-  <div>
+  <div class="container">
+    <div class="py-5 text-center">
+      <h2>로그인</h2>
+    </div>
     <Form as="form" @submit="loginMethod" enctype="multipart/form-data">
-      <div class="add-form">
+        <label for="username">아이디</label>
         <Field
           type="text"
           id="username"
@@ -9,28 +12,35 @@
           v-model="username"
           placeholder="username"
           rules="required"
+          class="form-control"
         />
         <ErrorMessage class="errorMessage" name="username" as="div">
           아이디를 입력해 주세요.
         </ErrorMessage>
-
-        <Field
+      <label for="password">비밀번호</label>
+      <Field
           type="text"
           id="password"
           name="password"
           v-model="password"
           placeholder="password"
           rules="required"
+          class="form-control"
         />
         <ErrorMessage class="errorMessage" name="password" as="div">
           비밀번호를 입력해 주세요.
         </ErrorMessage>
+      <div class="row">
+        <div class="col">
+          <button type="submit" class="w-100 btn btn-secondary btn-lg">로그인</button>
+        </div>
+        <div class="col">
+          <router-link class="w-100 btn btn-secondary btn-lg" :to="{ path: '/account' }">
+            회원가입
+          </router-link>
+        </div>
       </div>
-      <button type="submit">로그인</button>
     </Form>
-    <router-link class="question-menus" :to="{ path: '/account' }">
-      회원가입
-    </router-link>
   </div>
 </template>
 
@@ -87,4 +97,12 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style>
+.container {
+  max-width: 560px;
+}
+.errorMessage {
+  display: flex;
+  color: red;
+}
+</style>
