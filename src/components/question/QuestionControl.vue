@@ -5,7 +5,7 @@
     </button>
     <button
       class="question-control-btn"
-      @click="$router.push(`/questions/new`)"
+      @click="directQuestionWritePage"
     >
       질문하기
     </button>

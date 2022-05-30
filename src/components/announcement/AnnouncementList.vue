@@ -4,11 +4,11 @@
       v-for="notice in BoardData"
       :key="notice.id"
       class="item"
-      @click="$router.push(`/detail/${notice.id}`)"
+      @click="getDetailAnnounce(notice.id)"
     >
       <div class="item-image-box">
         <img
-          :src="require(`@/assets/${notice.image}`)"
+          :src="notice.image"
           class="white--text align-end card-image"
         />
       </div>
@@ -50,7 +50,6 @@ export default {
   },
   methods: {
     getAnnounce() {
-      console.log("페이지 파라미터", this.$route.query.page);
       axios
         .get("/api/announce", {
           params: {

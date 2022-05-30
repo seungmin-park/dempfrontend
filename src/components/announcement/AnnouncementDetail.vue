@@ -6,7 +6,7 @@
       </h1>
       <div class="detall-announce-info">
         <div class="detall-announce-info-img">
-          <img :src="require(`@/assets/${DetailAnnounce.image}`)" />
+          <img :src="DetailAnnounce.image" style="width: 255px; height: 255px;"/>
         </div>
         <div class="detall-announce-info-location">
           <p>
@@ -85,7 +85,7 @@ export default {
   data() {
     return {
       DetailAnnounce: {
-        image: "noimg.jpg",
+        image: "{buketUrl}/noimg.jpg",
         company: {
           name: "",
         },

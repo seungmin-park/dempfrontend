@@ -9,7 +9,7 @@
       </div>
       <span
         class="question-list-title"
-        @click="$router.push(`/questions/${question.id}`)"
+        @click="getDetailQuestion(question.id)"
       >
         Q. {{ question.title }}
       </span>
