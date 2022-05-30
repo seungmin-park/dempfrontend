@@ -371,15 +371,6 @@ li {
   column-count: 2;
 }
 
-.dropdown-item {
-  white-space: nowrap;
-  width: 95px;
-  font-weight: 500;
-  color: #212529;
-  padding: 2px;
-  font-size: 14px;
-}
-
 .career-btn,
 .payment-btn {
   width: 200px;

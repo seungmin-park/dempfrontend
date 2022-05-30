@@ -1,13 +1,13 @@
 <template>
-  <div class="announcemnt">
-    <div class="announcemnt-element">
-      <div class="announcemnt-header">
+  <div class="announcement">
+    <div class="announcement-element">
+      <div class="announcement-header">
         <announcement-header />
       </div>
-      <div class="announcemnt-list">
+      <div class="announcement-list">
         <announcement-list />
       </div>
-      <div class="announcemnt-footer">
+      <div class="announcement-footer">
         <announcement-footer />
       </div>
     </div>
@@ -28,10 +28,10 @@ export default {
 </script>
 
 <style>
-.announcemnt {
+.announcement {
   position: relative;
 }
-.announcemnt-element {
+.announcement-element {
   position: absolute;
 }
 </style>

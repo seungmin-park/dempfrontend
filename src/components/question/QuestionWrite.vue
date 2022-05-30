@@ -147,10 +147,6 @@ export default {
 </script>
 
 <style>
-.add-form {
-  display: flex;
-}
-
 #question-title {
   width: 100%;
   height: 50px;
