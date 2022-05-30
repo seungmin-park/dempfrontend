@@ -85,7 +85,7 @@ export default {
   data() {
     return {
       DetailAnnounce: {
-        image: "{buketUrl}/noimg.jpg",
+        image: "https://inhatc-demp.s3.ap-northeast-2.amazonaws.com/noimg.jpg",
         company: {
           name: "",
         },
