@@ -19,7 +19,7 @@
         </ErrorMessage>
       <label for="password">비밀번호</label>
       <Field
-          type="text"
+          type="password"
           id="password"
           name="password"
           v-model="password"
@@ -30,6 +30,7 @@
         <ErrorMessage class="errorMessage" name="password" as="div">
           비밀번호를 입력해 주세요.
         </ErrorMessage>
+      <hr class="my-4">
       <div class="row">
         <div class="col">
           <button type="submit" class="w-100 btn btn-secondary btn-lg">로그인</button>
@@ -67,6 +68,12 @@ export default {
       redirect: "",
     };
   },
+  created(){
+    if (this.$store.state.Login.token != "") {
+      this.$router.replace({
+        path: "/",
+      });
+    }},
   mounted() {
     if (this.$route.query){
       this.redirect = this.$route.query.redirect;
@@ -74,6 +81,8 @@ export default {
   },
   methods: {
     loginMethod() {
+      console.log(this.username)
+      console.log(this.password)
       var form = new FormData();
       form.append("username", this.username);
       form.append("password", this.password);

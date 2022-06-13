@@ -17,9 +17,7 @@
             >
           </p>
           <p>
-            <a href="/" style="text-decoration: none; color: rgba(0, 0, 0, 0.7)"
-              >채팅방</a
-            >
+            <a @click="updateSchedule" style="text-decoration: none; color: rgba(0, 0, 0, 0.7)">채팅방</a>
           </p>
         </div>
       </div>
@@ -103,6 +101,9 @@ export default {
         .then((res) => {
           this.DetailAnnounce = res.data;
         });
+    },
+    updateSchedule(){
+      alert('지원 예정 입니다.');
     },
   },
   watch: {
