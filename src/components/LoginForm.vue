@@ -100,7 +100,9 @@ export default {
           } else {
             this.$router.push({path: this.redirect});
           }
-        });
+        }).catch(() => {
+          alert("아이디 혹은 비밀번호가 잘못 되었습니다.")
+      });
     },
   },
 };

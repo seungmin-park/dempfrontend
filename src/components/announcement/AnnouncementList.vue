@@ -1,7 +1,7 @@
 <template>
   <main>
     <div
-      v-for="notice in BoardData"
+      v-for="notice in notices"
       :key="notice.id"
       class="item"
       @click="getDetailAnnounce(notice.id)"
@@ -19,6 +19,11 @@
       <div class="medium-font">포지션 : {{ notice.position }}</div>
     </div>
   </main>
+  <div style="padding-left: 100px ;display: block; float: none">
+    <button v-if="!last" @click="loadDataFromServer" class="w-75 btn btn-secondary btn-lg">더보기</button>
+    <br>
+    <b v-if="last" style="font-weight: 600; font-size: 20px; margin: 0">더 이상 채용/교육 공고 내용이 존재하지 않습니다.</b>
+  </div>
 </template>
 
 <script>
@@ -29,50 +34,60 @@ export default {
     {
       this.emitter.on("announcementSearchCondition", (e) => {
         this.announcementSearchCondition = e;
-        this.getAnnounce();
+        this.notices = [];
+        this.announcementSearchCondition.page = 0;
+        this.last = false;
+        this.loadDataFromServer();
       });
-      this.getAnnounce();
+      this.loadDataFromServer();
     }
   },
   data() {
     return {
-      BoardData: {},
+      notices: [],
       announcementSearchCondition: {
         typeName: "",
         positions: [],
         // languages: [],
-        career: "",
+        career: 0,
         payment: 0,
         title: "",
+        page:0,
       },
-      totalPage: 0,
+      last:false
     };
   },
+
   methods: {
-    getAnnounce() {
-      axios
-        .get("/api/announce", {
-          params: {
-            typeName: this.announcementSearchCondition.typeName,
-            positions: this.announcementSearchCondition.positions.join(","),
-            career: this.announcementSearchCondition.career,
-            payment: this.announcementSearchCondition.payment,
-            title: this.announcementSearchCondition.title,
-            page: this.$route.query.page - 1,
-            size: 12,
-          },
-        })
-        .then((res) => {
-          this.BoardData = res.data.result;
-          this.totalPage = res.data.pageNum;
-          if (this.totalPage > this.$route.query.page) {
-            this.$router.push("/?page=1");
-          }
-          this.getTotalPage();
-        });
-    },
-    getTotalPage() {
-      this.emitter.emit("totalPage", this.totalPage);
+    async loadDataFromServer(){
+      try {
+        if (this.last){
+          return
+        }
+        const result = await axios
+            .get("/api/announce", {
+              params: {
+                typeName: this.announcementSearchCondition.typeName,
+                positions: this.announcementSearchCondition.positions.join(","),
+                career: this.announcementSearchCondition.career,
+                payment: this.announcementSearchCondition.payment,
+                title: this.announcementSearchCondition.title,
+                page: this.announcementSearchCondition.page,
+                size: 8,
+              },
+            })
+        if (result.data.content.length){
+          this.notices.push(...result.data.content);
+          this.announcementSearchCondition.page ++;
+          this.last = result.data.last;
+        }else {
+          this.last = true;
+        }
+      }
+      catch(err){
+        console.log(err)
+        this.last = true;
+      }
     },
     getDetailAnnounce(id){
       if (this.$store.state.Login.token != ""){
@@ -80,11 +95,11 @@ export default {
       }else {
         alert("로그인이 필요한 서비스 입니다.");
       }
-    }
+    },
   },
   watch: {
     typeName: function () {
-      this.getAnnounce();
+      this.loadDataFromServer();
     },
   },
 };
@@ -96,6 +111,7 @@ main {
   width: 100%;
   float: left;
   flex-wrap: wrap;
+  box-sizing: border-box;
 }
 
 .item-image-box {
@@ -117,7 +133,7 @@ main {
   display: table;
   border: 1px solid rgba(0, 0, 0, 0.5);
   border-radius: 15px;
-  margin: 0 15px 25px 15px;
+  margin: 0 25px 25px 25px;
   box-sizing: border-box;
 }
 

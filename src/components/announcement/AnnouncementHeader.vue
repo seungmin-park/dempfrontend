@@ -52,7 +52,7 @@
             class="delete-condition"
             @click="
               () => {
-                announcementSearchCondition.career = ``;
+                announcementSearchCondition.career = 0;
                 this.changeCondition();
               }
             "
@@ -146,7 +146,7 @@
                     :value="0"
                     v-model="announcementSearchCondition.career"
                   />
-                  신입
+                  전체
                 </label>
               </div>
               <div class="dropdown-item" v-for="index in 9" :key="index">
@@ -154,7 +154,7 @@
                   <input
                     type="radio"
                     name="career"
-                    :value="index"
+                    :value=index
                     v-model="announcementSearchCondition.career"
                   />
                   {{ index }}년 경력
@@ -233,7 +233,7 @@ export default {
         typeName: "",
         positions: [],
         // languages: [],
-        career: "",
+        career: 0,
         payment: 0,
         title: "",
       },
@@ -282,14 +282,13 @@ export default {
         typeName: "",
         positions: [],
         // languages: [],
-        career: "",
+        career: 0,
         payment: 0,
         title: "",
       };
       this.changeCondition();
     },
     removePosition(position) {
-      console.log(position);
       this.announcementSearchCondition.positions =
         this.announcementSearchCondition.positions.filter(
           (element) => element !== position
