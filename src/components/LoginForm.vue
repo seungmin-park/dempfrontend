@@ -75,9 +75,7 @@ export default {
       });
     }},
   mounted() {
-    if (this.$route.query){
-      this.redirect = this.$route.query.redirect;
-    }
+    this.redirect = this.$route.query.redirect || "";
   },
   methods: {
     loginMethod() {
@@ -88,7 +86,7 @@ export default {
         .then((res) => {
           this.$store.commit("Login/setToken", res.data.jwt);
           this.$store.commit("Login/setUsername", res.data.username);
-          if (this.redirect == "") {
+          if (!this.redirect) {
             this.$router.push("/");
           } else {
             this.$router.push({path: this.redirect});
