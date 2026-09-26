@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <Form as="form" @submit="AccountMethod" enctype="multipart/form-data">
+    <Form as="form" @submit="registerAccount" enctype="multipart/form-data">
       <div class="py-5 text-center">
         <h2>회원 가입</h2>
       </div>
@@ -99,7 +99,7 @@ export default {
       });
     }},
   methods: {
-    AccountMethod() {
+    registerAccount() {
       if (!this.checkedUsername){
         alert("아이디 중복 검사를 실시해 주시기 바랍니다.");
         return;

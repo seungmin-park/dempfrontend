@@ -241,7 +241,7 @@
 </template>
 
 <script>
-import positions from "../../data/positon";
+import positions from "../../data/positions";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { defineRule } from "vee-validate";
 import { required, url, min_value, image } from "@vee-validate/rules";

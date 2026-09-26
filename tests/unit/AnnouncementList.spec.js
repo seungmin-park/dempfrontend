@@ -38,6 +38,18 @@ test('공고 더보기는 제목과 직군 조건을 유지한 다음 페이지�
   expect(wrapper.text()).toContain('Java 추가 채용');
 });
 
+test('공고 항목 클릭은 해당 상세 경로로 이동한다', async () => {
+  axios.get.mockResolvedValue({ data: { content: [{ id: 71, title: '채용 공고' }], last: true } });
+  const push = jest.fn();
+  const wrapper = mount(AnnouncementList, { global: { mocks: {
+    emitter: { on: jest.fn(), off: jest.fn() },
+    $store: { state: { Login: { token: 'token' } } }, $router: { push },
+  } } });
+  await flushPromises();
+  await wrapper.get('.item').trigger('click');
+  expect(push).toHaveBeenCalledWith('/detail/71');
+});
+
 test('더보기를 연속 클릭해도 진행 중인 페이지는 한 번만 요청한다', async () => {
   let finishPage;
   axios.get.mockResolvedValueOnce({ data: { content: [{ id: 1, title: '첫 공고' }], last: false } })

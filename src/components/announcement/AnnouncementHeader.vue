@@ -216,7 +216,7 @@
   </div>
 </template>
 <script>
-import positions from "../../data/positon";
+import positions from "../../data/positions";
 
 export default {
   data() {

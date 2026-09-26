@@ -59,10 +59,10 @@ export default {
       });
     }},
   mounted() {
-    this.getQuestion();
+    this.loadQuestionDetail();
   },
   methods: {
-    getQuestion() {
+    loadQuestionDetail() {
       getQuestionDetail(this.$route.params.questionId)
         .then((res) => {
           this.question = res.data;

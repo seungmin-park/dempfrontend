@@ -1,5 +1,5 @@
 <template>
-  <Form as="form" @submit="saveQuestion" class="qusetion-add">
+  <Form as="form" @submit="submitQuestion" class="qusetion-add">
     <div class="qusetion-add">
       <div>
         <table>
@@ -110,7 +110,7 @@ export default {
       }
       return "해당 값은 필수 항목 입니다.";
     },
-    saveQuestion() {
+    submitQuestion() {
       const payload = {
         ...this.questionForm,
         // eslint-disable-next-line no-undef

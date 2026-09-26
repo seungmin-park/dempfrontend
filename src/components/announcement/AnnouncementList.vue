@@ -4,7 +4,7 @@
       v-for="notice in notices"
       :key="notice.id"
       class="item"
-      @click="getDetailAnnounce(notice.id)"
+      @click="openAnnouncementDetail(notice.id)"
     >
       <div class="item-image-box">
         <img
@@ -20,8 +20,8 @@
     </div>
   </main>
   <div style="padding-left: 100px ;display: block; float: none">
-    <button v-if="!last && !error" :disabled="loading" @click="loadDataFromServer" class="w-75 btn btn-secondary btn-lg">더보기</button>
-    <p v-if="error" role="alert">{{ error }} <button data-test="retry" @click="loadDataFromServer">재시도</button></p>
+    <button v-if="!last && !error" :disabled="loading" @click="loadNextPage" class="w-75 btn btn-secondary btn-lg">더보기</button>
+    <p v-if="error" role="alert">{{ error }} <button data-test="retry" @click="loadNextPage">재시도</button></p>
     <br>
     <b v-if="last" style="font-weight: 600; font-size: 20px; margin: 0">더 이상 채용/교육 공고 내용이 존재하지 않습니다.</b>
   </div>
@@ -33,7 +33,7 @@ export default {
   name: "demp-announcement",
   mounted() {
     this.emitter.on("announcementSearchCondition", this.onSearchCondition);
-    this.loadDataFromServer();
+    this.loadNextPage();
   },
   unmounted() {
     this.requestGeneration++;
@@ -66,9 +66,9 @@ export default {
       this.error = null;
       this.requestGeneration++;
       this.loading = false;
-      this.loadDataFromServer();
+      this.loadNextPage();
     },
-    async loadDataFromServer(){
+    async loadNextPage(){
       if (this.last || this.loading) return;
       const generation = ++this.requestGeneration;
       this.loading = true;
@@ -88,7 +88,7 @@ export default {
         if (generation === this.requestGeneration) this.loading = false;
       }
     },
-    getDetailAnnounce(id){
+    openAnnouncementDetail(id){
       if (this.$store.state.Login.token != ""){
         this.$router.push(`/detail/${id}`);
       }else {
@@ -98,7 +98,7 @@ export default {
   },
   watch: {
     typeName: function () {
-      this.loadDataFromServer();
+      this.loadNextPage();
     },
   },
 };

@@ -13,6 +13,11 @@ test('토큰만 남은 상태는 보호 경로 진입 시 로그인으로 돌리
   expect(guard({ meta: {}, fullPath: '/question' })).toBe(true);
 });
 
+test('로그인과 회원가입 공개 경로는 유지한다', () => {
+  expect(router.resolve('/login').path).toBe('/login');
+  expect(router.resolve('/account').path).toBe('/account');
+});
+
 test('401 처리 뒤 토큰과 사용자 이름이 모두 비워지고 원래 경로로 돌아올 수 있다', async () => {
   store.commit('Login/setToken', 'expired');
   store.commit('Login/setUsername', 'member');

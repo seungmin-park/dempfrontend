@@ -17,18 +17,13 @@ const routes = [
   },
   {
     path: "/login",
-    name: "TestLoginForm",
+    name: "Login",
     component: () => import("@/components/LoginForm"),
   },
   {
     path: "/account",
-    name: "TestAccountForm",
+    name: "Register",
     component: () => import("@/components/AccountForm"),
-  },
-  {
-    path: "/hello",
-    name: "hello",
-    component: () => import("@/components/HelloWorld"),
   },
   {
     path: "/detail/:itemId",

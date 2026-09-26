@@ -9,17 +9,17 @@
       </div>
       <span
         class="question-list-title"
-        @click="getDetailQuestion(question.id)"
+        @click="openQuestionDetail(question.id)"
       >
         Q. {{ question.title }}
       </span>
     </div>
     <div class="question-pages">
-      <button data-test="previous-page" :disabled="page === 0 || loading" @click="getQuestions(page - 1)">이전</button>
+      <button data-test="previous-page" :disabled="page === 0 || loading" @click="loadQuestionPage(page - 1)">이전</button>
       <span>{{ page + 1 }} 페이지</span>
-      <button data-test="next-page" :disabled="last || loading" @click="getQuestions(page + 1)">다음</button>
+      <button data-test="next-page" :disabled="last || loading" @click="loadQuestionPage(page + 1)">다음</button>
     </div>
-    <p v-if="error" role="alert">{{ error }} <button data-test="retry" @click="getQuestions(page)">재시도</button></p>
+    <p v-if="error" role="alert">{{ error }} <button data-test="retry" @click="loadQuestionPage(page)">재시도</button></p>
   </main>
 </template>
 
@@ -43,7 +43,7 @@ export default {
   mounted() {
     this.applyRoute(this.$route.query);
     this.emitter.on("getByHashtags", this.onHashtagsChanged);
-    this.getQuestions(0);
+    this.loadQuestionPage(0);
   },
   unmounted() {
     this.requestGeneration++;
@@ -54,7 +54,7 @@ export default {
       this.hashtags = hashtags;
       this.requestGeneration++;
       this.loading = false;
-      this.getQuestions(0);
+      this.loadQuestionPage(0);
     },
     applyRoute(query) {
       this.orderBy = query.orderBy || "";
@@ -64,7 +64,7 @@ export default {
         ? query.hashtags.filter(Boolean)
         : String(query.hashtags || "").split(",").filter(Boolean);
     },
-    async getQuestions(page) {
+    async loadQuestionPage(page) {
       if (this.loading || page < 0) return;
       const generation = ++this.requestGeneration;
       this.loading = true;
@@ -89,7 +89,7 @@ export default {
         if (generation === this.requestGeneration) this.loading = false;
       }
     },
-    getDetailQuestion(questionId) {
+    openQuestionDetail(questionId) {
       if (this.$store.state.Login.token != "") {
         this.$router.push(`/questions/${questionId}`)
       }else {
@@ -103,7 +103,7 @@ export default {
         this.applyRoute(newValue.query);
         this.requestGeneration++;
         this.loading = false;
-        this.getQuestions(0);
+        this.loadQuestionPage(0);
       },
     },
   },

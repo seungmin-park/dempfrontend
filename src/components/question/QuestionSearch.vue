@@ -9,9 +9,9 @@
       v-model="conditionValue"
       placeholder="제목, 내용으로 검색하세요"
       class="question-search-content"
-      @keyup.enter="printCondition"
+      @keyup.enter="submitSearch"
     />
-    <button type="submit" @click="printCondition">검색</button>
+    <button type="submit" @click="submitSearch">검색</button>
   </div>
 </template>
 
@@ -24,7 +24,7 @@ export default {
     }
   },
   methods:{
-    printCondition(){
+    submitSearch(){
       this.$router.push({path: '/question',
         query:{
         orderBy:this.$route.query.orderBy,

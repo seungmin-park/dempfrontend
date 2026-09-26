@@ -22,7 +22,7 @@
       as="textarea"
       wrap="hard"
     ></textarea>
-    <button type="submit" @click="saveAnswer">댓글 달기</button>
+    <button type="submit" @click="submitAnswer">댓글 달기</button>
   </div>
 </template>
 
@@ -43,16 +43,16 @@ export default {
     };
   },
   mounted() {
-    this.getAnswer();
+    this.loadAnswers();
     this.initSummernote();
   },
   methods: {
-    getAnswer() {
+    loadAnswers() {
       getAnswers(this.$route.params.questionId).then((res) => {
         this.answers = res.data;
       });
     },
-    saveAnswer() {
+    submitAnswer() {
       // eslint-disable-next-line
       this.answerForm.answerContent = $("#answer").summernote("code");
       this.answerForm.questionId = this.$route.params.questionId;
