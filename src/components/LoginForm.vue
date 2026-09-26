@@ -81,8 +81,6 @@ export default {
   },
   methods: {
     loginMethod() {
-      console.log(this.username)
-      console.log(this.password)
       var form = new FormData();
       form.append("username", this.username);
       form.append("password", this.password);

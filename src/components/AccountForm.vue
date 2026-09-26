@@ -72,7 +72,6 @@ defineRule("required", required);
 defineRule("url", url);
 defineRule("min_value", min_value);
 defineRule("equal",(value,[password]) => {
-  console.log(value)
   if (value != password){
     return "비밀번호가 일치하지 않습니다.";
   }
