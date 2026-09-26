@@ -12,8 +12,9 @@
           </span>
         </div>
         <div class="qusetion-detail-info-reaction">
-          <button @click="recomendUp">👍{{ question.recomend }}</button>
-          <button @click="dislikedUp">👎{{ question.dislike }}</button>
+          <button disabled>👍{{ question.recommend }}</button>
+          <button disabled>👎{{ question.dislike }}</button>
+          <span>반응 저장 기능 준비 중</span>
         </div>
       </div>
     </div>
@@ -44,7 +45,7 @@ export default {
         title: "",
         content: "",
         hits: 0,
-        recomend: 0,
+        recommend: 0,
         dislike: 0,
         username: "",
       },
@@ -61,12 +62,6 @@ export default {
     this.getQuestion();
   },
   methods: {
-    recomendUp() {
-      this.question.recomend++;
-    },
-    dislikedUp() {
-      this.question.dislike++;
-    },
     getQuestion() {
       getQuestionDetail(this.$route.params.questionId)
         .then((res) => {

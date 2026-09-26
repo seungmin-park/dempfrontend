@@ -3,8 +3,8 @@
     <div class="question-list" v-for="question in questions" :key="question.id">
       <div class="question-list-count">
         <p class="question-list-count-hits">조회 수 : {{ question.hits }}</p>
-        <p class="question-list-count-recomend">
-          추천 수 : {{ question.recomend }}
+        <p class="question-list-count-recommend">
+          추천 수 : {{ question.recommend }}
         </p>
       </div>
       <span

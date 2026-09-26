@@ -14,7 +14,7 @@
     </router-link>
     <router-link
       class="question-menus"
-      :to="{ path: '/question', query: { orderBy: 'recomend',hashtags:this.$route.query.hashtags } }"
+      :to="{ path: '/question', query: { orderBy: 'recommend',hashtags:this.$route.query.hashtags } }"
     >
       추천 질문
     </router-link>

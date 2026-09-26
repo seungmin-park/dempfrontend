@@ -35,6 +35,16 @@ test('질문 페이지를 넘겨도 검색 조건을 유지하고 마지막 페�
   expect(wrapper.get('[data-test="next-page"]').attributes('disabled')).toBeDefined();
 });
 
+test('목록은 서버의 recommend 값을 추천 수로 표시한다', async () => {
+  axios.get.mockResolvedValue({ data: { content: [{ id: 3, title: '추천 질문', hits: 0, recommend: 3 }], last: true, number: 0 } });
+  const wrapper = mount(QuestionList, { global: { mocks: {
+    $route: { query: {} }, $router: { push: jest.fn() },
+    $store: { state: { Login: { token: 'token' } } }, emitter: { on: jest.fn(), off: jest.fn() },
+  } } });
+  await flushPromises();
+  expect(wrapper.get('.question-list-count-recommend').text()).toContain('3');
+});
+
 test('검색 조건이 바뀌면 첫 페이지부터 새 태그 조건으로 조회한다', async () => {
   axios.get
     .mockResolvedValueOnce({ data: { content: [{ id: 5, title: 'Java' }], last: false, number: 0 } })

@@ -9,8 +9,9 @@
       </div>
     </div>
     <div class="question-answer-reaction">
-      <button>👍{{ answer.recomend }}</button>
-      <button>👎{{ answer.dislike }}</button>
+      <button disabled>👍{{ answer.recommend }}</button>
+      <button disabled>👎{{ answer.dislike }}</button>
+      <span>반응 저장 기능 준비 중</span>
     </div>
   </div>
   <div>
