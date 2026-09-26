@@ -122,16 +122,13 @@ export default {
             "Content-Type": `application/json`,
           },
         })
-        .then((res) => {
-          console.log(res);
+        .then(() => {
           this.$router.push({
             path: "/question",
             query: { orderBy: "createdDate" },
           });
         })
-        .catch((e) => {
-          console.log(e);
-        });
+        .catch(() => undefined);
     },
     addHashtags(hashtag) {
       this.questionForm.hashtags = hashtag;

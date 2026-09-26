@@ -5,7 +5,7 @@
         🙋‍♂️ 작성자 : {{ answer.username }}
       </div>
       <div class="question-answer-info-content">
-        <span v-html="answer.content"></span>
+        <SafeHtml :content="answer.content" />
       </div>
     </div>
     <div class="question-answer-reaction">
@@ -27,7 +27,9 @@
 
 <script>
 import axios from "axios";
+import SafeHtml from "@/components/common/SafeHtml.vue";
 export default {
+  components: { SafeHtml },
   data() {
     return {
       answers: [],

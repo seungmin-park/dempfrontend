@@ -18,7 +18,7 @@
       </div>
     </div>
     <div class="qusetion-detail-content">
-      <span v-html="question.content"></span>
+      <SafeHtml :content="question.content" />
       <div>
         <router-link
           class="hashtags"
@@ -34,7 +34,9 @@
 
 <script>
 import axios from "axios";
+import SafeHtml from "@/components/common/SafeHtml.vue";
 export default {
+  components: { SafeHtml },
   data() {
     return {
       question: {
