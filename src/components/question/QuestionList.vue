@@ -19,6 +19,7 @@
       <span>{{ page + 1 }} 페이지</span>
       <button data-test="next-page" :disabled="last || loading" @click="getQuestions(page + 1)">다음</button>
     </div>
+    <p v-if="error" role="alert">{{ error }} <button data-test="retry" @click="getQuestions(page)">재시도</button></p>
   </main>
 </template>
 
@@ -36,17 +37,25 @@ export default {
       last: true,
       loading: false,
       error: null,
+      requestGeneration: 0,
     };
   },
   mounted() {
     this.applyRoute(this.$route.query);
-    this.emitter.on("getByHashtags", (e) => {
-      this.hashtags = e;
-      this.getQuestions(0);
-    });
+    this.emitter.on("getByHashtags", this.onHashtagsChanged);
     this.getQuestions(0);
   },
+  unmounted() {
+    this.requestGeneration++;
+    this.emitter.off("getByHashtags", this.onHashtagsChanged);
+  },
   methods: {
+    onHashtagsChanged(hashtags) {
+      this.hashtags = hashtags;
+      this.requestGeneration++;
+      this.loading = false;
+      this.getQuestions(0);
+    },
     applyRoute(query) {
       this.orderBy = query.orderBy || "";
       this.title = query.title || "";
@@ -57,7 +66,9 @@ export default {
     },
     async getQuestions(page) {
       if (this.loading || page < 0) return;
+      const generation = ++this.requestGeneration;
       this.loading = true;
+      this.error = null;
       try {
         const result = await fetchQuestionPage({
           orderBy: this.orderBy,
@@ -67,14 +78,15 @@ export default {
           page,
           size: 20,
         });
-        this.questions = result.content;
-        this.page = result.number;
-        this.last = result.last;
-        this.error = null;
+        if (generation === this.requestGeneration) {
+          this.questions = result.content;
+          this.page = result.number;
+          this.last = result.last;
+        }
       } catch {
-        this.error = "질문을 불러오지 못했습니다.";
+        if (generation === this.requestGeneration) this.error = "질문을 불러오지 못했습니다.";
       } finally {
-        this.loading = false;
+        if (generation === this.requestGeneration) this.loading = false;
       }
     },
     getDetailQuestion(questionId) {
@@ -89,6 +101,8 @@ export default {
     $route: {
       handler(newValue) {
         this.applyRoute(newValue.query);
+        this.requestGeneration++;
+        this.loading = false;
         this.getQuestions(0);
       },
     },

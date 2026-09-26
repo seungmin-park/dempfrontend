@@ -63,3 +63,47 @@ test('검색 조건이 바뀌면 첫 페이지부터 새 태그 조건으로 조
   expect(wrapper.text()).toContain('Spring');
   expect(wrapper.text()).not.toContain('Java 다음');
 });
+
+test('이전 검색 응답이 늦게 와도 최신 검색 결과를 유지한다', async () => {
+  let finishOld;
+  axios.get.mockImplementationOnce(() => new Promise(resolve => { finishOld = resolve; }))
+    .mockResolvedValueOnce({ data: { content: [{ id: 2, title: '새 검색' }], last: true, number: 0 } });
+  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/question', component: { template: '<div />' } }] });
+  await router.push({ path: '/question', query: { title: '옛 검색' } });
+  await router.isReady();
+  const wrapper = mount(QuestionList, { global: { mocks: {
+    $store: { state: { Login: { token: 'token' } } }, emitter: { on: jest.fn(), off: jest.fn() },
+  }, plugins: [router] } });
+  await router.push({ path: '/question', query: { title: '새 검색' } });
+  await flushPromises();
+  expect(axios.get).toHaveBeenCalledTimes(2);
+  expect(wrapper.text()).toContain('새 검색');
+  finishOld({ data: { content: [{ id: 1, title: '옛 검색' }], last: true, number: 0 } });
+  await flushPromises();
+  expect(wrapper.text()).toContain('새 검색');
+  expect(wrapper.text()).not.toContain('옛 검색');
+});
+
+test('이벤트 구독은 해제되어 다시 마운트해도 한 번만 조회한다', async () => {
+  axios.get.mockResolvedValue({ data: { content: [], last: true, number: 0 } });
+  const handlers = new Set();
+  const emitter = {
+    on: jest.fn((name, handler) => handlers.add(handler)),
+    off: jest.fn((name, handler) => handlers.delete(handler)),
+  };
+  const options = { global: { mocks: {
+    $route: { query: {} }, $router: { push: jest.fn() },
+    $store: { state: { Login: { token: 'token' } } }, emitter,
+  } } };
+  const first = mount(QuestionList, options);
+  await flushPromises();
+  first.unmount();
+  const second = mount(QuestionList, options);
+  await flushPromises();
+  expect(handlers.size).toBe(1);
+  handlers.forEach(handler => handler(['JAVA']));
+  await flushPromises();
+  expect(axios.get).toHaveBeenCalledTimes(3);
+  second.unmount();
+  expect(handlers.size).toBe(0);
+});

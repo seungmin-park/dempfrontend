@@ -21,19 +21,16 @@ export default {
     return{
       searchCondition:"title",
       conditionValue:"",
-      titleValue:"",
-      contentValue:"",
     }
   },
   methods:{
     printCondition(){
-      this.searchCondition === "title" ? this.titleValue = this.conditionValue:this.contentValue = this.conditionValue;
       this.$router.push({path: '/question',
         query:{
         orderBy:this.$route.query.orderBy,
           hashtags:this.$route.query.hashtags,
-          title:this.titleValue,
-          content:this.contentValue,
+          title:this.searchCondition === "title" ? this.conditionValue : "",
+          content:this.searchCondition === "content" ? this.conditionValue : "",
       }})
     }
   }

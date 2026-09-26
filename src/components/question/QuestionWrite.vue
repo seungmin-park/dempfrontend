@@ -27,7 +27,7 @@
             </td>
             <td>
               <textarea
-                v-model="content"
+                v-model="questionForm.content"
                 id="content"
                 name="content"
                 as="textarea"
@@ -56,7 +56,6 @@ import { required, url, min_value, image } from "@vee-validate/rules";
 import Hashtags from "@/components/Hashtags";
 import axios from "axios";
 
-var temp = [];
 defineRule("required", required);
 defineRule("url", url);
 defineRule("min_value", min_value);
@@ -112,11 +111,14 @@ export default {
       return "해당 값은 필수 항목 입니다.";
     },
     saveQuestion() {
-      // eslint-disable-next-line
-      this.questionForm.content = $("#content").summernote("code");
-      this.convertHashtags();
+      const payload = {
+        ...this.questionForm,
+        // eslint-disable-next-line no-undef
+        content: $("#content").summernote("code"),
+        hashtags: this.questionForm.hashtags.map((tag) => tag.value),
+      };
       axios
-        .post("/api/question/add", this.questionForm, {
+        .post("/api/question/add", payload, {
           headers: {
           'X-AUTH-TOKEN': this.$store.state.Login.token,
             "Content-Type": `application/json`,
@@ -132,12 +134,6 @@ export default {
     },
     addHashtags(hashtag) {
       this.questionForm.hashtags = hashtag;
-    },
-    convertHashtags() {
-      this.questionForm.hashtags.forEach((element) => {
-        temp.push(element.value);
-      });
-      this.questionForm.hashtags = temp;
     },
   },
 };
