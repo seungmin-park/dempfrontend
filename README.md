@@ -1,5 +1,11 @@
 # DEMP FRONDEND
 
+## API 연결과 인증 (Phase 4 T41)
+
+모든 HTTP 요청은 `src/api/client.js`의 Axios instance를 사용한다. 요청 직전에 Vuex의 토큰을 읽어 `X-AUTH-TOKEN`을 붙인다. API가 401을 반환하면 토큰과 사용자 이름을 함께 지우고, 현재 경로를 `redirect` query에 보존한 채 로그인 화면으로 이동한다. 보호 라우트는 토큰과 사용자 이름을 모두 요구하지만 토큰의 실제 유효성은 서버 응답으로 판단한다.
+
+개발 서버는 기본적으로 `http://localhost:5050`에서 실행하고 `/api`를 `http://localhost:8080`으로 전달한다. 다른 백엔드는 `DEV_API_TARGET`으로 지정한다. 예시는 `.env.example`을 참고한다. 브라우저가 백엔드에 직접 접근해야 할 때만 `VUE_APP_API_BASE_URL`을 설정한다. 운영에서는 같은 출처의 `/api`를 reverse proxy로 백엔드에 전달하거나, 빌드 시 명시적인 `VUE_APP_API_BASE_URL`을 넣어야 한다. Express `server.js`는 정적 파일과 SPA 라우트를 제공할 뿐 API proxy는 제공하지 않으며, 전달되지 않은 `/api` 요청에는 JSON 404를 반환한다. 외부 출처 직접 호출은 백엔드의 `APP_CORS_ALLOWED_ORIGINS` 허용목록도 맞춰야 한다.
+
 ## Phase 1 프런트 보안 경계
 
 로그인 자격 증명 콘솔 출력을 제거하고 질문·답변·공고 본문은 공통 SafeHtml에서 DOMPurify 허용목록으로 정화한다. 기존 데이터도 출력 직전에 보호한다.
@@ -7,7 +13,7 @@
 
 ## 설치와 테스트 (Phase 0 T01, 2026-09-14 검증)
 
-Node 18.18.2/npm 9.8.1에서 실행했다. 기존 node-sass 7.0.1과 Vue CLI Service 5.0.4를 유지한다.
+Node 18.18.2/npm 9.8.1에서 실행했다. 설치 복구를 위해 node-sass 7.0.1을 Dart Sass 1.77.8로 교체했고 Vue CLI Service 5.0.4를 유지한다.
 lockfileVersion은 2이며, peer로만 해석되던 Vue 3.2.36을 같은 버전의 직접 의존성으로 선언했다.
 기존 직접 의존성의 lockfile 해석 버전은 바뀌지 않았다.
 

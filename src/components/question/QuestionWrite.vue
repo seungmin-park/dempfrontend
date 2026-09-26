@@ -54,7 +54,7 @@ import { Form, Field, ErrorMessage } from "vee-validate";
 import { defineRule } from "vee-validate";
 import { required, url, min_value, image } from "@vee-validate/rules";
 import Hashtags from "@/components/Hashtags";
-import axios from "axios";
+import { createQuestion } from '@/api/questions';
 
 defineRule("required", required);
 defineRule("url", url);
@@ -117,13 +117,7 @@ export default {
         content: $("#content").summernote("code"),
         hashtags: this.questionForm.hashtags.map((tag) => tag.value),
       };
-      axios
-        .post("/api/question/add", payload, {
-          headers: {
-          'X-AUTH-TOKEN': this.$store.state.Login.token,
-            "Content-Type": `application/json`,
-          },
-        })
+      createQuestion(payload)
         .then(() => {
           this.$router.push({
             path: "/question",

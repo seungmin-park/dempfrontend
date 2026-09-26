@@ -101,7 +101,7 @@ export default {
   },
   methods: {
     getDetailAnnounce() {
-      getAnnouncementDetail(this.$route.params.itemId, this.$store.state.Login.token)
+      getAnnouncementDetail(this.$route.params.itemId)
         .then((announcement) => {
           this.DetailAnnounce = announcement;
         });

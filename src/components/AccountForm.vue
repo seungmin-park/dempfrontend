@@ -63,7 +63,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import { register, checkUsername } from '@/api/members';
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { defineRule } from "vee-validate";
 import { required, url, min_value } from "@vee-validate/rules";
@@ -107,22 +107,13 @@ export default {
       var form = new FormData();
       form.append("username", this.username);
       form.append("password", this.password);
-      axios
-        .post("/api/member/save", form, {
-          Headers: {
-            "Content-type": "form-data",
-          },
-        })
+      register(form)
         .then(() => {
           this.$router.push("/login");
         });
     },
     validUsername(){
-      axios.get("/api/member/validUsername",{
-        params:{
-          username: this.username
-        }
-      })
+      checkUsername(this.username)
           .then((res) =>{
             this.checkedUsername = res.data;
             if (!this.checkedUsername){

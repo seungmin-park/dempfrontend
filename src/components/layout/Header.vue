@@ -19,12 +19,12 @@
 </template>
 
 <script>
-import axios from "axios";
+import { getGithubLoginUrl } from '@/api/auth';
 export default {
   name: "demp-header",
   methods: {
     redirectGithubLogin() {
-      axios.get("/api/auth/github").then((res) => {
+      getGithubLoginUrl().then((res) => {
         window.location.href = res.data;
       });
     },

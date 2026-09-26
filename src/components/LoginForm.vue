@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import { login } from '@/api/members';
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { defineRule } from "vee-validate";
 import { required, url, min_value } from "@vee-validate/rules";
@@ -69,7 +69,7 @@ export default {
     };
   },
   created(){
-    if (this.$store.state.Login.token != "") {
+    if (this.$store.state.Login.token && this.$store.state.Login.username) {
       this.$router.replace({
         path: "/",
       });
@@ -84,12 +84,7 @@ export default {
       var form = new FormData();
       form.append("username", this.username);
       form.append("password", this.password);
-      axios
-        .post("/api/member/login", form, {
-          Headers: {
-            "Content-type": "form-data",
-          },
-        })
+      login(form)
         .then((res) => {
           this.$store.commit("Login/setToken", res.data.jwt);
           this.$store.commit("Login/setUsername", res.data.username);

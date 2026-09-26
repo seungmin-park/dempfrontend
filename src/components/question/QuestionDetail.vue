@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import { getQuestionDetail } from '@/api/questions';
 import SafeHtml from "@/components/common/SafeHtml.vue";
 export default {
   components: { SafeHtml },
@@ -68,12 +68,7 @@ export default {
       this.question.dislike++;
     },
     getQuestion() {
-      axios
-        .get(`/api/question/detail/${this.$route.params.questionId}`,{
-          headers:{
-            'X-AUTH-TOKEN': this.$store.state.Login.token
-          },
-        })
+      getQuestionDetail(this.$route.params.questionId)
         .then((res) => {
           this.question = res.data;
         });

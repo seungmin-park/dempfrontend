@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { apiClient } from './client';
 
 export function toAnnouncementFormData(announcement) {
   const form = new FormData();
@@ -15,10 +15,8 @@ export function toAnnouncementFormData(announcement) {
   return form;
 }
 
-export function createAnnouncement(announcement, token) {
-  return axios.post('/api/announce/add', toAnnouncementFormData(announcement), {
-    headers: { 'X-AUTH-TOKEN': token },
-  });
+export function createAnnouncement(announcement) {
+  return apiClient.post('/api/announce/add', toAnnouncementFormData(announcement));
 }
 
 export function toAnnouncementDetail(data) {
@@ -29,14 +27,12 @@ export function toAnnouncementDetail(data) {
   };
 }
 
-export function getAnnouncementDetail(id, token) {
-  return axios.get(`/api/announce/detail/${id}`, {
-    headers: { 'X-AUTH-TOKEN': token },
-  }).then(response => toAnnouncementDetail(response.data));
+export function getAnnouncementDetail(id) {
+  return apiClient.get(`/api/announce/detail/${id}`).then(response => toAnnouncementDetail(response.data));
 }
 
 export function getAnnouncements(condition) {
-  return axios.get('/api/announce', {
+  return apiClient.get('/api/announce', {
     params: {
       announcementType: condition.announcementType,
       positions: condition.positions.join(','),
@@ -47,4 +43,8 @@ export function getAnnouncements(condition) {
       size: 8,
     },
   });
+}
+
+export function getAnnouncementScroll() {
+  return apiClient.get('/api/announce/scroll');
 }

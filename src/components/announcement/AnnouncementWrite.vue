@@ -334,7 +334,7 @@ export default {
         position: this.position,
         content: this.content,
         image: this.image,
-      }, this.$store.state.Login.token)
+      })
         .then(() => {
           this.$router.push("/");
         })

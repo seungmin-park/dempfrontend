@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import { getAnswers, createAnswer } from '@/api/answers';
 import SafeHtml from "@/components/common/SafeHtml.vue";
 export default {
   components: { SafeHtml },
@@ -47,11 +47,7 @@ export default {
   },
   methods: {
     getAnswer() {
-      axios.get(`/api/answer/${this.$route.params.questionId}`,{
-        headers:{
-          'X-AUTH-TOKEN': this.$store.state.Login.token
-        },
-      }).then((res) => {
+      getAnswers(this.$route.params.questionId).then((res) => {
         this.answers = res.data;
       });
     },
@@ -60,11 +56,7 @@ export default {
       this.answerForm.answerContent = $("#answer").summernote("code");
       this.answerForm.questionId = this.$route.params.questionId;
       this.answerForm.username = this.$store.state.Login.username;
-      axios.post(`/api/answer/save`, this.answerForm,{
-        headers:{
-          "X-AUTH-TOKEN": this.$store.state.Login.token,
-        },
-      }).then((res) => {
+      createAnswer(this.answerForm).then((res) => {
         this.answers = res.data;
       });
     },

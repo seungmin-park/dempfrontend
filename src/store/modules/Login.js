@@ -6,7 +6,7 @@ export const Login={
     },
     getters:{
         isLogin(state) {
-            return state.username !== "";
+            return state.username !== "" && state.token !== "";
         },
         getToken(state) {
             return state.token;

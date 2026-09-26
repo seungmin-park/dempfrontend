@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import { getQuestionHashtags } from '@/api/questions';
 export default {
   data() {
     return {
@@ -43,7 +43,7 @@ export default {
       this.visible = this.visible ? false : true;
     },
     getHashtags() {
-      axios.get("/api/question/hashtags").then((res) => {
+      getQuestionHashtags().then((res) => {
         this.hashtags = res.data;
       });
     },
