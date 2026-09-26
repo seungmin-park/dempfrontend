@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import { getAnnouncements } from "@/api/announcements";
 export default {
   name: "demp-announcement",
   mounted() {
@@ -46,7 +46,7 @@ export default {
     return {
       notices: [],
       announcementSearchCondition: {
-        typeName: "",
+        announcementType: "",
         positions: [],
         // languages: [],
         career: 0,
@@ -64,18 +64,7 @@ export default {
         if (this.last){
           return
         }
-        const result = await axios
-            .get("/api/announce", {
-              params: {
-                typeName: this.announcementSearchCondition.typeName,
-                positions: this.announcementSearchCondition.positions.join(","),
-                career: this.announcementSearchCondition.career,
-                payment: this.announcementSearchCondition.payment,
-                title: this.announcementSearchCondition.title,
-                page: this.announcementSearchCondition.page,
-                size: 8,
-              },
-            })
+        const result = await getAnnouncements(this.announcementSearchCondition)
         if (result.data.content.length){
           this.notices.push(...result.data.content);
           this.announcementSearchCondition.page ++;
@@ -84,8 +73,7 @@ export default {
           this.last = true;
         }
       }
-      catch(err){
-        console.log(err)
+      catch {
         this.last = true;
       }
     },

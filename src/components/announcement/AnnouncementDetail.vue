@@ -24,7 +24,7 @@
 
       <span class="detail-announce-content">
         <p class="detail-announce-content-sub">
-          회사명 : {{ DetailAnnounce.company.name }}
+          회사명 : {{ DetailAnnounce.company }}
         </p>
         <p
           class="detail-announce-content-sub"
@@ -33,11 +33,11 @@
               ? '교육비 : 무료'
               : '교육비 : ' + DetailAnnounce.payment + ` 만원`
           "
-          v-if="DetailAnnounce.announcementType == 'edu'"
+          v-if="DetailAnnounce.type === 'EDU'"
         ></p>
         <p
           class="detail-announce-content-sub"
-          v-if="DetailAnnounce.announcementType == 'emp'"
+          v-if="DetailAnnounce.type === 'EMP'"
         >
           연봉 : {{ DetailAnnounce.payment }} 만원
         </p>
@@ -49,25 +49,27 @@
           포지션 : {{ DetailAnnounce.position }}
         </p>
         <p class="detail-announce-content-sub">
-          언어 : {{ DetailAnnounce.language }}
+          언어 : {{ (DetailAnnounce.language || []).join(', ') }}
         </p>
         <p class="detail-announce-content-sub">
-          경력 : {{ DetailAnnounce.career }}
+          경력 : {{ careerText }}
         </p>
         지원 자격 :
-        <p
+        <SafeHtml
           class="detail-announce-content-sub"
-          v-html="DetailAnnounce.content"
-        ></p>
+          :content="DetailAnnounce.content"
+        />
       </span>
     </div>
   </main>
 </template>
 
 <script>
-import axios from "axios";
+import SafeHtml from "@/components/common/SafeHtml.vue";
+import { getAnnouncementDetail } from "@/api/announcements";
 
 export default {
+  components: { SafeHtml },
   created(){
     if (this.$store.state.Login.token == "") {
       this.$router.replace({
@@ -84,22 +86,24 @@ export default {
     return {
       DetailAnnounce: {
         image: "https://inhatc-demp.s3.ap-northeast-2.amazonaws.com/noimg.jpg",
-        company: {
-          name: "",
-        },
+        company: "",
+        language: [],
       },
     };
   },
+  computed: {
+    careerText() {
+      if (this.DetailAnnounce.maxCareer === 0) {
+        return `${this.DetailAnnounce.minCareer}년 이상`;
+      }
+      return `${this.DetailAnnounce.minCareer}년 ~ ${this.DetailAnnounce.maxCareer}년`;
+    },
+  },
   methods: {
     getDetailAnnounce() {
-      axios
-        .get(`/api/announce/detail/${this.$route.params.itemId}`, {
-          headers: {
-            "X-AUTH-TOKEN": this.$store.state.Login.token,
-          },
-        })
-        .then((res) => {
-          this.DetailAnnounce = res.data;
+      getAnnouncementDetail(this.$route.params.itemId, this.$store.state.Login.token)
+        .then((announcement) => {
+          this.DetailAnnounce = announcement;
         });
     },
     updateSchedule(){

@@ -84,7 +84,7 @@
                   type="radio"
                   id="emp"
                   name="type"
-                  value="emp"
+                  value="EMP"
                   v-model="type"
                   rules="required"
                 />
@@ -95,7 +95,7 @@
                   type="radio"
                   id="edu"
                   name="type"
-                  value="edu"
+                  value="EDU"
                   v-model="type"
                 />
                 <ErrorMessage class="errorMessage" name="type" as="div">
@@ -134,28 +134,28 @@
           </tr>
           <tr>
             <td>
-              <label for="career"> 경력 : </label>
+              <label for="minCareer"> 경력 : </label>
             </td>
             <td>
               <Field
-                as="select"
-                name="career"
-                id="career"
-                v-model="career"
-                rules="required"
-              >
-                <option value="">====경력====</option>
-                <option value="경력 무관">경력 무관</option>
-                <option value="1년 이상~ 3년 미만">1년 이상~ 3년 미만</option>
-                <option value="3년 이상 ~ 5년 미만">3년 이상 ~ 5년 미만</option>
-                <option value="5년 이상 ~ 7년 미만">5년 이상 ~ 7년 미만</option>
-                <option value="7년 이상 ~ 10년 미만">
-                  7년 이상 ~ 10년 미만
-                </option>
-                <option value="10년 이상">10년 이상</option>
-              </Field>
-              <ErrorMessage class="errorMessage" name="career" as="div">
-                경력 사항을 선택해 주세요.
+                type="number"
+                name="minCareer"
+                id="minCareer"
+                v-model="minCareer"
+                rules="required|min_value:0"
+              />년 ~
+              <Field
+                type="number"
+                name="maxCareer"
+                id="maxCareer"
+                v-model="maxCareer"
+                rules="required|min_value:0"
+              />년 (0은 상한 없음)
+              <ErrorMessage class="errorMessage" name="minCareer" as="div">
+                최소 경력을 입력해 주세요.
+              </ErrorMessage>
+              <ErrorMessage class="errorMessage" name="maxCareer" as="div">
+                최대 경력을 입력해 주세요.
               </ErrorMessage>
             </td>
           </tr>
@@ -209,7 +209,8 @@
                 type="file"
                 id="announce_img"
                 name="announce_img"
-                accept="image/*"
+                accept="image/jpeg,image/png,.jpg,.jpeg,.png"
+                required
                 ref="announceImg"
                 @change="uploadImg"
               />
@@ -244,7 +245,7 @@ import positions from "../../data/positon";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { defineRule } from "vee-validate";
 import { required, url, min_value, image } from "@vee-validate/rules";
-import axios from "axios";
+import { createAnnouncement } from "@/api/announcements";
 
 defineRule("required", required);
 defineRule("url", url);
@@ -287,12 +288,13 @@ export default {
       type: "",
       startedDate: null,
       deadLineDate: null,
-      career: "",
+      minCareer: 0,
+      maxCareer: 0,
       language: "",
       positions: positions,
       position: "",
       payment: 2400,
-      iamge: "noimg.jpg",
+      image: null,
       content: "",
     };
   },
@@ -318,31 +320,26 @@ export default {
     saveAnnounce() {
       // eslint-disable-next-line
       this.content = $("#content").summernote("code");
-      var announcement = new FormData();
-      announcement.append("title", this.title);
-      announcement.append("company", this.company);
-      announcement.append("accessUrl", this.accessUrl);
-      announcement.append("type", this.type);
-      announcement.append("startedDate", this.startedDate);
-      announcement.append("deadLineDate", this.deadLineDate);
-      announcement.append("career", this.career);
-      announcement.append("language", this.language);
-      announcement.append("payment", this.payment);
-      announcement.append("position", this.position);
-      announcement.append("content", this.content);
-      announcement.append("image", this.image);
-      axios
-        .post("/api/announce/add", announcement, {
-          headers: {
-              "X-AUTH-TOKEN": this.$store.state.Login.token,
-            "Content-type": "multipart/form-data",
-          },
-        })
+      createAnnouncement({
+        title: this.title,
+        company: this.company,
+        accessUrl: this.accessUrl,
+        type: this.type,
+        startedDate: this.startedDate,
+        deadLineDate: this.deadLineDate,
+        minCareer: this.minCareer,
+        maxCareer: this.maxCareer,
+        language: this.language,
+        payment: this.payment,
+        position: this.position,
+        content: this.content,
+        image: this.image,
+      }, this.$store.state.Login.token)
         .then(() => {
           this.$router.push("/");
         })
-        .catch((e) => {
-          console.log(e);
+        .catch(() => {
+          window.alert("공고 등록에 실패했습니다.");
         });
     },
   },

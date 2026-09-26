@@ -14,10 +14,10 @@
         </span>
         <span
           class="selected-condition-element element-typeName"
-          v-if="announcementSearchCondition.typeName"
+          v-if="announcementSearchCondition.announcementType"
         >
           {{
-            announcementSearchCondition.typeName == "emp"
+            announcementSearchCondition.announcementType === "EMP"
               ? "채용 공고"
               : "부트캠프"
           }}
@@ -25,7 +25,7 @@
             class="delete-condition"
             @click="
               () => {
-                announcementSearchCondition.typeName = ``;
+                announcementSearchCondition.announcementType = ``;
                 this.changeCondition();
               }
             "
@@ -84,8 +84,8 @@
             type="radio"
             name="emp"
             id="emp"
-            value="emp"
-            v-model="announcementSearchCondition.typeName"
+            value="EMP"
+            v-model="announcementSearchCondition.announcementType"
           />
           채용
         </label>
@@ -94,8 +94,8 @@
             type="radio"
             name="edu"
             id="edu"
-            value="edu"
-            v-model="announcementSearchCondition.typeName"
+            value="EDU"
+            v-model="announcementSearchCondition.announcementType"
           />
           교육
         </label>
@@ -230,7 +230,7 @@ export default {
         3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500, 7000, 7500, 8000,
       ],
       announcementSearchCondition: {
-        typeName: "",
+        announcementType: "",
         positions: [],
         // languages: [],
         career: 0,
@@ -241,7 +241,6 @@ export default {
   },
   methods: {
     changeCondition() {
-      console.log(this.announcementSearchCondition);
       this.emitter.emit(
         "announcementSearchCondition",
         this.announcementSearchCondition
@@ -279,7 +278,7 @@ export default {
     },
     initCondition() {
       this.announcementSearchCondition = {
-        typeName: "",
+        announcementType: "",
         positions: [],
         // languages: [],
         career: 0,
