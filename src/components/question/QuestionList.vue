@@ -14,11 +14,16 @@
         Q. {{ question.title }}
       </span>
     </div>
+    <div class="question-pages">
+      <button data-test="previous-page" :disabled="page === 0 || loading" @click="getQuestions(page - 1)">이전</button>
+      <span>{{ page + 1 }} 페이지</span>
+      <button data-test="next-page" :disabled="last || loading" @click="getQuestions(page + 1)">다음</button>
+    </div>
   </main>
 </template>
 
 <script>
-import axios from "axios";
+import { fetchQuestionPage } from "@/api/questions";
 export default {
   data() {
     return {
@@ -27,33 +32,50 @@ export default {
       content: "",
       hashtags: [],
       questions: [],
+      page: 0,
+      last: true,
+      loading: false,
+      error: null,
     };
   },
   mounted() {
-    if (this.$route.query.orderBy != null)
-      this.orderBy = this.$route.query.orderBy;
-    if (this.$route.query.hashtags != null)
-      this.hashtags.push(this.$route.query.hashtags);
+    this.applyRoute(this.$route.query);
     this.emitter.on("getByHashtags", (e) => {
       this.hashtags = e;
-      this.getQuestions();
+      this.getQuestions(0);
     });
-    this.getQuestions();
+    this.getQuestions(0);
   },
   methods: {
-    getQuestions() {
-      axios
-        .get("/api/question", {
-          params: {
-            orderBy: this.orderBy,
-            title: this.title,
-            content: this.content,
-            hashtags: this.hashtags.join(","),
-          },
-        })
-        .then((res) => {
-          this.questions = res.data;
+    applyRoute(query) {
+      this.orderBy = query.orderBy || "";
+      this.title = query.title || "";
+      this.content = query.content || "";
+      this.hashtags = Array.isArray(query.hashtags)
+        ? query.hashtags.filter(Boolean)
+        : String(query.hashtags || "").split(",").filter(Boolean);
+    },
+    async getQuestions(page) {
+      if (this.loading || page < 0) return;
+      this.loading = true;
+      try {
+        const result = await fetchQuestionPage({
+          orderBy: this.orderBy,
+          title: this.title,
+          content: this.content,
+          hashtags: this.hashtags,
+          page,
+          size: 20,
         });
+        this.questions = result.content;
+        this.page = result.number;
+        this.last = result.last;
+        this.error = null;
+      } catch {
+        this.error = "질문을 불러오지 못했습니다.";
+      } finally {
+        this.loading = false;
+      }
     },
     getDetailQuestion(questionId) {
       if (this.$store.state.Login.token != "") {
@@ -66,11 +88,8 @@ export default {
   watch: {
     $route: {
       handler(newValue) {
-        this.orderBy = newValue.query.orderBy;
-        this.title = newValue.query.title;
-        this.content = newValue.query.content;
-        this.hashtags = [newValue.query.hashtags];
-        this.getQuestions();
+        this.applyRoute(newValue.query);
+        this.getQuestions(0);
       },
     },
   },
