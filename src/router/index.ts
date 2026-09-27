@@ -49,7 +49,7 @@ const routes = [
     path: "/addAnnounce",
     name: "addAnnounce",
     meta: { requiresAuth: true },
-    component: () => import("../views/announcement/AnnouncementWrite.vue"),
+    redirect: "/admin/announcements/new",
   },
   {
     path: "/question",

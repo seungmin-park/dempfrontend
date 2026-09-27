@@ -32,3 +32,6 @@ test('401 처리 뒤 토큰과 사용자 이름이 모두 비워지고 원래 �
   await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/login'));
   expect(router.currentRoute.value.query.redirect).toBe('/questions/7?tab=answers');
 });
+test('이전 공고 등록 주소는 관리자 등록으로 연결한다', () => {
+  expect(router.resolve('/addAnnounce').matched.at(-1).redirect).toBe('/admin/announcements/new');
+});
