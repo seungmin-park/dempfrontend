@@ -1,26 +1,20 @@
 <template>
-  <div class="question-menu">
-    <router-link
-      class="question-menus"
-      :to="{ path: '/question', query: { orderBy: 'createdDate',hashtags:$route.query.hashtags } }"
-    >
-      전체 질문
+  <nav class="question-menu" aria-label="질문 정렬">
+    <router-link v-for="tab in tabs" :key="tab.orderBy" v-slot="{ href, navigate }" custom
+      :to="{ path: '/question', query: { orderBy: tab.orderBy, hashtags: $route.query.hashtags } }">
+      <a class="question-menus" :class="{ 'is-active': selected === tab.orderBy }" :href="href"
+        :aria-current="selected === tab.orderBy ? 'page' : undefined" @click="navigate">{{ tab.label }}</a>
     </router-link>
-    <router-link
-      class="question-menus"
-      :to="{ path: '/question', query: { orderBy: 'hits',hashtags:$route.query.hashtags } }"
-    >
-      인기 질문
-    </router-link>
-    <router-link
-      class="question-menus"
-      :to="{ path: '/question', query: { orderBy: 'recommend',hashtags:$route.query.hashtags } }"
-    >
-      추천 질문
-    </router-link>
-  </div>
+  </nav>
 </template>
 <script lang="ts">
-import { defineComponent } from "vue";
-export default defineComponent({});
+import { defineComponent } from 'vue';
+export default defineComponent({
+  data: () => ({ tabs: [
+    { orderBy: 'createdDate', label: '전체 질문' },
+    { orderBy: 'hits', label: '인기 질문' },
+    { orderBy: 'recommend', label: '추천 질문' },
+  ] }),
+  computed: { selected(): string { return String(this.$route.query.orderBy || 'createdDate'); } },
+});
 </script>

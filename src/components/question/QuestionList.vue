@@ -1,8 +1,11 @@
 <template>
   <section class="question-results" aria-label="질문 목록" :aria-busy="loading">
+    <AsyncState :loading="loading" :error="error || ''" @retry="loadQuestionPage(requestedPage)" />
+    <p v-if="!loading && !error && !questions.length" class="state-panel" role="status">조건에 맞는 질문이 없습니다.</p>
+    <template v-if="!loading && !error">
     <article class="question-list" v-for="question in questions" :key="question.id"><button class="question-list-title" @click="openQuestionDetail(question.id)">{{ question.title }}</button><div class="question-list-count"><span class="meta-count" :aria-label="`조회수 ${question.hits}`"><AppIcon name="eye" :size="17" />{{ question.hits }}</span><span class="meta-count" :aria-label="`추천 ${question.recommend}`"><AppIcon name="thumbsUp" :size="17" />{{ question.recommend }}</span></div></article>
-    <div class="question-pages"><button class="button button-secondary" data-test="previous-page" :disabled="page === 0 || loading" @click="loadQuestionPage(page - 1)">이전</button><span>{{ page + 1 }} 페이지</span><button class="button button-secondary" data-test="next-page" :disabled="last || loading" @click="loadQuestionPage(page + 1)">다음</button></div>
-    <p v-if="error" role="alert" class="form-error">{{ error }} <button class="button button-secondary" data-test="retry" @click="loadQuestionPage(page)">재시도</button></p>
+    <div v-if="questions.length" class="question-pages"><button class="button button-secondary" data-test="previous-page" :disabled="page === 0 || loading" @click="loadQuestionPage(page - 1)">이전</button><span>{{ page + 1 }} 페이지</span><button class="button button-secondary" data-test="next-page" :disabled="last || loading" @click="loadQuestionPage(page + 1)">다음</button></div>
+    </template>
   </section>
 </template>
 <script lang="ts">
@@ -10,10 +13,11 @@ import type { QuestionSummary } from '@/types/api';
 import type { LocationQuery, RouteLocationNormalizedLoaded } from 'vue-router';
 import { queryText } from '@/router/query';
 import { defineComponent } from "vue";
+import AsyncState from '@/components/common/AsyncState.vue';
 import AppIcon from '@/components/common/AppIcon.vue';
 import { fetchQuestionPage } from "@/api/questions";
 export default defineComponent({
-  components: { AppIcon },
+  components: { AppIcon, AsyncState },
   data() {
     return {
       orderBy: "",
@@ -22,6 +26,7 @@ export default defineComponent({
       hashtags: [] as string[],
       questions: [] as QuestionSummary[],
       page: 0,
+      requestedPage: 0,
       last: true,
       loading: false,
       error: null as string | null,
@@ -55,6 +60,7 @@ export default defineComponent({
     async loadQuestionPage(page: number) {
       if (this.loading || page < 0) return;
       const generation = ++this.requestGeneration;
+      this.requestedPage = page;
       this.loading = true;
       this.error = null;
       try {
