@@ -14,14 +14,15 @@
       <div class="field"><label for="payment">{{ type === 'EDU' ? '교육비' : '연봉' }} (만원)</label><Field id="payment" name="payment" type="number" min="0" v-model="payment" rules="required|min_value:0" :disabled="saving" /><ErrorMessage name="payment" class="field-error">0 이상의 금액을 입력해 주세요.</ErrorMessage></div>
       <div class="field"><label for="announce_img">대표 이미지 (선택)</label><input id="announce_img" name="announce_img" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" ref="announceImg" :disabled="saving" @change="uploadImg" /><p class="field-hint">JPEG 또는 PNG 파일을 선택하세요.</p></div>
     </div>
-    <div class="field"><label for="content">상세 내용</label><MarkdownEditor id="content" v-model="content" :disabled="saving" /></div>
+    <div class="field"><AnnouncementBodyEditor id="content" v-model="content" v-model:body-images="bodyImages" :type="type" :cover-bytes="image?.size || 0" :disabled="saving" /></div>
     <p v-if="error" role="alert" class="form-error">{{ error }}</p>
     <div class="form-actions"><router-link class="button button-secondary" to="/">취소</router-link><button type="submit" class="button button-primary" :disabled="saving">{{ saving ? '저장 중…' : '등록하기' }}</button></div>
   </ValidationForm>
 </template>
 <script lang="ts">
-import MarkdownEditor from '@/components/common/MarkdownEditor.vue';
-import { renderMarkdown } from '@/content/markdown';
+import AnnouncementBodyEditor from '@/components/announcement/AnnouncementBodyEditor.vue';
+import { announcementAttachmentError } from '@/content/announcementAttachments';
+import { hasTextContent } from '@/content/sanitizeHtml';
 import type { AnnouncementForm } from '@/types/api';
 import { formatPosition } from '@/presentation/positions';
 import { defineComponent } from "vue";
@@ -43,7 +44,7 @@ export default defineComponent({
     }
   },
   components: {
-    MarkdownEditor,
+    AnnouncementBodyEditor,
     ValidationForm,
     Field,
     ErrorMessage,
@@ -64,6 +65,7 @@ export default defineComponent({
       payment: 2400,
       image: null as File | null,
       content: "",
+      bodyImages: [] as File[],
       saving: false, error: "",
     };
   },
@@ -80,6 +82,9 @@ export default defineComponent({
     },
     saveAnnounce() {
       if (this.saving) return;
+      if (!hasTextContent(this.content)) { this.error = '본문 내용을 입력해 주세요.'; return; }
+      const attachmentsError = announcementAttachmentError(this.image, this.bodyImages);
+      if (attachmentsError) { this.error = attachmentsError; return; }
       this.saving = true;
       this.error = "";
       createAnnouncement({
@@ -94,7 +99,8 @@ export default defineComponent({
         language: this.language,
         payment: this.payment,
         position: this.position,
-        content: renderMarkdown(this.content),
+        content: this.content,
+        bodyImages: this.bodyImages,
         image: this.image,
       })
         .then(() => {

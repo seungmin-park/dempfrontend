@@ -12,28 +12,30 @@
         <fieldset class="field"><legend>기술 스택</legend><div class="radio-options"><label v-for="language in languages" :key="language"><input v-model="selectedLanguages" type="checkbox" :value="language" :disabled="saving" />{{ formatLanguages([language]) }}</label></div><p v-if="errors.language" class="field-error">{{ errors.language }}</p></fieldset>
         <div class="field"><label for="admin-image">공고 이미지 (선택)</label><CompanyImage v-if="imageUrl" :src="imageUrl" :alt="form.company" class="admin-image-preview" /><input id="admin-image" type="file" accept="image/jpeg,image/png" :disabled="saving" @change="selectImage" /><p class="field-hint">{{ editing ? '선택하지 않으면 기존 이미지를 유지합니다.' : 'JPEG 또는 PNG 이미지를 선택하세요.' }}</p><p v-if="errors.image" class="field-error">{{ errors.image }}</p></div>
       </div>
-      <div class="field"><MarkdownEditor id="admin-content" label="상세 내용" v-model="form.content" :disabled="saving" /><p v-if="errors.content" class="field-error">{{ errors.content }}</p></div>
+      <div class="field"><AnnouncementBodyEditor :key="String($route.params.id || 'new')" id="admin-content" v-model="form.content" v-model:body-images="bodyImages" :type="form.type" :cover-bytes="form.image?.size || 0" :disabled="saving" /><p v-if="errors.content" class="field-error">{{ errors.content }}</p></div>
       <p v-if="error" role="alert" class="form-error">{{ error }}</p>
       <div class="form-actions"><router-link class="button button-secondary" to="/admin/announcements">취소</router-link><button class="button button-primary" :disabled="saving">{{ saving ? '저장 중…' : editing ? '변경 저장' : '등록하기' }}</button></div>
     </form>
   </template>
 </template>
 <script lang="ts">
+import { announcementAttachmentError } from '@/content/announcementAttachments';
+import { hasTextContent } from '@/content/sanitizeHtml';
 import { defineComponent } from 'vue';
 import type { AnnouncementForm, Language } from '@/types/api';
 import { fetchAdminAnnouncement, saveAdminAnnouncement } from '@/api/admin';
-import { markdownFromHtml, renderMarkdown } from '@/content/markdown';
+
 import { requestErrorMessage, mutationErrorMessage } from '@/presentation/requestError';
 import { formatPosition } from '@/presentation/positions';
 import { formatLanguages } from '@/presentation/announcement';
 import positions from '@/data/positions';
-import MarkdownEditor from '@/components/common/MarkdownEditor.vue';
+import AnnouncementBodyEditor from '@/components/announcement/AnnouncementBodyEditor.vue';
 import AsyncState from '@/components/common/AsyncState.vue';
 import CompanyImage from '@/components/common/CompanyImage.vue';
 function blankForm(): AnnouncementForm { return { title: '', company: '', type: 'EMP', position: '', minCareer: 0, maxCareer: 0, payment: 0, accessUrl: '', startedDate: null, deadLineDate: null, content: '', language: [], image: null }; }
 export default defineComponent({
-  components: { MarkdownEditor, AsyncState, CompanyImage },
-  data: () => ({ form: blankForm(), selectedLanguages: [] as Language[], imageUrl: '', loading: false, saving: false, loadError: '', error: '', errors: {} as Record<string,string>, generation: 0, positions,
+  components: { AnnouncementBodyEditor, AsyncState, CompanyImage },
+  data: () => ({ form: blankForm(), selectedLanguages: [] as Language[], bodyImages: [] as File[], imageUrl: '', loading: false, saving: false, loadError: '', error: '', errors: {} as Record<string,string>, generation: 0, positions,
     languages: ['JAVA','SPRING','JPA','HTML','CSS','React'] as Language[],
     textFields: [{ key: 'title', label: '제목', type: 'text' }, { key: 'company', label: '회사·교육기관', type: 'text' }, { key: 'accessUrl', label: '원문 공고 URL', type: 'url' }] as const,
     dateFields: [{ key: 'startedDate', label: '모집 시작' }, { key: 'deadLineDate', label: '모집 마감' }] as const,
@@ -45,13 +47,13 @@ export default defineComponent({
   methods: {
     formatPosition, formatLanguages,
     async load() {
-      const current = ++this.generation; this.form = blankForm(); this.errors = {}; this.error = ''; this.loadError = ''; this.selectedLanguages = []; this.imageUrl = '';
+      const current = ++this.generation; this.form = blankForm(); this.errors = {}; this.error = ''; this.loadError = ''; this.selectedLanguages = []; this.bodyImages = []; this.imageUrl = '';
       if (!this.editing) { this.loading = false; return; }
       this.loading = true;
       try {
         const result = await fetchAdminAnnouncement(String(this.$route.params.id));
         if (current !== this.generation) return;
-        this.form = { ...blankForm(), ...result, title: result.title || '', company: result.company?.name || '', type: result.announcementType || 'EMP', position: result.position || '', content: markdownFromHtml(result.content || ''), accessUrl: result.accessUrl || '', image: null };
+        this.form = { ...blankForm(), ...result, title: result.title || '', company: result.company?.name || '', type: result.announcementType || 'EMP', position: result.position || '', content: result.content || '', accessUrl: result.accessUrl || '', image: null };
         this.selectedLanguages = result.language || []; this.imageUrl = result.image;
       } catch (reason) { if (current === this.generation) this.loadError = requestErrorMessage(reason); }
       finally { if (current === this.generation) this.loading = false; }
@@ -61,12 +63,15 @@ export default defineComponent({
       const errors: Record<string,string> = {};
       for (const field of ['title','company','content'] as const) if (!this.form[field].trim()) errors[field] = '필수 항목을 입력해 주세요.';
       try { if (!['http:','https:'].includes(new URL(this.form.accessUrl).protocol)) throw new Error(); } catch { errors.accessUrl = 'http 또는 https 주소를 입력해 주세요.'; }
+      if (!hasTextContent(this.form.content)) errors.content = '본문 내용을 입력해 주세요.';
       if (!this.form.position) errors.position = '분야를 선택해 주세요.';
       if (!this.selectedLanguages.length) errors.language = '기술 스택을 하나 이상 선택해 주세요.';
       if (!this.form.startedDate) errors.startedDate = '모집 시작을 입력해 주세요.';
       if (!this.form.deadLineDate || (this.form.startedDate && this.form.deadLineDate < this.form.startedDate)) errors.deadLineDate = '마감은 모집 시작보다 빠를 수 없습니다.';
       for (const field of ['minCareer','maxCareer','payment'] as const) if (!Number.isInteger(this.form[field]) || this.form[field] < 0) errors[field] = '0 이상의 정수를 입력해 주세요.';
       if (this.form.maxCareer && this.form.minCareer > this.form.maxCareer) errors.maxCareer = '최대 경력은 최소 경력보다 작을 수 없습니다.';
+      const attachmentsError = announcementAttachmentError(this.form.image, this.bodyImages);
+      if (attachmentsError) errors.image = attachmentsError;
       this.errors = errors; return Object.keys(errors).length === 0;
     },
     async save() {
@@ -74,7 +79,7 @@ export default defineComponent({
       const current = this.generation, id = this.editing ? String(this.$route.params.id) : undefined;
       this.saving = true; this.error = '';
       try {
-        const result = await saveAdminAnnouncement(id, { ...this.form, language: this.selectedLanguages, content: renderMarkdown(this.form.content) });
+        const result = await saveAdminAnnouncement(id, { ...this.form, language: this.selectedLanguages, bodyImages: this.bodyImages });
         if (current === this.generation) this.$router.push({ path: '/admin/announcements', query: result.cleanupPending ? { cleanup: 'pending' } : {} });
       } catch (reason) { if (current === this.generation) this.error = mutationErrorMessage(reason); }
       finally { this.saving = false; }

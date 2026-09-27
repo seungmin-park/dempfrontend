@@ -11,7 +11,7 @@
       <p>기술 스택 : <span aria-label="기술 스택">{{ formatLanguages(announcement.language) }}</span></p>
 
     </div>
-    <section class="detail-announce-content"><h2>상세 내용</h2><SafeHtml :content="announcement.content ?? ''" /></section>
+    <section class="detail-announce-content"><h2>상세 내용</h2><SafeHtml images :content="announcement.content ?? ''" /></section>
     <div class="apply-bar"><span v-if="applicationUrl" class="field-hint">원문 공고에서 상세 내용을 확인하고 지원하세요. 새 탭으로 열립니다.</span><a v-if="applicationUrl" :href="applicationUrl" class="button button-primary" target="_blank" rel="noopener noreferrer">지원하기</a><span v-else class="field-hint">지원 링크가 없습니다.</span></div>
   </article>
 </template>

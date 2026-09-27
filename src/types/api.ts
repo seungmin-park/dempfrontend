@@ -64,6 +64,7 @@ export interface AnnouncementForm {
   payment: number;
   language: string | Language[];
   image: File | null;
+  bodyImages?: File[];
 }
 export interface QuestionSummary { id: number; title: string | null; hits: number; recommend: number }
 export interface QuestionDetail extends QuestionSummary { content: string | null; dislike: number; username: string; hashtags: string[] }

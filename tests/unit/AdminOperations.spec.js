@@ -50,8 +50,8 @@ it('공고 수정은 기존 HTML과 필드를 복원하고 파일을 선택하�
   axios.patch.mockResolvedValue({ data: { cleanupPending: false } });
   const wrapper = mount(AdminAnnouncementEditor, options({ id: '7' }));
   await flushPromises();
-  expect(wrapper.get('#admin-content').element.value).toContain('## 기존');
-  await wrapper.get('#admin-content').setValue('## 수정');
+  expect(wrapper.get('#admin-content').text()).toContain('기존');
+  await wrapper.setData({ form: { ...wrapper.vm.form, content: '<h2>수정</h2>' } });
   await wrapper.get('form').trigger('submit');
   await flushPromises();
   const [url, data] = axios.patch.mock.calls[0];

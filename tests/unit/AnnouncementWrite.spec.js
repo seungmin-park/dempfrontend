@@ -5,7 +5,7 @@ import AnnouncementWrite from '@/components/announcement/AnnouncementWrite.vue';
 
 vi.mock('axios');
 
-test('공고 Markdown은 안전한 HTML로 전송하며 저장 중 중복 요청과 실패 시 입력 유실을 막는다', async () => {
+test('공고 본문 HTML을 전송하며 저장 중 중복 요청과 실패 시 입력 유실을 막는다', async () => {
   global.$ = () => ({ summernote: vi.fn(() => '<p>이전 입력</p>') });
   vi.spyOn(window, 'alert').mockImplementation(() => {});
   let rejectRequest;
@@ -13,7 +13,7 @@ test('공고 Markdown은 안전한 HTML로 전송하며 저장 중 중복 요청
   const wrapper = mount(AnnouncementWrite, { global: { mocks: {
     $store: { state: { Login: { token: 'jwt' } } }, $router: { push: vi.fn() },
   } } });
-  await wrapper.get('#content').setValue('## 업무\n\n**개발**');
+  await wrapper.setData({ content: '<h2>업무</h2><p><strong>개발</strong></p>' });
   wrapper.vm.saveAnnounce();
   wrapper.vm.saveAnnounce();
   await flushPromises();
@@ -22,7 +22,7 @@ test('공고 Markdown은 안전한 HTML로 전송하며 저장 중 중복 요청
   rejectRequest(new Error('server'));
   await flushPromises();
   expect(wrapper.get('[role="alert"]').text()).toContain('저장하지 못했습니다');
-  expect(wrapper.get('#content').element.value).toContain('## 업무');
+  expect(wrapper.get('#content').text()).toContain('업무');
 });
 
 afterEach(() => {
@@ -45,7 +45,7 @@ test('공고 등록은 서버의 평면 multipart 필드로 요청한다', async
     minCareer: 0, maxCareer: 3,
     startedDate: '2026-09-01T00:00:00', deadLineDate: '2026-09-30T23:59:00',
     accessUrl: 'https://example.com/jobs/1', payment: 3000,
-    language: ['JAVA', 'SPRING'], content: '설명',
+    language: ['JAVA', 'SPRING'], content: '<p>설명</p>',
   });
 
   const imageInput = wrapper.get('input[type="file"]');
@@ -59,7 +59,7 @@ test('공고 등록은 서버의 평면 multipart 필드로 요청한다', async
     title: '백엔드 채용', company: 'DEMP', type: 'EMP', position: 'BACKEND',
     minCareer: '0', maxCareer: '3',
     startedDate: '2026-09-01T00:00:00', deadLineDate: '2026-09-30T23:59:00',
-    content: '<p>설명</p>\n', accessUrl: 'https://example.com/jobs/1', payment: '3000',
+    content: '<p>설명</p>', accessUrl: 'https://example.com/jobs/1', payment: '3000',
   });
   expect(request.getAll('language')).toEqual(['JAVA', 'SPRING']);
   expect(request.get('image')).toBe(image);
@@ -83,8 +83,11 @@ test('무료 교육 공고는 교육비 0원으로 입력 검증을 통과한다
   const wrapper = mount(AnnouncementWrite, { global: { mocks: {
     $store: { state: { Login: { token: 'jwt' } } }, $router: { push: vi.fn() },
   } } });
-  await wrapper.setData({ title: '무료 교육', company: '교육기관', type: 'EDU', position: 'BACKEND', minCareer: 0, maxCareer: 0, startedDate: '2026-09-01T00:00', deadLineDate: '2026-10-01T00:00', accessUrl: 'https://example.com', payment: 0, language: 'JAVA', content: '설명', image: new File(['png'], 'image.png', { type: 'image/png' }) });
+  await wrapper.setData({ title: '무료 교육', company: '교육기관', type: 'EDU', position: 'BACKEND', minCareer: 0, maxCareer: 0, startedDate: '2026-09-01T00:00', deadLineDate: '2026-10-01T00:00', accessUrl: 'https://example.com', payment: 0, language: 'JAVA', content: '설명' });
+  const imageInput = wrapper.get('#announce_img');
+  Object.defineProperty(imageInput.element, 'files', { value: [new File(['png'], 'image.png', { type: 'image/png' })] });
+  await imageInput.trigger('change');
   await wrapper.get('form').trigger('submit');
-  await vi.waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1));
+  await vi.waitFor(() => expect(axios.post.mock.calls.length, wrapper.text()).toBe(1));
   expect(axios.post.mock.calls[0][1].get('payment')).toBe('0');
 });
