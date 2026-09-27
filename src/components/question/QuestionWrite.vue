@@ -1,168 +1,40 @@
 <template>
-  <Form as="form" @submit="submitQuestion" class="qusetion-add">
-    <div class="qusetion-add">
-      <div>
-        <table>
-          <tr>
-            <td>
-              <label for="question-title">제목: </label>
-            </td>
-            <td>
-              <Field
-                type="text"
-                id="question-title"
-                name="question-title"
-                v-model="questionForm.title"
-                placeholder="제목"
-                rules="required"
-              />
-              <ErrorMessage class="errorMessage" name="question-title" as="div">
-                제목을 입력해 주세요.
-              </ErrorMessage>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <label for="content"> 내용 : </label>
-            </td>
-            <td>
-              <textarea
-                v-model="questionForm.content"
-                id="content"
-                name="content"
-                as="textarea"
-                wrap="hard"
-              ></textarea>
-            </td>
-          </tr>
-        </table>
-      </div>
-      <hashtags
-        :placeholder="`#해시태그를작성하세요`"
-        v-on:addHashtags="addHashtags"
-      ></hashtags>
-      <div class="question-form-action-button">
-        <button type="reset">취소</button>
-        <button type="submit">작성하기</button>
-      </div>
-    </div>
-  </Form>
+  <ValidationForm as="form" @submit="submitQuestion" class="write-form">
+    <div class="field"><label for="question-title">제목</label><Field id="question-title" name="question-title" v-model="questionForm.title" placeholder="궁금한 내용을 한 문장으로 적어주세요" rules="required" :disabled="saving" /><ErrorMessage class="field-error" name="question-title">제목을 입력해 주세요.</ErrorMessage></div>
+    <div class="field"><label for="content">본문</label><MarkdownEditor id="content" v-model="questionForm.content" :disabled="saving" /></div>
+    <div class="field"><label>태그</label><Hashtags placeholder="#태그를 입력하세요" @addHashtags="addHashtags" /><p class="field-hint">관련 기술을 입력하고 Enter를 누르세요.</p></div>
+    <p v-if="error" role="alert" class="form-error">{{ error }}</p>
+    <div class="form-actions"><router-link class="button button-secondary" to="/question">취소</router-link><button class="button button-primary" type="submit" :disabled="saving">{{ saving ? '저장 중…' : '작성하기' }}</button></div>
+  </ValidationForm>
 </template>
-
-<script>
-import { Form, Field, ErrorMessage } from "vee-validate";
-import { defineRule } from "vee-validate";
-import { required, url, min_value, image } from "@vee-validate/rules";
-import Hashtags from "@/components/Hashtags";
+<script lang="ts">
+import type { HashtagInput } from '@/types/api';
+import { defineComponent } from 'vue';
+import { Form as ValidationForm, Field, ErrorMessage, defineRule } from 'vee-validate';
+import { required } from '@vee-validate/rules';
+import Hashtags from '@/components/Hashtags.vue';
+import MarkdownEditor from '@/components/common/MarkdownEditor.vue';
+import { renderMarkdown } from '@/content/markdown';
 import { createQuestion } from '@/api/questions';
-
-defineRule("required", required);
-defineRule("url", url);
-defineRule("min_value", min_value);
-defineRule("image", image);
-
-export default {
-  created(){
-    if (this.$store.state.Login.token == "") {
-      this.$router.replace({
-        path: "/login",
-        query: { redirect: this.$router.currentRoute.value.fullPath },
-      });
-    }},
-  mounted() {
-    // eslint-disable-next-line
-    $("#content").summernote({
-      height: 500,
-      width: 1500,
-      minHeight: null,
-      maxHeight: null,
-      focus: true,
-      toolbar: [
-        ["style", ["bold", "italic", "underline", "clear"]],
-        ["font", ["strikethrough", "superscript", "subscript", "forecolor"]],
-        ["fontsize", ["fontsize"]],
-        ["color", ["color"]],
-        ["para", ["ul", "ol", "paragraph"]],
-        ["height", ["height"]],
-      ],
-    });
-  },
-  components: {
-    Form,
-    Field,
-    Hashtags,
-    ErrorMessage,
-  },
-  data() {
-    return {
-      questionForm: {
-        title: "",
-        content: "",
-        username:this.$store.state.Login.username,
-        hashtags: [],
-      },
-    };
-  },
+defineRule('required', required);
+export default defineComponent({
+  components: { ValidationForm, Field, ErrorMessage, Hashtags, MarkdownEditor },
+  data() { return {
+    questionForm: { title: '', content: '', username: this.$store.state.Login.username, hashtags: [] as HashtagInput[] },
+    saving: false, error: '',
+  }; },
   methods: {
-    isRequired(value) {
-      if (value && value.trim()) {
-        return true;
-      }
-      return "해당 값은 필수 항목 입니다.";
+    async submitQuestion() {
+      if (this.saving) return;
+      this.saving = true;
+      this.error = '';
+      try {
+        await createQuestion({ ...this.questionForm, content: renderMarkdown(this.questionForm.content), hashtags: this.questionForm.hashtags.map(tag => tag.value) });
+        await this.$router.push({ path: '/question', query: { orderBy: 'createdDate' } });
+      } catch { this.error = '질문을 저장하지 못했습니다. 입력한 내용을 확인하고 다시 시도해 주세요.'; }
+      finally { this.saving = false; }
     },
-    submitQuestion() {
-      const payload = {
-        ...this.questionForm,
-        // eslint-disable-next-line no-undef
-        content: $("#content").summernote("code"),
-        hashtags: this.questionForm.hashtags.map((tag) => tag.value),
-      };
-      createQuestion(payload)
-        .then(() => {
-          this.$router.push({
-            path: "/question",
-            query: { orderBy: "createdDate" },
-          });
-        })
-        .catch(() => undefined);
-    },
-    addHashtags(hashtag) {
-      this.questionForm.hashtags = hashtag;
-    },
+    addHashtags(tags: HashtagInput[]) { this.questionForm.hashtags = tags; },
   },
-};
+});
 </script>
-
-<style>
-#question-title {
-  width: 100%;
-  height: 50px;
-}
-
-td:first-child {
-  text-align: right;
-  vertical-align: top;
-}
-
-.question-form-action-button {
-  display: flex;
-}
-
-.question-form-action-button button {
-  display: block;
-  color: white;
-  background-color: #a9cbdd;
-  width: 100px;
-  height: 41px;
-  border: none;
-  border-radius: 5px;
-  margin: 10px 10px 10px 10px;
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.errorMessage {
-  display: flex;
-  color: red;
-}
-</style>

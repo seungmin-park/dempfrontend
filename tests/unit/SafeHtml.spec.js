@@ -13,7 +13,7 @@ test.each(['http://example.com', 'https://example.com', 'mailto:test@example.com
 
 test('명시한 편집 서식만 보존하며 namespace 요소와 임의 속성을 제거한다', () => {
   const wrapper = mount(SafeHtml, { props: { content: '<b>B</b><strong>S</strong><i>I</i><em>E</em><u>U</u><p>P<br></p><ul><li>L</li></ul><ol><li>O</li></ol><blockquote>Q</blockquote><pre><code>C</code></pre><svg onload="evil()"><a href="javascript:evil()">X</a></svg><math><mtext>X</mtext></math><iframe srcdoc="evil"></iframe><p id="x" class="x" data-x="x" aria-label="x" style="color:red">속성 없음</p>' } });
-  expect(wrapper.find('svg, math, iframe, [id], [class], [data-x], [aria-label], [style]').exists()).toBe(false);
+  expect(wrapper.element.querySelector('svg, math, iframe, [id], [class], [data-x], [aria-label], [style]')).toBeNull();
   for (const tag of ['b', 'strong', 'i', 'em', 'u', 'p', 'br', 'ul', 'ol', 'li', 'blockquote', 'pre', 'code']) {
     expect(wrapper.find(tag).exists()).toBe(true);
   }
@@ -26,4 +26,14 @@ test('새 콘텐츠가 전달되면 다시 정화하고 빈 콘텐츠도 표시�
   expect(wrapper.find('img, [onmouseover]').exists()).toBe(false);
   await wrapper.setProps({ content: '' });
   expect(wrapper.text()).toBe('');
+});
+
+test('Markdown 제목·표·취소선은 보존하고 표의 이벤트 속성은 제거한다', () => {
+  const wrapper = mount(SafeHtml, { props: { content: '<h2>제목</h2><hr><del>삭제</del><table><thead><tr><th>언어</th></tr></thead><tbody><tr><td onclick="evil()">Java</td></tr></tbody></table>' } });
+  expect(wrapper.get('h2').text()).toBe('제목');
+  expect(wrapper.get('th').text()).toBe('언어');
+  expect(wrapper.get('td').text()).toBe('Java');
+  expect(wrapper.get('td').attributes('onclick')).toBeUndefined();
+  expect(wrapper.find('hr').exists()).toBe(true);
+  expect(wrapper.get('del').text()).toBe('삭제');
 });

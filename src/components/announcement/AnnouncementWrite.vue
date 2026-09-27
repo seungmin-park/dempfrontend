@@ -1,248 +1,38 @@
 <template>
-  <Form as="form" @submit="saveAnnounce" enctype="multipart/form-data">
-    <div class="add-form">
-      <div>
-        <table>
-          <tr>
-            <td>
-              <label for="announce-title">제목: </label>
-            </td>
-            <td>
-              <Field
-                type="text"
-                id="announce-title"
-                name="announce-title"
-                v-model="title"
-                placeholder="제목"
-                rules="required"
-              />
-              <ErrorMessage class="errorMessage" name="announce-title" as="div">
-                제목을 입력해 주세요.
-              </ErrorMessage>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <label for="company"> 회사/교육기관: </label>
-            </td>
-            <td>
-              <Field
-                type="text"
-                id="company"
-                name="company"
-                v-model="company"
-                placeholder="회사/교육기관"
-                rules="required"
-              />
-              <ErrorMessage class="errorMessage" name="company" as="div">
-                회사/교육기관을 입력해 주세요.
-              </ErrorMessage>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <label for="accessUrl"> 지원 페이지: </label>
-            </td>
-            <td>
-              <Field
-                type="text"
-                id="accessUrl"
-                name="accessUrl"
-                v-model="accessUrl"
-                placeholder="지원 페이지"
-                rules="required|url"
-              />
-              <ErrorMessage class="errorMessage" name="accessUrl" as="div">
-                지원 페이지를 형식에 맞게 입력해 주세요.(https://)
-              </ErrorMessage>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <label for="language"> 기술 스택 : </label>
-            </td>
-            <td>
-              <Field
-                type="text"
-                id="language"
-                name="language"
-                v-model="language"
-                placeholder="기술 스택"
-                rules="required"
-              />
-              <ErrorMessage class="errorMessage" name="language" as="div">
-                기술 스택을 입력해 주세요.
-              </ErrorMessage>
-            </td>
-          </tr>
-          <tr>
-            <td>종류 :</td>
-            <td>
-              <label for="emp">
-                채용 :
-                <Field
-                  type="radio"
-                  id="emp"
-                  name="type"
-                  value="EMP"
-                  v-model="type"
-                  rules="required"
-                />
-              </label>
-              <label for="edu">
-                교육 :
-                <Field
-                  type="radio"
-                  id="edu"
-                  name="type"
-                  value="EDU"
-                  v-model="type"
-                />
-                <ErrorMessage class="errorMessage" name="type" as="div">
-                  종류를 선택해 주세요.
-                </ErrorMessage>
-              </label>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <label for="startedDate"> 지원기간: </label>
-            </td>
-            <td>
-              <Field
-                type="datetime-local"
-                id="startedDate"
-                name="startedDate"
-                v-model="startedDate"
-                rules="required"
-              />
-              ~
-              <Field
-                type="datetime-local"
-                id="deadLineDate"
-                name="deadLineDate"
-                v-model="deadLineDate"
-                rules="required"
-              />
-              <ErrorMessage class="errorMessage" name="startedDate" as="div">
-                시작 기간을 지정해 주세요.
-              </ErrorMessage>
-              <ErrorMessage class="errorMessage" name="deadLineDate" as="div">
-                마감 기간을 지정해 주세요.
-              </ErrorMessage>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <label for="minCareer"> 경력 : </label>
-            </td>
-            <td>
-              <Field
-                type="number"
-                name="minCareer"
-                id="minCareer"
-                v-model="minCareer"
-                rules="required|min_value:0"
-              />년 ~
-              <Field
-                type="number"
-                name="maxCareer"
-                id="maxCareer"
-                v-model="maxCareer"
-                rules="required|min_value:0"
-              />년 (0은 상한 없음)
-              <ErrorMessage class="errorMessage" name="minCareer" as="div">
-                최소 경력을 입력해 주세요.
-              </ErrorMessage>
-              <ErrorMessage class="errorMessage" name="maxCareer" as="div">
-                최대 경력을 입력해 주세요.
-              </ErrorMessage>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <label for="position"> 분야 : </label>
-            </td>
-            <td>
-              <Field
-                as="select"
-                name="position"
-                id="position"
-                v-model="position"
-                rules="required"
-              >
-                <option value="">====분야====</option>
-                <option
-                  v-for="position in positions"
-                  :key="position.id"
-                  :value="position"
-                >
-                  {{ position }}
-                </option>
-              </Field>
-              <ErrorMessage class="errorMessage" name="position" as="div">
-                분야를 선택해 주세요.
-              </ErrorMessage>
-            </td>
-          </tr>
-          <tr>
-            <td>연봉/교육비:</td>
-            <td>
-              <Field
-                type="number"
-                v-model="payment"
-                id="payment"
-                name="payment"
-                rules="required|min_value:2400"
-              />만원
-              <ErrorMessage class="errorMessage" name="payment" as="div">
-                연봉/교육비를 입력해 주세요.
-              </ErrorMessage>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <label for="announce_img"> 이미지: </label>
-            </td>
-            <td>
-              <input
-                type="file"
-                id="announce_img"
-                name="announce_img"
-                accept="image/jpeg,image/png,.jpg,.jpeg,.png"
-                required
-                ref="announceImg"
-                @change="uploadImg"
-              />
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <label for="content"> 내용 : </label>
-            </td>
-            <td>
-              <textarea
-                v-model="content"
-                id="content"
-                name="content"
-                as="textarea"
-                wrap="hard"
-              ></textarea>
-            </td>
-          </tr>
-        </table>
-      </div>
-      <div class="form-action-button">
-        <button type="reset">취소</button>
-        <button type="submit">작성하기</button>
-      </div>
+  <ValidationForm as="form" @submit="saveAnnounce" class="write-form" enctype="multipart/form-data">
+    <div class="form-grid">
+      <div class="field"><label for="announce-title">제목</label><Field id="announce-title" name="announce-title" type="text" v-model="title" rules="required" placeholder="어떤 기회인지 명확하게 적어주세요" :disabled="saving" /><ErrorMessage name="announce-title" class="field-error">제목을 확인해 주세요.</ErrorMessage></div>
+      <div class="field"><label for="company">회사·교육기관</label><Field id="company" name="company" type="text" v-model="company" rules="required" placeholder="회사 또는 교육기관 이름" :disabled="saving" /><ErrorMessage name="company" class="field-error">회사·교육기관을 확인해 주세요.</ErrorMessage></div>
+      <div class="field"><label for="accessUrl">원문 공고 URL</label><Field id="accessUrl" name="accessUrl" type="url" v-model="accessUrl" rules="required|url" placeholder="https://" :disabled="saving" /><ErrorMessage name="accessUrl" class="field-error">원문 공고 URL을 확인해 주세요.</ErrorMessage></div>
+      <div class="field"><label for="language">기술 스택</label><Field id="language" name="language" type="text" v-model="language" rules="required" placeholder="JAVA, SPRING" :disabled="saving" /><ErrorMessage name="language" class="field-error">기술 스택을 확인해 주세요.</ErrorMessage></div>
+      <fieldset class="field"><legend>공고 종류</legend><div class="radio-options"><label><Field type="radio" name="type" v-model="type" @change="changeType" value="EMP" rules="required" :disabled="saving" /> 채용</label><label><Field type="radio" name="type" v-model="type" @change="changeType" value="EDU" :disabled="saving" /> 교육·부트캠프</label></div><ErrorMessage name="type" class="field-error">공고 종류를 선택해 주세요.</ErrorMessage></fieldset>
+      <div class="field"><label for="position">분야</label><Field as="select" id="position" name="position" v-model="position" rules="required" :disabled="saving"><option value="">분야 선택</option><option v-for="item in positions" :key="item" :value="item">{{ formatPosition(item) }}</option></Field><ErrorMessage name="position" class="field-error">분야를 선택해 주세요.</ErrorMessage></div>
+      <div class="field"><label for="startedDate">모집 시작</label><Field id="startedDate" name="startedDate" type="datetime-local" v-model="startedDate" rules="required" :disabled="saving" /><ErrorMessage name="startedDate" class="field-error">모집 시작일을 입력해 주세요.</ErrorMessage></div>
+      <div class="field"><label for="deadLineDate">모집 마감</label><Field id="deadLineDate" name="deadLineDate" type="datetime-local" v-model="deadLineDate" rules="required" :disabled="saving" /><ErrorMessage name="deadLineDate" class="field-error">모집 마감일을 입력해 주세요.</ErrorMessage></div>
+      <div class="field"><label for="minCareer">최소 경력 (년)</label><Field id="minCareer" name="minCareer" type="number" min="0" v-model="minCareer" rules="required|min_value:0" :disabled="saving" /><ErrorMessage name="minCareer" class="field-error">0 이상의 경력을 입력해 주세요.</ErrorMessage></div>
+      <div class="field"><label for="maxCareer">최대 경력 (년)</label><Field id="maxCareer" name="maxCareer" type="number" min="0" v-model="maxCareer" rules="required|min_value:0" :disabled="saving" /><ErrorMessage name="maxCareer" class="field-error">0 이상의 경력을 입력해 주세요.</ErrorMessage></div>
+      <CompensationFields id="payment" :type="type" v-model:payment="payment" v-model:salary-status="salaryStatus" v-model:salary-max="salaryMax" :disabled="saving" />
+      <div class="field"><label for="announce_img">대표 이미지 (선택)</label><input id="announce_img" name="announce_img" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" ref="announceImg" :disabled="saving" @change="uploadImg" /><p class="field-hint">JPEG 또는 PNG 파일을 선택하세요.</p></div>
     </div>
-  </Form>
+    <EducationFields v-if="type === 'EDU'" id="education-" v-model="education" :disabled="saving" />
+    <div class="field"><AnnouncementBodyEditor id="content" v-model="content" v-model:body-images="bodyImages" :type="type" :cover-bytes="image?.size || 0" :disabled="saving" /></div>
+    <p v-if="error" role="alert" class="form-error">{{ error }}</p>
+    <div class="form-actions"><router-link class="button button-secondary" to="/">취소</router-link><button type="submit" class="button button-primary" :disabled="saving">{{ saving ? '저장 중…' : '등록하기' }}</button></div>
+  </ValidationForm>
 </template>
-
-<script>
+<script lang="ts">
+import EducationFields from './EducationFields.vue';
+import { educationError, type EducationInfo } from '@/data/education';
+import CompensationFields from './CompensationFields.vue';
+import { compensationError } from '@/presentation/compensation';
+import AnnouncementBodyEditor from '@/components/announcement/AnnouncementBodyEditor.vue';
+import { announcementAttachmentError } from '@/content/announcementAttachments';
+import { hasTextContent } from '@/content/sanitizeHtml';
+import type { AnnouncementForm } from '@/types/api';
+import { formatPosition } from '@/presentation/positions';
+import { defineComponent } from "vue";
 import positions from "../../data/positions";
-import { Form, Field, ErrorMessage } from "vee-validate";
+import { Form as ValidationForm, Field, ErrorMessage } from "vee-validate";
 import { defineRule } from "vee-validate";
 import { required, url, min_value, image } from "@vee-validate/rules";
 import { createAnnouncement } from "@/api/announcements";
@@ -252,75 +42,65 @@ defineRule("url", url);
 defineRule("min_value", min_value);
 defineRule("image", image);
 
-export default {
+export default defineComponent({
   created(){
     if (!this.$store.state.Login.token) {
       this.$router.push("/login");
     }
   },
-  mounted() {
-    // eslint-disable-next-line
-    $("#content").summernote({
-      height: 800,
-      minHeight: null,
-      maxHeight: null,
-      focus: true,
-      toolbar: [
-        ["style", ["bold", "italic", "underline", "clear"]],
-        ["font", ["strikethrough", "superscript", "subscript", "forecolor"]],
-        ["fontsize", ["fontsize"]],
-        ["color", ["color"]],
-        ["para", ["ul", "ol", "paragraph"]],
-        ["height", ["height"]],
-      ],
-    });
-  },
   components: {
-    Form,
+    AnnouncementBodyEditor, CompensationFields, EducationFields,
+    ValidationForm,
     Field,
     ErrorMessage,
   },
   data() {
     return {
+      education: {} as EducationInfo,
       title: "",
       company: "",
       accessUrl: "",
-      type: "",
-      startedDate: null,
-      deadLineDate: null,
+      type: "" as AnnouncementForm["type"],
+      startedDate: null as string | null,
+      deadLineDate: null as string | null,
       minCareer: 0,
       maxCareer: 0,
       language: "",
       positions: positions,
-      position: "",
-      payment: 2400,
-      image: null,
+      position: "" as AnnouncementForm["position"],
+      payment: null as number | null,
+      salaryStatus: undefined as AnnouncementForm['salaryStatus'],
+      salaryMax: null as number | null,
+      image: null as File | null,
       content: "",
+      bodyImages: [] as File[],
+      saving: false, error: "",
     };
   },
-  // created: function () {
-  //   extend("notBlank", {
-  //     validate(value) {
-  //       if (!value) {
-  //         return "{_field_}에 값이 비어있습니다.";
-  //       }
-  //     },
-  //   });
-  // },
   methods: {
-    isRequired(value) {
-      if (value && value.trim()) {
+    formatPosition,
+    changeType() { this.payment = null; this.salaryStatus = undefined; this.salaryMax = null; },
+    isRequired(value: unknown) {
+      if (typeof value === 'string' && value.trim()) {
         return true;
       }
       return "해당 값은 필수 항목 입니다.";
     },
     uploadImg() {
-      this.image = this.$refs.announceImg.files[0];
+      this.image = (this.$refs.announceImg as HTMLInputElement).files?.[0] ?? null;
     },
     saveAnnounce() {
-      // eslint-disable-next-line
-      this.content = $("#content").summernote("code");
+      if (this.saving) return;
+      if (!hasTextContent(this.content)) { this.error = '본문 내용을 입력해 주세요.'; return; }
+      if (this.type === 'EDU' && educationError(this.education)) { this.error = educationError(this.education); return; }
+      const amountError = compensationError(this);
+      if (amountError) { this.error = amountError; return; }
+      const attachmentsError = announcementAttachmentError(this.image, this.bodyImages);
+      if (attachmentsError) { this.error = attachmentsError; return; }
+      this.saving = true;
+      this.error = "";
       createAnnouncement({
+        ...this.education,
         title: this.title,
         company: this.company,
         accessUrl: this.accessUrl,
@@ -331,78 +111,19 @@ export default {
         maxCareer: this.maxCareer,
         language: this.language,
         payment: this.payment,
+        salaryStatus: this.type === 'EMP' ? this.salaryStatus : undefined, salaryMax: this.type === 'EMP' ? this.salaryMax : null,
         position: this.position,
         content: this.content,
+        bodyImages: this.bodyImages,
         image: this.image,
       })
         .then(() => {
           this.$router.push("/");
         })
         .catch(() => {
-          window.alert("공고 등록에 실패했습니다.");
-        });
+          this.error = "공고를 저장하지 못했습니다. 입력한 내용을 확인하고 다시 시도해 주세요.";
+        }).finally(() => { this.saving = false; });
     },
   },
-};
+});
 </script>
-
-<style>
-.add-form {
-  display: flex;
-}
-
-textarea {
-  width: 500px;
-  height: 100vh;
-  resize: none;
-}
-
-input[type="text"] {
-  width: 500px;
-  height: 32px;
-  font-size: 15px;
-  border: 0;
-  border-radius: 15px;
-  outline: none;
-  padding-left: 10px;
-  background-color: rgb(233, 233, 233);
-}
-
-input[type="number"] {
-  width: 55px;
-  text-align: center;
-}
-
-option {
-  text-align: center;
-}
-
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-td:first-child {
-  text-align: right;
-  vertical-align: top;
-}
-
-.form-action-button button {
-  display: block;
-  color: white;
-  background-color: #a9cbdd;
-  width: 100px;
-  height: 41px;
-  border: none;
-  border-radius: 5px;
-  margin: 10px 10px 10px 10px;
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.errorMessage {
-  display: flex;
-  color: red;
-}
-</style>

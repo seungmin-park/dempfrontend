@@ -1,16 +1,16 @@
 <template>
-  <div class="container">
-    <div class="py-5 text-center">
-      <h2>로그인</h2>
+  <div class="auth-card">
+    <div class="auth-heading">
+      <span class="auth-brand">DEMP</span><h1>다시 만나 반가워요</h1><p>로그인하고 다음 기회를 찾아보세요.</p>
     </div>
-    <Form as="form" @submit="loginMethod" enctype="multipart/form-data">
+    <ValidationForm as="form" @submit="loginMethod" enctype="multipart/form-data">
         <label for="username">아이디</label>
         <Field
           type="text"
           id="username"
           name="username"
           v-model="username"
-          placeholder="username"
+          placeholder="아이디를 입력하세요" autocomplete="username"
           rules="required"
           class="form-control"
         />
@@ -23,45 +23,48 @@
           id="password"
           name="password"
           v-model="password"
-          placeholder="password"
+          placeholder="비밀번호를 입력하세요" autocomplete="current-password"
           rules="required"
           class="form-control"
         />
         <ErrorMessage class="errorMessage" name="password" as="div">
           비밀번호를 입력해 주세요.
         </ErrorMessage>
-      <hr class="my-4">
-      <div class="row">
+
+      <p v-if="error" class="form-error" role="alert">{{ error }}</p>
+      <div class="auth-actions">
         <div class="col">
-          <button type="submit" class="w-100 btn btn-secondary btn-lg">로그인</button>
+          <button type="submit" :disabled="saving" class="button button-primary">로그인</button>
         </div>
         <div class="col">
-          <router-link class="w-100 btn btn-secondary btn-lg" :to="{ path: '/account' }">
+          <router-link class="button button-secondary" :to="{ path: '/account' }">
             회원가입
           </router-link>
         </div>
       </div>
-    </Form>
+    </ValidationForm>
   </div>
 </template>
-
-<script>
+<script lang="ts">
+import { queryText } from '@/router/query';
+import { defineComponent } from "vue";
 import { login } from '@/api/members';
-import { Form, Field, ErrorMessage } from "vee-validate";
+import { Form as ValidationForm, Field, ErrorMessage } from "vee-validate";
 import { defineRule } from "vee-validate";
 import { required, url, min_value } from "@vee-validate/rules";
 
 defineRule("required", required);
 defineRule("url", url);
 defineRule("min_value", min_value);
-export default {
+export default defineComponent({
   components: {
-    Form,
+    ValidationForm,
     Field,
     ErrorMessage,
   },
   data() {
     return {
+      saving: false, error: "",
       username: "",
       password: "",
       token: "",
@@ -75,11 +78,13 @@ export default {
       });
     }},
   mounted() {
-    this.redirect = this.$route.query.redirect || "";
+    this.redirect = queryText(this.$route.query.redirect);
   },
   methods: {
     loginMethod() {
-      var form = new FormData();
+      if (this.saving) return;
+      this.saving = true; this.error = "";
+      const form = new FormData();
       form.append("username", this.username);
       form.append("password", this.password);
       login(form)
@@ -92,19 +97,9 @@ export default {
             this.$router.push({path: this.redirect});
           }
         }).catch(() => {
-          alert("아이디 혹은 비밀번호가 잘못 되었습니다.")
-      });
+          this.error = "로그인하지 못했습니다. 아이디와 비밀번호를 확인하고 다시 시도해 주세요.";
+      }).finally(() => { this.saving = false; });
     },
   },
-};
+});
 </script>
-
-<style>
-.container {
-  max-width: 560px;
-}
-.errorMessage {
-  display: flex;
-  color: red;
-}
-</style>

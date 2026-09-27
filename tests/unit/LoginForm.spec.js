@@ -1,18 +1,19 @@
+import { vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import axios from 'axios';
 import LoginForm from '@/components/LoginForm.vue';
 
-jest.mock('axios');
-afterEach(() => jest.restoreAllMocks());
+vi.mock('axios');
+afterEach(() => vi.restoreAllMocks());
 
 function mountLogin() {
-  const commit = jest.fn();
-  const push = jest.fn();
+  const commit = vi.fn();
+  const push = vi.fn();
   const wrapper = mount(LoginForm, {
     global: {
       mocks: {
         $store: { state: { Login: { token: '' } }, commit },
-        $router: { push, replace: jest.fn() },
+        $router: { push, replace: vi.fn() },
         $route: { query: { redirect: '/question' } },
       },
       stubs: { RouterLink: true },
@@ -31,7 +32,7 @@ async function submit(wrapper) {
 
 test('로그인 성공 시 인증 상태와 이동 경로를 반영하고 자격 증명을 출력하지 않는다', async () => {
   axios.post.mockResolvedValue({ data: { jwt: 'test-token', username: 'tester' } });
-  const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+  const log = vi.spyOn(console, 'log').mockImplementation(() => {});
   const { wrapper, commit, push } = mountLogin();
   await submit(wrapper);
   expect(axios.post.mock.calls.at(-1)[1].get('password')).toBe('private-password');
@@ -43,11 +44,10 @@ test('로그인 성공 시 인증 상태와 이동 경로를 반영하고 자격
 
 test('로그인 실패 시 오류를 알리고 인증 상태와 경로를 바꾸지 않는다', async () => {
   axios.post.mockRejectedValue(new Error('unauthorized'));
-  const alert = jest.spyOn(window, 'alert').mockImplementation(() => {});
-  jest.spyOn(console, 'log').mockImplementation(() => {});
+  vi.spyOn(console, 'log').mockImplementation(() => {});
   const { wrapper, commit, push } = mountLogin();
   await submit(wrapper);
-  expect(alert).toHaveBeenCalledWith('아이디 혹은 비밀번호가 잘못 되었습니다.');
+  expect(wrapper.get('[role="alert"]').text()).toContain('아이디와 비밀번호를 확인하고 다시 시도');
   expect(commit).not.toHaveBeenCalled();
   expect(push).not.toHaveBeenCalled();
 });

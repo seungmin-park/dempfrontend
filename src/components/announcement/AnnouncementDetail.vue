@@ -1,75 +1,40 @@
 <template>
-  <main>
-    <div class="detail-announce">
-      <h1 class="detail-announce-title">
-        {{ announcement.title }}
-      </h1>
-      <div class="detail-announce-info">
-        <div class="detail-announce-info-img">
-          <img :src="announcement.image" style="width: 255px; height: 255px;"/>
-        </div>
-        <div class="detail-announce-info-location">
-          <p>
-            <a
-              :href="announcement.accessUrl"
-              style="text-decoration: none; color: rgba(0, 0, 0, 0.7)"
-              >지원하기</a
-            >
-          </p>
-          <p>
-            <a @click="showChatUnavailable" style="text-decoration: none; color: rgba(0, 0, 0, 0.7)">채팅방</a>
-          </p>
-        </div>
-      </div>
+  <AsyncState :loading="loading" :error="error" @retry="loadAnnouncementDetail" />
+  <article v-if="!loading && !error" class="job-detail">
+    <header class="job-detail-heading"><div class="company-logo"><CompanyImage :src="announcement.image" /></div><AnnouncementAudience :announcement="announcement" /><h1>{{ announcement.title }}</h1><p>{{ announcement.company }}</p></header>
+    <div class="detail-facts">
+      <p>회사명 : {{ announcement.company }}</p>
+      <p v-if="announcement.type === 'EDU'">{{ formatTuition(announcement.payment) }}</p>
+      <p v-if="announcement.type === 'EMP'">{{ formatSalary(announcement) }}</p>
+      <p>지원기간 : {{ formatRecruitDate(announcement.startedDate) }} ~ {{ formatRecruitDate(announcement.deadLineDate) }}</p>
+      <p>포지션 : {{ formatPosition(announcement.position) }}</p>
+      <p>기술 스택 : <span aria-label="기술 스택">{{ formatLanguages(announcement.language) }}</span></p>
 
-      <span class="detail-announce-content">
-        <p class="detail-announce-content-sub">
-          회사명 : {{ announcement.company }}
-        </p>
-        <p
-          class="detail-announce-content-sub"
-          v-text="
-            announcement.payment == 0
-              ? '교육비 : 무료'
-              : '교육비 : ' + announcement.payment + ` 만원`
-          "
-          v-if="announcement.type === 'EDU'"
-        ></p>
-        <p
-          class="detail-announce-content-sub"
-          v-if="announcement.type === 'EMP'"
-        >
-          연봉 : {{ announcement.payment }} 만원
-        </p>
-        <p class="detail-announce-content-sub">
-          지원기간 : {{ announcement.startedDate }} ~
-          {{ announcement.deadLineDate }}
-        </p>
-        <p class="detail-announce-content-sub">
-          포지션 : {{ announcement.position }}
-        </p>
-        <p class="detail-announce-content-sub">
-          언어 : {{ (announcement.language || []).join(', ') }}
-        </p>
-        <p class="detail-announce-content-sub">
-          경력 : {{ careerText }}
-        </p>
-        지원 자격 :
-        <SafeHtml
-          class="detail-announce-content-sub"
-          :content="announcement.content"
-        />
-      </span>
     </div>
-  </main>
+    <section v-if="announcement.type === 'EDU'" class="education-detail"><h2>교육과정 한눈에 보기</h2><dl><div><dt>기수</dt><dd>{{ announcement.cohort || '기수 미확인' }}</dd></div><div><dt>훈련 지원금</dt><dd>{{ announcement.stipendAmount == null ? '지원금 미확인' : `${announcement.stipendAmount.toLocaleString()}만원` }}<span v-if="announcement.stipendNote"> · {{ announcement.stipendNote }}</span></dd></div><div v-for="field in educationFields" :key="field.key"><dt>{{ field.label }}</dt><dd>{{ educationLabel(field.key, announcement.education?.[field.key]) }}</dd></div><div><dt>교육 일정</dt><dd>{{ announcement.education?.learningStartDate || '시작일 미확인' }} ~ {{ announcement.education?.learningEndDate || '종료일 미확인' }}<span v-if="announcement.education?.durationDays"> · {{ announcement.education.durationDays }}일</span></dd></div></dl><p class="field-hint">지원 조건과 정확한 수업 시간·본인 부담금은 원문에서 최종 확인하세요.</p></section>
+    <section class="detail-announce-content"><h2>상세 내용</h2><SafeHtml images :content="announcement.content ?? ''" /></section>
+    <div class="apply-bar"><span v-if="applicationUrl" class="field-hint">{{ announcement.recruitmentClosed ? '모집이 종료되었습니다. 원문에서 최신 상태를 확인하세요.' : '원문 공고에서 상세 내용을 확인하고 지원하세요. 새 탭으로 열립니다.' }}</span><a v-if="applicationUrl" :href="applicationUrl" class="button button-primary" target="_blank" rel="noopener noreferrer">{{ announcement.recruitmentClosed ? '원문 확인' : '지원하기' }}</a><span v-else class="field-hint">지원 링크가 없습니다.</span></div>
+    <AnnouncementReportForm :key="String($route.params.itemId)" :id="String($route.params.itemId)" />
+  </article>
 </template>
-
-<script>
+<script lang="ts">
+import AnnouncementReportForm from './AnnouncementReportForm.vue';
+import { educationFields, educationLabel } from '@/data/education';
+import { formatSalary, formatTuition } from '@/presentation/compensation';
+import type { AnnouncementDetail } from '@/types/api';
+import { routeId } from '@/router/query';
+import AnnouncementAudience from './AnnouncementAudience.vue';
+import CompanyImage from '@/components/common/CompanyImage.vue';
+import { formatPosition } from '@/presentation/positions';
+import AsyncState from '@/components/common/AsyncState.vue';
+import { requestErrorMessage, safeApplicationUrl } from '@/presentation/requestError';
+import { defineComponent } from "vue";
 import SafeHtml from "@/components/common/SafeHtml.vue";
 import { getAnnouncementDetail } from "@/api/announcements";
+import { formatLanguages, formatRecruitDate } from '@/presentation/announcement';
 
-export default {
-  components: { SafeHtml },
+export default defineComponent({
+  components: { AnnouncementReportForm, AnnouncementAudience, AsyncState, SafeHtml, CompanyImage },
   created(){
     if (this.$store.state.Login.token == "") {
       this.$router.replace({
@@ -82,84 +47,27 @@ export default {
       this.loadAnnouncementDetail();
     }
   },
-  data() {
-    return {
-      announcement: {
-        image: "https://inhatc-demp.s3.ap-northeast-2.amazonaws.com/noimg.jpg",
-        company: "",
-        language: [],
-      },
-    };
-  },
+  data() { return { educationFields, announcement: {} as Partial<AnnouncementDetail>, loading: true, error: '', requestGeneration: 0 }; },
+  unmounted() { this.requestGeneration++; },
   computed: {
-    careerText() {
-      if (this.announcement.maxCareer === 0) {
-        return `${this.announcement.minCareer}년 이상`;
-      }
-      return `${this.announcement.minCareer}년 ~ ${this.announcement.maxCareer}년`;
-    },
+    applicationUrl() { return safeApplicationUrl(this.announcement.recruitmentClosed ? this.announcement.accessUrl : this.announcement.applicationUrl || this.announcement.accessUrl); },
+
   },
   methods: {
-    loadAnnouncementDetail() {
-      getAnnouncementDetail(this.$route.params.itemId)
-        .then((announcement) => {
-          this.announcement = announcement;
-        });
-    },
-    showChatUnavailable(){
-      alert('지원 예정 입니다.');
-    },
-  },
-  watch: {
-    $route: {
-      handler() {
-        this.loadAnnouncementDetail();
-      },
+    educationLabel, formatSalary, formatTuition, formatPosition,
+    formatLanguages,
+    formatRecruitDate,
+    async loadAnnouncementDetail() {
+      const generation = ++this.requestGeneration;
+      this.loading = true;
+      this.error = '';
+      try {
+        const result = await getAnnouncementDetail(routeId(this.$route.params.itemId));
+        if (generation === this.requestGeneration) this.announcement = result;
+      } catch (error) { if (generation === this.requestGeneration) this.error = requestErrorMessage(error); }
+      finally { if (generation === this.requestGeneration) this.loading = false; }
     },
   },
-};
+  watch: { '$route.params.itemId'() { this.loadAnnouncementDetail(); } },
+});
 </script>
-
-<style>
-.detail-announce {
-  border-top: 1px solid rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
-  box-sizing: border-box;
-}
-
-.detail-announce-info {
-  display: flex;
-  align-items: center;
-  justify-content: left;
-}
-
-.detail-announce-info-img {
-  padding: 0%;
-  overflow: hidden;
-  width: auto;
-  height: auto;
-  margin: 0;
-}
-
-.detail-announce-info-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.detail-announce-info-location {
-  padding-left: 20px;
-}
-
-.detail-announce-info-location p {
-  display: flex;
-  border: 1px solid black;
-  border-radius: 5px;
-  width: 105px;
-  height: 50px;
-  background-color: #b3dce0;
-  margin: 10px 0px 10px 0px;
-  align-items: center;
-  justify-content: center;
-}
-</style>

@@ -1,19 +1,40 @@
+import { vi } from 'vitest';
 import { flushPromises, mount } from '@vue/test-utils';
 import axios from 'axios';
 import AnnouncementWrite from '@/components/announcement/AnnouncementWrite.vue';
 
-jest.mock('axios');
+vi.mock('axios');
+
+test('공고 본문 HTML을 전송하며 저장 중 중복 요청과 실패 시 입력 유실을 막는다', async () => {
+  global.$ = () => ({ summernote: vi.fn(() => '<p>이전 입력</p>') });
+  vi.spyOn(window, 'alert').mockImplementation(() => {});
+  let rejectRequest;
+  axios.post.mockImplementation(() => new Promise((_resolve, reject) => { rejectRequest = reject; }));
+  const wrapper = mount(AnnouncementWrite, { global: { mocks: {
+    $store: { state: { Login: { token: 'jwt' } } }, $router: { push: vi.fn() },
+  } } });
+  await wrapper.setData({ content: '<h2>업무</h2><p><strong>개발</strong></p>' });
+  wrapper.vm.saveAnnounce();
+  wrapper.vm.saveAnnounce();
+  await flushPromises();
+  expect(axios.post).toHaveBeenCalledTimes(1);
+  expect(axios.post.mock.calls[0][1].get('content')).toContain('<h2>업무</h2>');
+  rejectRequest(new Error('server'));
+  await flushPromises();
+  expect(wrapper.get('[role="alert"]').text()).toContain('저장하지 못했습니다');
+  expect(wrapper.get('#content').text()).toContain('업무');
+});
 
 afterEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
   delete global.$;
 });
 
 test('공고 등록은 서버의 평면 multipart 필드로 요청한다', async () => {
-  const summernote = jest.fn(argument => argument === 'code' ? '<p>설명</p>' : undefined);
+  const summernote = vi.fn(argument => argument === 'code' ? '<p>설명</p>' : undefined);
   global.$ = () => ({ summernote });
   axios.post.mockResolvedValue({ data: 'ok' });
-  const push = jest.fn();
+  const push = vi.fn();
   const wrapper = mount(AnnouncementWrite, { global: { mocks: {
     $store: { state: { Login: { token: 'token' } } },
     $router: { push },
@@ -24,9 +45,12 @@ test('공고 등록은 서버의 평면 multipart 필드로 요청한다', async
     minCareer: 0, maxCareer: 3,
     startedDate: '2026-09-01T00:00:00', deadLineDate: '2026-09-30T23:59:00',
     accessUrl: 'https://example.com/jobs/1', payment: 3000,
-    language: ['JAVA', 'SPRING'], image,
+    language: ['JAVA', 'SPRING'], content: '<p>설명</p>',
   });
 
+  const imageInput = wrapper.get('input[type="file"]');
+  Object.defineProperty(imageInput.element, 'files', { value: [image] });
+  await imageInput.trigger('change');
   wrapper.vm.saveAnnounce();
   await flushPromises();
 
@@ -42,14 +66,28 @@ test('공고 등록은 서버의 평면 multipart 필드로 요청한다', async
   expect(push).toHaveBeenCalledWith('/');
 });
 
-test('공고 이미지는 필수 JPEG 또는 PNG로 선택을 제한한다', () => {
-  global.$ = () => ({ summernote: jest.fn() });
+test('대표 이미지 없이 공고를 작성할 수 있고 첨부 시 JPEG 또는 PNG로 제한한다', () => {
+  global.$ = () => ({ summernote: vi.fn() });
   const wrapper = mount(AnnouncementWrite, { global: { mocks: {
     $store: { state: { Login: { token: 'token' } } },
-    $router: { push: jest.fn() },
+    $router: { push: vi.fn() },
   } } });
 
   const imageInput = wrapper.get('input[type="file"]');
-  expect(imageInput.attributes('required')).toBeDefined();
+  expect(imageInput.attributes('required')).toBeUndefined();
   expect(imageInput.attributes('accept')).toBe('image/jpeg,image/png,.jpg,.jpeg,.png');
+});
+
+test('무료 교육 공고는 교육비 0원으로 입력 검증을 통과한다', async () => {
+  axios.post.mockResolvedValue({ data: 'ok' });
+  const wrapper = mount(AnnouncementWrite, { global: { mocks: {
+    $store: { state: { Login: { token: 'jwt' } } }, $router: { push: vi.fn() },
+  } } });
+  await wrapper.setData({ title: '무료 교육', company: '교육기관', type: 'EDU', position: 'BACKEND', minCareer: 0, maxCareer: 0, startedDate: '2026-09-01T00:00', deadLineDate: '2026-10-01T00:00', accessUrl: 'https://example.com', payment: 0, language: 'JAVA', content: '설명' });
+  const imageInput = wrapper.get('#announce_img');
+  Object.defineProperty(imageInput.element, 'files', { value: [new File(['png'], 'image.png', { type: 'image/png' })] });
+  await imageInput.trigger('change');
+  await wrapper.get('form').trigger('submit');
+  await vi.waitFor(() => expect(axios.post.mock.calls.length, wrapper.text()).toBe(1));
+  expect(axios.post.mock.calls[0][1].get('payment')).toBe('0');
 });

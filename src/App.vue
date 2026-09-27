@@ -1,28 +1,8 @@
 <template>
-  <demp-header></demp-header>
-  <body>
-  <router-view></router-view>
-  </body>
+  <a class="skip-link" href="#main-content">본문으로 이동</a>
+  <demp-header />
+  <main id="main-content" class="app-shell" tabindex="-1"><router-view /></main>
+  <footer class="site-footer"><strong>DEMP</strong><span>개발자의 다음 기회를 함께.</span><router-link to="/admin">관리자</router-link></footer>
 </template>
-
-<script>
-export default {
-  name: "App",
-};
+<script setup lang="ts">
 </script>
-
-<style>
-body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-}
-
-button {
-  cursor: pointer;
-}
-img {
-  cursor: pointer;
-}
-</style>

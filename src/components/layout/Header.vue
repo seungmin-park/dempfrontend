@@ -1,27 +1,17 @@
 <template>
-  <header class="menu">
-    <span id="title"><a href="/">DEMP</a></span>
-    <span>
-      <a href="/">공고</a>
-      <router-link
-        :to="{
-          path: '/question',
-          query: { orderBy: 'createdDate', hashtags: '' },
-        }"
-      >
-        면접 질문
-      </router-link>
-      <!-- <button id="login" @click="redirectGithubLogin">LOGIN WITH GITHUB</button> -->
-      <button v-if="this.$store.state.Login.token == ``" id="login" @click="redirectLogin">로그인</button>
-      <button v-else id="logout" @click="logout">로그아웃</button>
-    </span>
-  </header>
+  <header class="site-header"><div class="header-inner">
+    <router-link class="brand" to="/" aria-label="DEMP 홈"><span class="brand-mark" aria-hidden="true">D<span></span></span>DEMP</router-link>
+    <nav class="primary-nav" aria-label="주요 메뉴"><router-link to="/">공고</router-link><router-link :to="{ path: '/question', query: { orderBy: 'createdDate' } }">면접 질문</router-link></nav>
+    <div class="header-account"><template v-if="$store.state.Login.token"><MemberBadge :username="$store.state.Login.username" /><button id="logout" class="button button-quiet" @click="logout">로그아웃</button></template><button v-else id="login" class="button button-primary" @click="redirectLogin">로그인</button></div>
+  </div></header>
 </template>
-
-<script>
+<script lang="ts">
+import { defineComponent } from "vue";
+import MemberBadge from '@/components/common/MemberBadge.vue';
 import { getGithubLoginUrl } from '@/api/auth';
-export default {
+export default defineComponent({
   name: "demp-header",
+  components: { MemberBadge },
   methods: {
     redirectGithubLogin() {
       getGithubLoginUrl().then((res) => {
@@ -37,31 +27,5 @@ export default {
       this.$router.push("/");
     },
   },
-};
+});
 </script>
-
-<style>
-.menu {
-  display: flex;
-  background: #95cacf;
-  padding: 15px;
-  justify-content: space-between;
-}
-
-#title {
-  color: white;
-  font-weight: 600;
-}
-
-.menu a {
-  color: white;
-  padding: 10px;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-#login, #logout{
-  border: none;
-  height: 30px;
-}
-</style>

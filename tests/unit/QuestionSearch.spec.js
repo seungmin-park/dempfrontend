@@ -1,8 +1,9 @@
+import { vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import QuestionSearch from '@/components/question/QuestionSearch.vue';
 
 test('제목 검색 다음 내용 검색은 제목 조건을 비운다', async () => {
-  const push = jest.fn();
+  const push = vi.fn();
   const wrapper = mount(QuestionSearch, { global: { mocks: {
     $router: { push }, $route: { query: { orderBy: 'hits', hashtags: 'JAVA' } },
   } } });

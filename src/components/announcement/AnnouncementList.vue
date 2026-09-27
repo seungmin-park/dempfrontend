@@ -1,65 +1,92 @@
 <template>
-  <main>
-    <div
-      v-for="notice in notices"
-      :key="notice.id"
-      class="item"
-      @click="openAnnouncementDetail(notice.id)"
-    >
-      <div class="item-image-box">
-        <img
-          :src="notice.image"
-          class="white--text align-end card-image"
-        />
-      </div>
-      <div align="left" class="big-font notice-title" style="font-weight: bold">
-        <p>{{ notice.title }}</p>
-      </div>
-      <div class="medium-font">언어 : {{ notice.language }}</div>
-      <div class="medium-font">포지션 : {{ notice.position }}</div>
+  <div class="results-heading"><h2>공고 목록 <span>{{ notices.length }}</span></h2><span>최신 등록순</span></div>
+  <div class="job-grid" :aria-busy="loading">
+    <article v-for="notice in notices" :key="notice.id" class="item job-card" tabindex="0" role="link" :aria-label="notice.title ?? '공고 상세'" @click="openAnnouncementDetail(notice.id)" @keydown.enter="openAnnouncementDetail(notice.id)">
+      <div class="item-image-box"><CompanyImage :src="notice.image" /></div>
+      <div class="job-card-content"><AnnouncementAudience :announcement="notice" /><span class="job-position">{{ formatPosition(notice.position) }}</span><p v-if="notice.company" class="job-company">{{ notice.company }}</p><h2 class="notice-title">{{ notice.title }}</h2><p class="job-stack" aria-label="기술 스택">{{ formatLanguages(notice.language) }}</p><div v-if="notice.announcementType === 'EDU' && notice.education" class="education-card-facts"><span v-if="notice.education.deliveryMode">{{ educationLabel('deliveryMode', notice.education.deliveryMode) }}</span><span v-if="notice.education.region">{{ educationLabel('region', notice.education.region) }}</span><span v-if="notice.education.commitment">{{ educationLabel('commitment', notice.education.commitment) }}</span><span v-if="notice.education.learningStartDate">{{ notice.education.learningStartDate }} 개강</span></div><div class="job-card-facts"><span v-if="notice.announcementType === 'EDU'">{{ formatTuition(notice.payment) }}</span><span v-if="notice.recruitmentClosed">모집 종료</span><span v-else-if="notice.deadLineDate">{{ formatRecruitDate(notice.deadLineDate).slice(0,10) }} 마감</span></div></div>
+    </article>
+  </div>
+  <div ref="listEnd" data-test="list-end" aria-hidden="true" class="list-end"></div>
+  <div class="list-status">
+    <p v-if="loading" role="status" aria-live="polite" class="list-loading">{{ notices.length ? '다음 공고를 불러오고 있습니다…' : '공고를 불러오고 있습니다…' }}</p>
+    <button v-if="!last && !error" :disabled="loading" data-test="load-more" @click="loadNextPage" class="button button-secondary">{{ loading ? '불러오는 중…' : '더보기' }}</button>
+    <div v-if="error" role="alert" class="list-error">
+      <AppIcon name="refresh" :size="30" /><h2>{{ error }}</h2>
+      <p>{{ notices.length ? '지금까지 불러온 공고는 그대로 볼 수 있습니다.' : '일시적인 서버 오류이거나 네트워크 연결이 원활하지 않을 수 있습니다.' }}<br />잠시 후 다시 시도해 주세요.</p>
+      <button class="button button-secondary" data-test="retry" @click="loadNextPage">재시도</button>
     </div>
-  </main>
-  <div style="padding-left: 100px ;display: block; float: none">
-    <button v-if="!last && !error" :disabled="loading" @click="loadNextPage" class="w-75 btn btn-secondary btn-lg">더보기</button>
-    <p v-if="error" role="alert">{{ error }} <button data-test="retry" @click="loadNextPage">재시도</button></p>
-    <br>
-    <b v-if="last" style="font-weight: 600; font-size: 20px; margin: 0">더 이상 채용/교육 공고 내용이 존재하지 않습니다.</b>
+    <p v-if="last && notices.length && !loading && !error" class="end-message" role="status">현재 조건의 공고를 모두 확인했습니다.</p>
+    <div v-if="last && !notices.length && !loading && !error" class="empty-state" role="status" aria-live="polite">
+      <AppIcon :name="emptyState.action === 'reset' ? 'search' : 'briefcase'" :size="32" />
+      <h2>{{ emptyState.title }}</h2><p>{{ emptyState.description }}</p>
+      <button v-if="emptyState.action === 'reset'" class="button button-secondary" data-test="empty-reset" @click="resetSearch">검색·필터 해제</button>
+      <button v-else-if="emptyState.action === 'browse'" class="button button-secondary" data-test="empty-browse" @click="$router.push({ path: '/', query: {} })">전체 공고 보기</button>
+    </div>
   </div>
 </template>
-
-<script>
+<script lang="ts">
+import { educationLabel } from '@/data/education';
+import { formatTuition } from '@/presentation/compensation';
+import type { AnnouncementSummary, AnnouncementFilters, JobPosition } from '@/types/api';
+import { defineComponent } from "vue";
+import { markRaw } from "vue";
 import { getAnnouncements } from "@/api/announcements";
-export default {
+import { announcementEmptyState } from '@/presentation/announcementStates';
+import AppIcon from '@/components/common/AppIcon.vue';
+import { filtersFromQuery } from '@/router/announcementFilters';
+import { formatPosition } from '@/presentation/positions';
+import { formatRecruitDate } from '@/presentation/announcement';
+import { formatLanguages } from '@/presentation/announcement';
+import AnnouncementAudience from './AnnouncementAudience.vue';
+import CompanyImage from '@/components/common/CompanyImage.vue';
+export default defineComponent({
   name: "demp-announcement",
+  components: { AppIcon, AnnouncementAudience, CompanyImage },
   mounted() {
+    this.announcementSearchCondition = { ...filtersFromQuery(this.$route?.query), page: 0 };
     this.emitter.on("announcementSearchCondition", this.onSearchCondition);
+    if (typeof IntersectionObserver !== "undefined") {
+      this.pageObserver = markRaw(new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting) && !this.error) this.loadNextPage();
+      }, { rootMargin: "200px" }));
+      this.pageObserver.observe(this.$refs.listEnd as Element);
+    }
     this.loadNextPage();
   },
   unmounted() {
     this.requestGeneration++;
+    this.pageObserver?.disconnect();
     this.emitter.off("announcementSearchCondition", this.onSearchCondition);
   },
   data() {
     return {
-      notices: [],
+      notices: [] as AnnouncementSummary[],
       announcementSearchCondition: {
-        announcementType: "",
-        positions: [],
+        announcementType: "" as AnnouncementFilters["announcementType"],
+        positions: [] as JobPosition[],
         // languages: [],
         career: 0,
         payment: 0,
         title: "",
         page:0,
-      },
+      } as AnnouncementFilters & { page: number },
       last:false,
       loading:false,
-      error:null,
+      error:null as string | null,
       requestGeneration:0,
+      pageObserver:null as IntersectionObserver | null,
     };
   },
 
+  computed: { emptyState() { return announcementEmptyState(this.announcementSearchCondition); } },
   methods: {
-    onSearchCondition(condition) {
+    educationLabel, formatTuition,
+    resetSearch() {
+      const type = this.announcementSearchCondition.announcementType;
+      this.$router.push({ path: '/', query: type ? { type } : {} });
+    },
+    formatLanguages, formatPosition, formatRecruitDate,
+    onSearchCondition(condition: AnnouncementFilters) {
       this.announcementSearchCondition = { ...condition, page: 0 };
       this.notices = [];
       this.last = false;
@@ -77,67 +104,40 @@ export default {
         const result = await getAnnouncements({ ...this.announcementSearchCondition });
         if (generation !== this.requestGeneration) return;
         if (result.data.content.length) {
-          this.notices.push(...result.data.content);
+          const visibleIds = new Set(this.notices.map(notice => notice.id));
+          this.notices.push(...result.data.content.filter(notice => {
+            if (visibleIds.has(notice.id)) return false;
+            visibleIds.add(notice.id);
+            return true;
+          }));
           this.announcementSearchCondition.page ++;
         }
         this.last = result.data.last || result.data.content.length === 0;
       }
       catch {
-        if (generation === this.requestGeneration) this.error = "공고를 불러오지 못했습니다.";
+        if (generation === this.requestGeneration) this.error = this.notices.length ? "다음 공고를 불러오지 못했습니다." : "공고를 불러오지 못했습니다.";
       } finally {
-        if (generation === this.requestGeneration) this.loading = false;
+        if (generation === this.requestGeneration) {
+          this.loading = false;
+          await this.$nextTick();
+          if (generation === this.requestGeneration && !this.last && !this.error && this.pageObserver) {
+            this.pageObserver.unobserve(this.$refs.listEnd as Element);
+            this.pageObserver.observe(this.$refs.listEnd as Element);
+          }
+        }
       }
     },
-    openAnnouncementDetail(id){
+    openAnnouncementDetail(id: number){
       if (this.$store.state.Login.token != ""){
-        this.$router.push(`/detail/${id}`);
+        const query = this.$route?.query;
+        this.$router.push(query && Object.keys(query).length ? { path: `/detail/${id}`, query } : `/detail/${id}`);
       }else {
         alert("로그인이 필요한 서비스 입니다.");
       }
     },
   },
   watch: {
-    typeName: function () {
-      this.loadNextPage();
-    },
+    '$route.query': { handler() { this.onSearchCondition(filtersFromQuery(this.$route.query)); } },
   },
-};
+});
 </script>
-
-<style scoped>
-main {
-  display: flex;
-  width: 100%;
-  float: left;
-  flex-wrap: wrap;
-  box-sizing: border-box;
-}
-
-.item-image-box {
-  border-radius: 15px 15px 0 0;
-  padding: 0%;
-  width: 260px;
-  height: 150px;
-  overflow: hidden;
-  margin: 0;
-}
-
-.item-image-box img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.item {
-  display: table;
-  border: 1px solid rgba(0, 0, 0, 0.5);
-  border-radius: 15px;
-  margin: 0 25px 25px 25px;
-  box-sizing: border-box;
-}
-
-.big-font {
-  font-size: 20px;
-}
-
-</style>

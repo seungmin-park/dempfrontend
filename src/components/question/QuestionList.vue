@@ -1,42 +1,35 @@
 <template>
-  <main>
-    <div class="question-list" v-for="question in questions" :key="question.id">
-      <div class="question-list-count">
-        <p class="question-list-count-hits">조회 수 : {{ question.hits }}</p>
-        <p class="question-list-count-recommend">
-          추천 수 : {{ question.recommend }}
-        </p>
-      </div>
-      <span
-        class="question-list-title"
-        @click="openQuestionDetail(question.id)"
-      >
-        Q. {{ question.title }}
-      </span>
-    </div>
-    <div class="question-pages">
-      <button data-test="previous-page" :disabled="page === 0 || loading" @click="loadQuestionPage(page - 1)">이전</button>
-      <span>{{ page + 1 }} 페이지</span>
-      <button data-test="next-page" :disabled="last || loading" @click="loadQuestionPage(page + 1)">다음</button>
-    </div>
-    <p v-if="error" role="alert">{{ error }} <button data-test="retry" @click="loadQuestionPage(page)">재시도</button></p>
-  </main>
+  <section class="question-results" aria-label="질문 목록" :aria-busy="loading">
+    <AsyncState :loading="loading" :error="error || ''" @retry="loadQuestionPage(requestedPage)" />
+    <p v-if="!loading && !error && !questions.length" class="state-panel" role="status">조건에 맞는 질문이 없습니다.</p>
+    <template v-if="!loading && !error">
+    <article class="question-list" v-for="question in questions" :key="question.id"><button class="question-list-title" @click="openQuestionDetail(question.id)">{{ question.title }}</button><div class="question-list-count"><span class="meta-count" :aria-label="`조회수 ${question.hits}`"><AppIcon name="eye" :size="17" />{{ question.hits }}</span><span class="meta-count" :aria-label="`추천 ${question.recommend}`"><AppIcon name="thumbsUp" :size="17" />{{ question.recommend }}</span></div></article>
+    <div v-if="questions.length" class="question-pages"><button class="button button-secondary" data-test="previous-page" :disabled="page === 0 || loading" @click="loadQuestionPage(page - 1)">이전</button><span>{{ page + 1 }} 페이지</span><button class="button button-secondary" data-test="next-page" :disabled="last || loading" @click="loadQuestionPage(page + 1)">다음</button></div>
+    </template>
+  </section>
 </template>
-
-<script>
+<script lang="ts">
+import type { QuestionSummary } from '@/types/api';
+import type { LocationQuery, RouteLocationNormalizedLoaded } from 'vue-router';
+import { queryText } from '@/router/query';
+import { defineComponent } from "vue";
+import AsyncState from '@/components/common/AsyncState.vue';
+import AppIcon from '@/components/common/AppIcon.vue';
 import { fetchQuestionPage } from "@/api/questions";
-export default {
+export default defineComponent({
+  components: { AppIcon, AsyncState },
   data() {
     return {
       orderBy: "",
       title: "",
       content: "",
-      hashtags: [],
-      questions: [],
+      hashtags: [] as string[],
+      questions: [] as QuestionSummary[],
       page: 0,
+      requestedPage: 0,
       last: true,
       loading: false,
-      error: null,
+      error: null as string | null,
       requestGeneration: 0,
     };
   },
@@ -50,23 +43,24 @@ export default {
     this.emitter.off("getByHashtags", this.onHashtagsChanged);
   },
   methods: {
-    onHashtagsChanged(hashtags) {
+    onHashtagsChanged(hashtags: string[]) {
       this.hashtags = hashtags;
       this.requestGeneration++;
       this.loading = false;
       this.loadQuestionPage(0);
     },
-    applyRoute(query) {
-      this.orderBy = query.orderBy || "";
-      this.title = query.title || "";
-      this.content = query.content || "";
+    applyRoute(query: LocationQuery) {
+      this.orderBy = queryText(query.orderBy);
+      this.title = queryText(query.title);
+      this.content = queryText(query.content);
       this.hashtags = Array.isArray(query.hashtags)
-        ? query.hashtags.filter(Boolean)
+        ? query.hashtags.filter((tag): tag is string => typeof tag === 'string' && tag.length > 0)
         : String(query.hashtags || "").split(",").filter(Boolean);
     },
-    async loadQuestionPage(page) {
+    async loadQuestionPage(page: number) {
       if (this.loading || page < 0) return;
       const generation = ++this.requestGeneration;
+      this.requestedPage = page;
       this.loading = true;
       this.error = null;
       try {
@@ -89,7 +83,7 @@ export default {
         if (generation === this.requestGeneration) this.loading = false;
       }
     },
-    openQuestionDetail(questionId) {
+    openQuestionDetail(questionId: number) {
       if (this.$store.state.Login.token != "") {
         this.$router.push(`/questions/${questionId}`)
       }else {
@@ -99,7 +93,7 @@ export default {
   },
   watch: {
     $route: {
-      handler(newValue) {
+      handler(newValue: RouteLocationNormalizedLoaded) {
         this.applyRoute(newValue.query);
         this.requestGeneration++;
         this.loading = false;
@@ -107,26 +101,5 @@ export default {
       },
     },
   },
-};
+});
 </script>
-
-<style>
-main {
-  padding: 0px 25px 0px 25px;
-}
-
-.question-list {
-  display: flex;
-  border: 2px solid #a9cbdd;
-  border-left: none;
-  border-right: none;
-  border-bottom: none;
-  align-items: center;
-  padding: 15px 0px 15px 0px;
-}
-
-.question-list-count p {
-  margin: 0;
-  margin-right: 15px;
-}
-</style>

@@ -1,38 +1,40 @@
 <template>
   <div class="anncoucement-scroll">
     <div class="anncoucement-scroll-header">
-      <span @click="$router.push('/')" class="anncoucement-scroll-history">
-        &lt;-
-      </span>
+      <button @click="$router.push({ path: '/', query: $route?.query })" class="anncoucement-scroll-history" aria-label="검색 결과로 돌아가기">←</button>
       <span>전체 공고</span>
     </div>
 
-    <div
-      @click="
-        this.$router.push({
-          name: 'detail',
-          params: { itemId: item.id },
-        })
-      "
+    <AsyncState :loading="loading" :error="error" @retry="getScroll" />
+    <div v-if="!loading && !error">
+    <div role="link" tabindex="0" @keydown.enter="openDetail(item.id)" @click="openDetail(item.id)"
       class="anncoucement-scroll-items"
       v-for="item in announcement"
       :key="item.id"
     >
       <div class="anncoucement-scroll-items-img">
-        <img :src="item.image" alt="" />
+        <CompanyImage :src="item.image" />
       </div>
       <div class="anncoucement-scroll-items-description">
-        <p class="item-title">{{ item.company.name }}</p>
+        <AnnouncementAudience :announcement="item" />
+        <p class="item-title">{{ item.company?.name ?? '' }}</p>
         <p class="item-company">{{ item.title }}</p>
       </div>
     </div>
+    </div>
   </div>
 </template>
-
-<script>
+<script lang="ts">
+import type { AnnouncementScroll } from '@/types/api';
+import AnnouncementAudience from './AnnouncementAudience.vue';
+import CompanyImage from '@/components/common/CompanyImage.vue';
+import AsyncState from '@/components/common/AsyncState.vue';
+import { requestErrorMessage } from '@/presentation/requestError';
+import { defineComponent } from "vue";
 import { getAnnouncementScroll } from '@/api/announcements';
-export default {
+export default defineComponent({
   name: "announcement-scroll",
+  components: { AnnouncementAudience, CompanyImage, AsyncState },
   mounted() {
     {
       this.getScroll();
@@ -40,101 +42,21 @@ export default {
   },
   data() {
     return {
-      announcement: {},
+      loading: true, error: '',
+      announcement: [] as AnnouncementScroll[],
     };
   },
   methods: {
-    getScroll() {
-      getAnnouncementScroll().then((res) => {
-        this.announcement = res.data;
-      });
+    async getScroll() {
+      this.loading = true; this.error = '';
+      try { this.announcement = (await getAnnouncementScroll()).data; }
+      catch (error) { this.error = requestErrorMessage(error); }
+      finally { this.loading = false; }
+    },
+    openDetail(id: number) {
+      const query = this.$route?.query;
+      this.$router.push({ name: 'detail', params: { itemId: id }, ...(query && Object.keys(query).length ? { query } : {}) });
     },
   },
-};
+});
 </script>
-
-<style>
-.anncoucement-scroll {
-  position: relative;
-  width: 400px;
-  height: 560px;
-  border: 1px solid rgba(0, 0, 0, 0.3);
-  border-radius: 15px;
-  box-sizing: border-box;
-  overflow: auto;
-  overflow-x: hidden;
-}
-
-.anncoucement-scroll::-webkit-scrollbar {
-  width: 10px;
-}
-.anncoucement-scroll::-webkit-scrollbar-thumb {
-  background-color: #b3dce0;
-  border-radius: 10px;
-  background-clip: padding-box;
-  border: 2px solid transparent;
-}
-.anncoucement-scroll::-webkit-scrollbar-track {
-  background-color: grey;
-  border-radius: 10px;
-  box-shadow: inset 0px 0px 5px white;
-}
-
-.anncoucement-scroll-history {
-  position: absolute;
-  left: 30px;
-}
-
-.anncoucement-scroll-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 15px 15px 0px 0px;
-  background: #b3dce0;
-  height: 70px;
-  font-weight: 600;
-  font-size: 20px;
-}
-
-.anncoucement-scroll-items {
-  display: flex;
-  align-items: center;
-  justify-content: left;
-  width: 100%;
-  height: 70px;
-  padding: 15px 0px 15px 30px;
-  border-bottom: 1px solid gray;
-  box-sizing: border-box;
-}
-
-.anncoucement-scroll-items-img {
-  border-radius: 50%;
-  padding: 0%;
-  width: 60px;
-  height: 60px;
-  overflow: hidden;
-  margin: 0;
-}
-
-.anncoucement-scroll-items-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.anncoucement-scroll-items-description {
-  padding-left: 15px;
-}
-
-p {
-  margin: 0;
-}
-
-.item-title {
-  font-weight: 600;
-}
-
-.item-company {
-  opacity: 0.5;
-}
-</style>

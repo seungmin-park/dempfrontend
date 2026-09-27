@@ -1,6 +1,6 @@
-/** @jest-environment node */
+/** @vitest-environment node */
 const http = require('http');
-const app = require('../../server');
+const app = require('../../server.cjs');
 
 test('운영 Express의 없는 API GET은 HTML 대신 JSON 404를 반환한다', async () => {
   const server = http.createServer(app);

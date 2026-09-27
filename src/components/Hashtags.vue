@@ -1,5 +1,5 @@
 <template>
-  <div class="comp_hashtag" @click="focusTagInput" ref="group">
+  <div class="comp_hashtag" @click="focusTagInput" ref="group" tabindex="0" @focus="focusTagInput">
     <p class="help" v-if="helpVisible">{{ defaultPlaceholder }}</p>
 
     <!-- Hashtags -->
@@ -32,7 +32,7 @@
         @keydown.enter.prevent="addTagFromInput"
         @keydown.backspace="initErrorMsg"
         @keydown.delete="initErrorMsg"
-        placeholder="태그입력"
+        placeholder="태그입력" aria-label="태그 입력"
       />
     </div>
 
@@ -40,25 +40,28 @@
       enter-active-class="animate__animated animate__fadeInDown animate__faster"
       leave-active-class="animate__animated animate__fadeOut"
     >
-      <p class="noti" v-if="this.errorMsg">{{ errorMsg }}</p>
+      <p class="noti" v-if="errorMsg">{{ errorMsg }}</p>
     </transition>
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import type { HashtagInput } from '@/types/api';
+import { defineComponent } from "vue";
+export default defineComponent({
   // eslint-disable-next-line
   name: "Hashtags",
-  props: ["placeholder"],
+  props: { placeholder: { type: String, default: '#추천태그 #특수문자제외' } },
+  emits: { addHashtags: (_tags: HashtagInput[]) => true },
   data() {
     return {
       defaultPlaceholder: this.placeholder
         ? this.placeholder
         : "#추천태그 #특수문자제외",
-      errorMsg: null,
-      focusIndex: null,
+      errorMsg: null as string | null,
+      focusIndex: null as number | null,
       helpVisible: true,
-      tags: [],
+      tags: [] as HashtagInput[],
       value: "",
     };
   },
@@ -66,7 +69,7 @@ export default {
     focusTagInput() {
       if (this.tags.length > 0) return;
       this.helpVisible = false;
-      this.$nextTick(() => this.$refs.input.focus());
+      this.$nextTick(() => (this.$refs.input as HTMLInputElement).focus());
     },
 
     addTag() {
@@ -75,7 +78,7 @@ export default {
     unselectTag() {
       this.tags.forEach((tag) => (tag.select = false));
     },
-    selectTag(idx) {
+    selectTag(idx: number) {
       if (this.tags.some((tag) => tag.select)) {
         this.unselectTag();
       }
@@ -87,10 +90,10 @@ export default {
         return;
       }
 
-      this.$refs.fake.focus();
+      (this.$refs.fake as HTMLInputElement).focus();
       this.focusIndex = idx;
     },
-    deleteTag(idx) {
+    deleteTag(idx: number | null) {
       if (idx === null) {
         return;
       }
@@ -125,26 +128,26 @@ export default {
 
       return false;
     },
-    addTagFromInput(event) {
+    addTagFromInput(event: KeyboardEvent) {
       // CASE 공백
-      if (event.target.value === "") {
+      if ((event.target as HTMLInputElement).value === "") {
         this.initErrorMsg();
-        event.target.focus();
+        (event.target as HTMLInputElement).focus();
         return;
       }
       // CASE 유효성(중복,특문)
       const resultMsg = this.tagValidationError();
       if (resultMsg) {
         this.errorMsg = resultMsg;
-        this.$refs.input.focus();
+        (this.$refs.input as HTMLInputElement).focus();
         return;
       }
 
       this.addTag();
 
       this.errorMsg = null;
-      this.value = null;
-      this.$refs.input.focus();
+      this.value = "";
+      (this.$refs.input as HTMLInputElement).focus();
     },
   },
   mounted() {},
@@ -156,7 +159,7 @@ export default {
       deep: true,
     },
   },
-};
+});
 </script>
 
 <style lang="scss" scoped>
@@ -165,8 +168,8 @@ export default {
   width: 100%;
   padding: 5px 10px;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  min-height: 40px;
+  border-radius: 8px;
+  min-height: 48px;
   margin: 10px auto;
   text-align: left;
   box-sizing: border-box;
@@ -178,7 +181,7 @@ export default {
     font-size: 12px;
     margin-top: 5px;
     padding: 0 5px;
-    border-radius: 4px;
+    border-radius: 8px;
     border: 1px solid #ea2136;
     color: #ea2136;
     text-align: left;
@@ -192,7 +195,7 @@ export default {
     line-height: 30px;
     font-weight: 300;
     font-size: 14px;
-    color: #ccc;
+    color: #64748b;
     vertical-align: top;
   }
 

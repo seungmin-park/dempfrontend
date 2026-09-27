@@ -1,45 +1,29 @@
 <template>
-  <div class="qusetion-detail">
-    <div class="qusetion-detail-title">
-      <span>Q. {{ question.title }}</span>
-      <div class="qusetion-detail-info">
-        <div class="qusetion-detail-info-additional">
-          <span class="qusetion-detail-info-additional-user">
-            🙋‍♂️{{ question.username }}
-          </span>
-          <span class="qusetion-detail-info-additional-hits">
-            👁 : {{ question.hits }}
-          </span>
-        </div>
-        <div class="qusetion-detail-info-reaction">
-          <button disabled>👍{{ question.recommend }}</button>
-          <button disabled>👎{{ question.dislike }}</button>
-          <span>반응 저장 기능 준비 중</span>
-        </div>
-      </div>
-    </div>
-    <div class="qusetion-detail-content">
-      <SafeHtml :content="question.content" />
-      <div>
-        <router-link
-          class="hashtags"
-          v-for="hashtag in question.hashtags"
-          :key="hashtag"
-          v-text="`#${hashtag}`"
-          :to="{ name: 'question', query: { hashtags: hashtag } }"
-        ></router-link>
-      </div>
-    </div>
-  </div>
+  <AsyncState :loading="loading" :error="error" @retry="loadQuestionDetail" />
+  <article v-if="!loading && !error" class="question-detail">
+    <header class="article-heading"><span class="section-label">면접 질문</span><h1>{{ question.title }}</h1><div class="article-meta"><MemberBadge :username="question.username" /><span class="meta-count" :aria-label="`조회수 ${question.hits}`"><AppIcon name="eye" :size="17" />{{ question.hits }}</span></div></header>
+    <SafeHtml class="article-content" :content="question.content ?? ''" />
+    <div class="tag-list"><router-link v-for="tag in question.hashtags" :key="tag" class="tag" :to="{ name: 'question', query: { hashtags: tag } }">#{{ tag }}</router-link></div>
+    <ContentReactions :recommend="question.recommend" :dislike="question.dislike" />
+  </article>
 </template>
-
-<script>
+<script lang="ts">
+import type { QuestionDetail } from '@/types/api';
+import { routeId } from '@/router/query';
+import AsyncState from '@/components/common/AsyncState.vue';
+import { requestErrorMessage } from '@/presentation/requestError';
+import { defineComponent } from "vue";
 import { getQuestionDetail } from '@/api/questions';
+import MemberBadge from '@/components/common/MemberBadge.vue';
+import ContentReactions from '@/components/common/ContentReactions.vue';
+import AppIcon from '@/components/common/AppIcon.vue';
 import SafeHtml from "@/components/common/SafeHtml.vue";
-export default {
-  components: { SafeHtml },
+export default defineComponent({
+  components: { AsyncState, SafeHtml, MemberBadge, ContentReactions, AppIcon },
+  emits: { ready: (_ready: boolean) => true },
   data() {
     return {
+      loading: true, error: '', requestGeneration: 0,
       question: {
         id: 0,
         title: "",
@@ -48,7 +32,8 @@ export default {
         recommend: 0,
         dislike: 0,
         username: "",
-      },
+        hashtags: [] as string[],
+      } as QuestionDetail,
     };
   },
   created(){
@@ -58,51 +43,23 @@ export default {
         query: { redirect: this.$router.currentRoute.value.fullPath },
       });
     }},
+  unmounted() { this.requestGeneration++; },
   mounted() {
     this.loadQuestionDetail();
   },
   methods: {
-    loadQuestionDetail() {
-      getQuestionDetail(this.$route.params.questionId)
-        .then((res) => {
-          this.question = res.data;
-        });
+    async loadQuestionDetail() {
+      const generation = ++this.requestGeneration;
+      this.loading = true;
+      this.$emit('ready', false);
+      this.error = '';
+      try {
+        const result = await getQuestionDetail(routeId(this.$route.params.questionId));
+        if (generation === this.requestGeneration) { this.question = result.data; this.$emit('ready', true); }
+      } catch (error) { if (generation === this.requestGeneration) this.error = requestErrorMessage(error); }
+      finally { if (generation === this.requestGeneration) this.loading = false; }
     },
   },
-};
+  watch: { '$route.params.questionId'() { this.loadQuestionDetail(); } },
+});
 </script>
-
-<style>
-.qusetion-detail {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-}
-
-.qusetion-detail-title {
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-  justify-content: space-between;
-  padding-top: 10px;
-  padding-bottom: 25px;
-}
-
-.qusetion-detail-content {
-  display: inline-flex;
-  flex-direction: column;
-  justify-content: space-between;
-  margin-top: 25px;
-  padding-bottom: 25px;
-  height: 330px;
-}
-
-.hashtags {
-  margin-left: 10px;
-  border: 1px solid;
-  border-radius: 10px;
-  font-size: 15px;
-  padding: 5px 10px 5px 10px;
-}
-a:visited {
-  text-decoration: none;
-}
-</style>

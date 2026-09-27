@@ -1,425 +1,79 @@
 <template>
-  <link
-    rel="stylesheet"
-    href="https://use.fontawesome.com/releases/v6.0.0/css/all.css"
-  />
-  <div>
-    <div class="search-condition" @change="changeCondition">
-      <div class="search-condition-selected">
-        <span class="selected-condition-element element-init">
-          전체 초기화
-          <button class="delete-condition" @click="initCondition">
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
-        </span>
-        <span
-          class="selected-condition-element element-typeName"
-          v-if="announcementSearchCondition.announcementType"
-        >
-          {{
-            announcementSearchCondition.announcementType === "EMP"
-              ? "채용 공고"
-              : "부트캠프"
-          }}
-          <button
-            class="delete-condition"
-            @click="
-              () => {
-                announcementSearchCondition.announcementType = ``;
-                this.changeCondition();
-              }
-            "
-          >
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
-        </span>
-        <span
-          class="selected-condition-element element-position"
-          v-for="position in announcementSearchCondition.positions"
-          :key="position.id"
-        >
-          {{ position }}
-          <button class="delete-condition" @click="removePosition(position)">
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
-        </span>
-        <span
-          class="selected-condition-element element-career"
-          v-if="announcementSearchCondition.career"
-        >
-          {{ announcementSearchCondition.career }}년 경력
-          <button
-            class="delete-condition"
-            @click="
-              () => {
-                announcementSearchCondition.career = 0;
-                this.changeCondition();
-              }
-            "
-          >
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
-        </span>
-        <span
-          class="selected-condition-element element-payment"
-          v-if="announcementSearchCondition.payment != 0"
-        >
-          {{ announcementSearchCondition.payment.toLocaleString("ko-KR") }} 이상
-          <button
-            class="delete-condition"
-            @click="
-              () => {
-                announcementSearchCondition.payment = 0;
-                this.changeCondition();
-              }
-            "
-          >
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
-        </span>
-      </div>
-      <div class="search-condition-first">
-        <label for="emp">
-          <input
-            type="radio"
-            name="emp"
-            id="emp"
-            value="EMP"
-            v-model="announcementSearchCondition.announcementType"
-          />
-          채용
-        </label>
-        <label for="edu">
-          <input
-            type="radio"
-            name="edu"
-            id="edu"
-            value="EDU"
-            v-model="announcementSearchCondition.announcementType"
-          />
-          교육
-        </label>
-      </div>
-      <div class="search-condition-second">
-        <div>
-          <button
-            class="condition-btn position-btn"
-            @click="changePositionStatus"
-          >
-            <span class="condition-name">직무</span>
-            <span class="condition-arrow"
-              ><i class="fa-solid fa-angle-down"></i
-            ></span>
-          </button>
-          <div class="dropdown-menu" v-if="positionStatus">
-            <div class="dropdown-item-wraper">
-              <ul>
-                <li v-for="position in positions" :key="position.id">
-                  <label :for="position" class="dropdown-item">
-                    <input
-                      v-model="announcementSearchCondition.positions"
-                      type="checkbox"
-                      name="positions"
-                      :id="position"
-                      :value="position"
-                    />{{ position }}
-                  </label>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div class="search-condition-career">
-          <button class="condition-btn career-btn" @click="changeCareerStatus">
-            <span class="condition-name">경력</span>
-            <span class="condition-arrow"
-              ><i class="fa-solid fa-angle-down"></i
-            ></span>
-          </button>
-          <div class="dropdown-menu" v-if="careerStatus">
-            <div class="dropdown-item-wraper">
-              <div class="dropdown-item">
-                <label>
-                  <input
-                    type="radio"
-                    name="career"
-                    :value="0"
-                    v-model="announcementSearchCondition.career"
-                  />
-                  전체
-                </label>
-              </div>
-              <div class="dropdown-item" v-for="index in 9" :key="index">
-                <label>
-                  <input
-                    type="radio"
-                    name="career"
-                    :value=index
-                    v-model="announcementSearchCondition.career"
-                  />
-                  {{ index }}년 경력
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="search-condition-payment">
-          <button
-            class="condition-btn payment-btn"
-            @click="changePaymentStatus"
-          >
-            <span class="condition-info-name">연봉</span>
-            <span class="condition-info-arrow"
-              ><i class="fa-solid fa-angle-down"></i
-            ></span>
-          </button>
-          <div class="dropdown-menu" v-if="paymentStatus">
-            <div class="dropdown-item-wraper">
-              <div class="dropdown-item">
-                <label class="min_salary_label">
-                  <input
-                    type="radio"
-                    name="payment"
-                    :value="0"
-                    v-model="announcementSearchCondition.payment"
-                  />
-                  전체
-                </label>
-              </div>
-              <div
-                class="dropdown-item"
-                v-for="payment in payments"
-                :key="payment"
-              >
-                <label class="min_salary_label">
-                  <input
-                    type="radio"
-                    name="payment"
-                    :value="payment"
-                    v-model="announcementSearchCondition.payment"
-                  />
-                  {{ payment.toLocaleString("ko-KR") }} 이상
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="search-condition-title">
-          <input
-            type="text"
-            placeholder="제목 검색"
-            v-model="announcementSearchCondition.title"
-          />
-        </div>
-      </div>
+  <section class="discovery-filters" aria-label="공고 검색 조건">
+    <div class="discovery-modes" role="group" aria-label="공고 종류">
+      <label :class="{ active: !filters.announcementType }"><input type="radio" name="announcement-mode" value="" v-model="filters.announcementType" @change="changeMode" />전체</label>
+      <label :class="{ active: filters.announcementType === 'EMP' }"><input id="emp" type="radio" name="announcement-mode" value="EMP" v-model="filters.announcementType" @change="changeMode" /><AppIcon name="briefcase" :size="17" />채용</label>
+      <label :class="{ active: filters.announcementType === 'EDU' }"><input id="edu" type="radio" name="announcement-mode" value="EDU" v-model="filters.announcementType" @change="changeMode" /><AppIcon name="book" :size="17" />부트캠프</label>
     </div>
-  </div>
+    <form class="discovery-search" @submit.prevent="commit"><AppIcon name="search" :size="20" /><input aria-label="공고 검색어" v-model="filters.title" :placeholder="filters.announcementType === 'EDU' ? '과정명, 교육기관으로 검색' : '공고명, 회사명으로 검색'" /><button class="button button-primary" type="submit">검색</button><button type="button" class="button button-secondary mobile-filter-toggle" aria-label="필터 열기" :aria-expanded="mobileOpen" aria-controls="filter-options" @click="mobileOpen = !mobileOpen"><AppIcon name="filter" :size="18" />필터</button></form>
+    <div id="filter-options" class="filter-options" :class="{ 'is-open': mobileOpen }">
+      <details class="filter-group"><summary>직무·분야 <span v-if="filters.positions.length">{{ filters.positions.length }}</span><AppIcon name="chevron" :size="15" /></summary><div class="filter-popover position-options"><label v-for="position in positions" :key="position"><input type="checkbox" :value="position" v-model="filters.positions" @change="commit" />{{ formatPosition(position) }}</label></div></details>
+      <details class="filter-group"><summary>기술 스택 <span v-if="filters.languages?.length">{{ filters.languages.length }}</span><AppIcon name="chevron" :size="15" /></summary><div class="filter-popover"><label v-for="language in languages" :key="language"><input type="checkbox" :value="language" v-model="filters.languages" @change="commit" />{{ formatLanguages([language]) }}</label></div></details>
+      <select aria-label="모집 상태" v-model="filters.recruitmentStatus" @change="commit"><option value="">모집 상태 전체</option><option value="OPEN">모집 중</option><option value="UPCOMING">모집 예정</option><option value="CLOSED">모집 마감</option></select>
+      <select v-if="filters.announcementType === 'EDU'" aria-label="교육비" v-model="filters.tuition" @change="commit"><option value="">교육비 전체</option><option value="FREE">무료</option><option value="PAID">유료</option></select>
+      <template v-else><select aria-label="내 경력" v-model.number="filters.career" @change="commit"><option :value="0">경력 전체</option><option v-for="year in 15" :key="year" :value="year">내 경력 {{ year }}년</option></select></template>
+      <details v-if="filters.announcementType === 'EDU'" class="education-filter-panel">
+        <summary><AppIcon name="filter" :size="16" />교육 상세 조건 <span v-if="educationCount">{{ educationCount }}</span></summary>
+        <p class="field-hint">참여할 수 있는 수업 방식과 일정부터 골라보세요. 선택한 조건을 모두 충족하는 과정을 찾습니다.</p>
+        <div class="education-filter-grid">
+          <label v-for="field in educationFields" :key="field.key">{{ field.label }}<select :aria-label="field.label" v-model="filters[field.key]" @change="commit"><option :value="undefined">전체</option><option v-for="(label,value) in field.options" :key="value" :value="value">{{ label }}</option></select></label>
+          <label>교육 기간<select aria-label="교육 기간" v-model="filters.duration" @change="commit"><option :value="undefined">전체</option><option v-for="(label,value) in durations" :key="value" :value="value">{{ label }}</option></select></label>
+          <label>개강일 이후<input aria-label="개강일 이후" type="date" v-model="filters.startAfter" @change="commit" /></label>
+          <label>개강일 이전<input aria-label="개강일 이전" type="date" v-model="filters.startBefore" @change="commit" /></label>
+        </div>
+        <p v-if="filters.startAfter && filters.startBefore && filters.startAfter > filters.startBefore" class="field-error">개강일 범위가 거꾸로 선택되어 결과가 없습니다. 날짜를 조정해 주세요.</p>
+      </details>
+    </div>
+    <div class="active-filters"><span v-for="chip in chips" :key="chip.key" class="filter-chip">{{ chip.label }}<button type="button" :aria-label="`${chip.label} 조건 해제`" @click="removeChip(chip.key)"><AppIcon name="close" :size="14" /></button></span><button type="button" class="reset-filters" aria-label="전체 조건 초기화" @click="reset"><AppIcon name="refresh" :size="14" />초기화</button></div>
+  </section>
 </template>
-<script>
-import positions from "../../data/positions";
-
-export default {
-  data() {
-    return {
-      positionStatus: false,
-      careerStatus: false,
-      paymentStatus: false,
-      type: null,
-      positions: positions,
-      payments: [
-        3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500, 7000, 7500, 8000,
-      ],
-      announcementSearchCondition: {
-        announcementType: "",
-        positions: [],
-        // languages: [],
-        career: 0,
-        payment: 0,
-        title: "",
-      },
-    };
+<script lang="ts">
+import { educationFields, educationLabel, durations } from '@/data/education';
+import { defineComponent } from 'vue';
+import AppIcon from '@/components/common/AppIcon.vue';
+import positions from '@/data/positions';
+import { languages, filtersFromQuery, filtersToQuery } from '@/router/announcementFilters';
+import { formatLanguages } from '@/presentation/announcement';
+import { formatPosition } from '@/presentation/positions';
+export default defineComponent({
+  components: { AppIcon },
+  data() { return { filters: filtersFromQuery(this.$route.query), positions, languages, educationFields, durations, mobileOpen: false }; },
+  computed: {
+    educationCount() { return educationFields.filter(field => this.filters[field.key]).length + ['duration','startAfter','startBefore'].filter(key => this.filters[key as 'duration' | 'startAfter' | 'startBefore']).length; },
+    chips() {
+      const chips = this.filters.positions.map(item => ({ key: `position:${item}`, label: formatPosition(item) }));
+      for (const item of this.filters.languages ?? []) chips.push({ key: `language:${item}`, label: formatLanguages([item]) });
+      if (this.filters.recruitmentStatus) chips.push({ key: 'status', label: { OPEN: '모집 중', UPCOMING: '모집 예정', CLOSED: '모집 마감' }[this.filters.recruitmentStatus] });
+      if (this.filters.tuition) chips.push({ key: 'tuition', label: this.filters.tuition === 'FREE' ? '무료' : '유료' });
+      if (this.filters.career) chips.push({ key: 'career', label: `경력 ${this.filters.career}년` });
+      if (this.filters.announcementType === 'EDU') {
+        for (const field of educationFields) if (this.filters[field.key]) chips.push({ key: field.key, label: educationLabel(field.key, this.filters[field.key]) });
+        if (this.filters.duration) chips.push({ key: 'duration', label: durations[this.filters.duration as keyof typeof durations] });
+        if (this.filters.startAfter) chips.push({ key: 'startAfter', label: this.filters.startAfter + ' 이후 개강' });
+        if (this.filters.startBefore) chips.push({ key: 'startBefore', label: this.filters.startBefore + ' 이전 개강' });
+      }
+      if (this.filters.title) chips.push({ key: 'title', label: this.filters.title });
+      return chips;
+    },
   },
   methods: {
-    changeCondition() {
-      this.emitter.emit(
-        "announcementSearchCondition",
-        this.announcementSearchCondition
-      );
-      this.positionStatus = false;
-      this.careerStatus = false;
-      this.paymentStatus = false;
-    },
-    changePositionStatus() {
-      if (this.positionStatus) {
-        this.positionStatus = false;
-      } else {
-        this.positionStatus = true;
-        this.careerStatus = false;
-        this.paymentStatus = false;
-      }
-    },
-    changeCareerStatus() {
-      if (this.careerStatus) {
-        this.careerStatus = false;
-      } else {
-        this.positionStatus = false;
-        this.careerStatus = true;
-        this.paymentStatus = false;
-      }
-    },
-    changePaymentStatus() {
-      if (this.paymentStatus) {
-        this.paymentStatus = false;
-      } else {
-        this.positionStatus = false;
-        this.careerStatus = false;
-        this.paymentStatus = true;
-      }
-    },
-    initCondition() {
-      this.announcementSearchCondition = {
-        announcementType: "",
-        positions: [],
-        // languages: [],
-        career: 0,
-        payment: 0,
-        title: "",
-      };
-      this.changeCondition();
-    },
-    removePosition(position) {
-      this.announcementSearchCondition.positions =
-        this.announcementSearchCondition.positions.filter(
-          (element) => element !== position
-        );
-      this.changeCondition();
+    formatLanguages, formatPosition,
+    commit() { return this.$router.push({ path: '/', query: filtersToQuery(this.filters) }); },
+    changeMode() { this.filters.career = 0; this.filters.payment = 0; this.filters.tuition = ''; for (const field of educationFields) delete this.filters[field.key]; delete this.filters.duration; delete this.filters.startAfter; delete this.filters.startBefore; this.commit(); },
+    reset() { this.filters = filtersFromQuery({ type: this.filters.announcementType }); this.commit(); },
+    removeChip(key: string) {
+      if (key.startsWith('position:')) this.filters.positions = this.filters.positions.filter(item => item !== key.slice(9));
+      else if (key.startsWith('language:')) this.filters.languages = this.filters.languages?.filter(item => item !== key.slice(9));
+      else if (key === 'status') this.filters.recruitmentStatus = '';
+      else if (key === 'tuition') this.filters.tuition = '';
+      else if (key === 'career') this.filters.career = 0;
+      else if (key === 'payment') this.filters.payment = 0;
+      else if (educationFields.some(field => field.key === key)) delete this.filters[key as typeof educationFields[number]['key']];
+      else if (key === 'duration' || key === 'startAfter' || key === 'startBefore') delete this.filters[key];
+      else if (key === 'title') this.filters.title = '';
+      this.commit();
     },
   },
-};
+  watch: { '$route.query': { handler() { this.filters = filtersFromQuery(this.$route.query); } } },
+});
 </script>
-
-<style scoped>
-.search-condition {
-  padding: 25px;
-  margin-right: 10px;
-}
-
-.search-condition-second {
-  display: flex;
-}
-
-.condition-btn {
-  display: flex;
-  box-sizing: border-box;
-  align-items: center;
-  justify-content: space-between;
-  width: 350px;
-  height: 40px;
-  font-size: 15px;
-  font-weight: 600;
-  background-color: white;
-  border-radius: 5px;
-  border: 1px solid rgba(0, 0, 0, 0.5);
-}
-
-ul {
-  width: auto;
-  list-style: none;
-  padding-left: 0px;
-  margin: 0;
-}
-
-li {
-  display: block;
-}
-
-.search-condition-career {
-  margin: 0px 5px 0px 5px;
-}
-
-.search-condition-title {
-  display: flex;
-  align-items: flex-end;
-}
-
-.search-condition-title input {
-  border: none;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.5);
-  height: 20px;
-}
-
-.dropdown-menu {
-  position: absolute;
-  z-index: 1000;
-  box-sizing: border-box;
-  background-color: white;
-  border-radius: 0.25rem;
-  box-shadow: 0 0.25rem 0.5rem rgb(20 20 84 / 4%),
-    0 0.5rem 1.125rem rgb(20 20 84 / 8%),
-    0 1rem 2rem -0.125rem rgb(20 20 84 / 8%),
-    0 0 0 0.0625rem rgb(20 20 84 / 12%);
-  color: #354e66;
-  display: flex;
-  justify-content: center;
-  padding: 10px 12px 10px 12px;
-}
-
-.dropdown-item-wraper {
-  width: auto;
-  column-count: 2;
-}
-
-.career-btn,
-.payment-btn {
-  width: 200px;
-}
-
-.search-condition-selected {
-  display: flex;
-  align-items: center;
-  height: 45px;
-  margin-top: 10px;
-}
-
-.selected-condition-element {
-  border: none;
-  padding: 10px 5px 10px 5px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  margin-right: 15px;
-}
-
-.element-typeName,
-.element-typeName i {
-  background-color: #ffd3ae;
-  color: #ff6a00;
-}
-
-.element-position,
-.element-position i {
-  background-color: #e0d0f0;
-  color: #a585d4;
-}
-.element-career,
-.element-career i {
-  background-color: #faebd6;
-  color: #efb870;
-}
-.element-payment,
-.element-payment i {
-  background-color: #e0f2f1;
-  color: #00a2b4;
-}
-
-.delete-condition,
-.element-condition i {
-  background-color: inherit;
-  border: none;
-  padding: 0;
-}
-.element-init,
-.element-init i {
-  background-color: #cfc6ca;
-}
-</style>

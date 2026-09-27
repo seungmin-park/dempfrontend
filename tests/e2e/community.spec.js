@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+import { test, expect } from '@playwright/test';
 
 function multipartValue(body, name) {
   const match = body.match(new RegExp(`name="${name}"\\r?\\n\\r?\\n([^\\r\\n]+)`));
@@ -14,18 +14,8 @@ async function isolatedCommunity(page) {
     requests: [],
     expired: false,
   };
-  await page.addInitScript(() => {
-    // Summernote is loaded from a CDN in production. The editor boundary is
-    // replaced here so this suite never depends on the public network.
-    window.$ = selector => ({
-      summernote(option) {
-        if (option === 'code') return document.querySelector(selector).value;
-        return this;
-      },
-    });
-  });
   await page.route(/^https:\/\//, route => route.abort());
-  await page.route('**/api/**', async route => {
+  await page.route('http://127.0.0.1:5050/api/**', async route => {
     const request = route.request();
     const url = new URL(request.url());
     const path = url.pathname;
@@ -37,7 +27,7 @@ async function isolatedCommunity(page) {
     if (path === '/api/member/save' && method === 'POST') {
       const name = multipartValue(request.postData(), 'username');
       state.members.set(name, multipartValue(request.postData(), 'password'));
-      return reply(200, 'ok');
+      return reply(200, { id: state.members.size, username: name });
     }
     if (path === '/api/member/login' && method === 'POST') {
       const name = multipartValue(request.postData(), 'username');
@@ -48,18 +38,18 @@ async function isolatedCommunity(page) {
     }
     if (path === '/api/announce' && method === 'GET') {
       const emp = url.searchParams.get('announcementType');
-      return reply(200, { content: emp === 'EDU' ? [] : [{ id: 71, title: '개발자 채용', language: ['JAVA'], position: 'BACKEND', image: '/fixture.png' }], last: true });
+      return reply(200, { content: emp === 'EDU' ? [] : [{ id: 71, title: '개발자 채용', language: ['JAVA'], position: 'BACKEND', image: '/fixture.png' }], number: 0, last: true });
     }
     if (path === '/api/announce/detail/71') {
       if (!username || state.expired) return reply(401, { message: 'expired' });
-      return reply(200, { id: 71, title: '개발자 채용', company: { name: '테스트 회사' }, announcementType: 'EMP', position: 'BACKEND', language: ['JAVA'], minCareer: 0, maxCareer: 0, startedDate: '2026-09-01T00:00:00', deadLineDate: '2026-10-01T00:00:00', content: '<p>안전한 공고</p><img src=x onerror="window.__xss = true">', accessUrl: '/apply', image: '/fixture.png' });
+      return reply(200, { title: '개발자 채용', company: { name: '테스트 회사' }, announcementType: 'EMP', position: 'BACKEND', language: ['JAVA'], minCareer: 0, maxCareer: 0, startedDate: '2026-09-01T00:00:00', deadLineDate: '2026-10-01T00:00:00', content: '<p>안전한 공고</p><img src=x onerror="window.__xss = true">', accessUrl: '/apply', payment: 3000, image: '/fixture.png' });
     }
     if (path === '/api/question/hashtags') return reply(200, []);
     if (path === '/api/question' && method === 'GET') {
       const title = url.searchParams.get('title') || '';
       const content = url.searchParams.get('content') || '';
       const questions = state.questions.filter(q => q.title.includes(title) && q.content.includes(content));
-      return reply(200, { content: questions.map(({ id, title }) => ({ id, title, hits: 0, recommend: 0 })), number: 0, last: true, totalElements: questions.length });
+      return reply(200, { content: questions.map(({ id, title }) => ({ id, title, hits: 0, recommend: 0 })), number: 0, last: true });
     }
     if (path === '/api/question/add' && method === 'POST') {
       if (!username || state.expired) return reply(401, { message: 'expired' });
@@ -83,7 +73,7 @@ async function isolatedCommunity(page) {
     if (path === '/api/answer/save' && method === 'POST') {
       if (!username || state.expired) return reply(401, { message: 'expired' });
       const form = request.postDataJSON();
-      state.answers.push({ id: state.answers.length + 1, questionId: Number(form.questionId), username, content: form.answerContent, recommend: 0, dislike: 0 });
+      state.answers.push({ answerId: state.answers.length + 1, questionId: Number(form.questionId), username, content: form.answerContent, recommend: 0, dislike: 0 });
       return reply(200, state.answers.filter(a => a.questionId === Number(form.questionId)));
     }
     return reply(404, { message: 'fixture endpoint missing' });
@@ -117,15 +107,15 @@ test('회원가입부터 공고·질문·답변의 별도 재조회까지', asyn
   await page.locator('#emp').check();
   await expect(page.locator('.notice-title')).toHaveText('개발자 채용');
   await page.locator('.notice-title').click();
-  await expect(page).toHaveURL('/detail/71');
+  await expect(page).toHaveURL('/detail/71?type=EMP');
   await expect(page.getByRole('heading', { name: '개발자 채용' })).toBeVisible();
-  await expect(page.getByText('테스트 회사')).toBeVisible();
+  await expect(page.getByText('테스트 회사', { exact: true })).toBeVisible();
   await page.getByRole('link', { name: '면접 질문' }).click();
   await page.getByRole('button', { name: '질문하기' }).click();
   await page.locator('#question-title').fill('독립 조회 질문');
   await page.locator('#content').fill('질문 본문');
   await page.getByRole('button', { name: '작성하기' }).click();
-  await expect(page.locator('.question-list-title')).toHaveText('Q. 독립 조회 질문');
+  await expect(page.locator('.question-list-title')).toHaveText('독립 조회 질문');
   await page.locator('.question-list-title').click();
   await expect(page.getByText('질문 본문')).toBeVisible();
   await page.locator('#answer').fill('별도 조회 답변');
@@ -183,7 +173,214 @@ test('늦게 도착한 이전 검색 결과가 새 결과를 덮지 않는다', 
   await expect.poll(() => Boolean(releaseOld)).toBe(true);
   await page.getByPlaceholder('제목, 내용으로 검색하세요').fill('최신');
   await page.getByRole('button', { name: '검색' }).click();
-  await expect(page.locator('.question-list-title')).toHaveText('Q. 최신 질문');
+  await expect(page.locator('.question-list-title')).toHaveText('최신 질문');
   releaseOld();
-  await expect(page.locator('.question-list-title')).toHaveText('Q. 최신 질문');
+  await expect(page.locator('.question-list-title')).toHaveText('최신 질문');
+});
+
+function announcementFixture(id, title = `스크롤 공고 ${id}`) {
+  return { id, title, language: ['JAVA'], position: 'BACKEND', image: '/fixture.png' };
+}
+
+test('실제 스크롤은 다음 페이지를 한 번씩 요청하고 마지막에서 멈춘다', async ({ page }) => {
+  await isolatedCommunity(page);
+  await page.setViewportSize({ width: 900, height: 450 });
+  const pages = [];
+  const announcements = Array.from({ length: 18 }, (_, i) => announcementFixture(i + 1));
+  await page.route('**/api/announce?*', route => {
+    const current = Number(new URL(route.request().url()).searchParams.get('page'));
+    pages.push(current);
+    return route.fulfill({ json: { content: announcements.slice(current * 8, current * 8 + 8), last: current === 2 } });
+  });
+  await page.goto('/');
+  await expect(page.locator('.notice-title')).toHaveCount(8);
+  await page.locator('[data-test="list-end"]').scrollIntoViewIfNeeded();
+  await expect(page.locator('.notice-title')).toHaveCount(16);
+  await page.locator('[data-test="list-end"]').scrollIntoViewIfNeeded();
+  await expect(page.locator('.notice-title')).toHaveCount(18);
+  await expect(page.getByText('현재 조건의 공고를 모두 확인했습니다.')).toBeVisible();
+  await page.mouse.wheel(0, 2000);
+  expect(pages).toEqual([0, 1, 2]);
+  expect(new Set(await page.locator('.notice-title').allTextContents()).size).toBe(18);
+});
+
+test('스크롤 실패는 목록을 보존하고 같은 페이지를 재시도한다', async ({ page }) => {
+  await isolatedCommunity(page);
+  await page.setViewportSize({ width: 900, height: 450 });
+  const pages = [];
+  let failed = false;
+  await page.route('**/api/announce?*', route => {
+    const current = Number(new URL(route.request().url()).searchParams.get('page'));
+    pages.push(current);
+    if (current === 1 && !failed) {
+      failed = true;
+      return route.fulfill({ status: 503, json: { message: 'temporary failure' } });
+    }
+    return route.fulfill({ json: { content: current === 0
+      ? Array.from({ length: 8 }, (_, i) => announcementFixture(i + 1))
+      : [announcementFixture(9, '재시도 성공 공고')], last: current === 1 } });
+  });
+  await page.goto('/');
+  await expect(page.locator('.notice-title')).toHaveCount(8);
+  await page.locator('[data-test="list-end"]').scrollIntoViewIfNeeded();
+  await expect(page.getByRole('alert')).toContainText('불러오지 못했습니다');
+  await expect(page.locator('.notice-title')).toHaveCount(8);
+  await page.getByRole('button', { name: '재시도' }).click();
+  await expect(page.locator('.notice-title')).toHaveCount(9);
+  expect(pages).toEqual([0, 1, 1]);
+});
+
+test('스크롤 중 필터 변경은 첫 페이지부터 조회하고 늦은 이전 페이지를 버린다', async ({ page }) => {
+  await isolatedCommunity(page);
+  await page.setViewportSize({ width: 900, height: 450 });
+  let releaseOld;
+  const requests = [];
+  await page.route('**/api/announce?*', async route => {
+    const query = new URL(route.request().url()).searchParams;
+    const current = Number(query.get('page'));
+    const type = query.get('announcementType');
+    requests.push([type, current]);
+    if (type === 'EDU') return route.fulfill({ json: { content: [announcementFixture(99, '새 교육 공고')], last: true } });
+    if (current === 1) {
+      await new Promise(resolve => { releaseOld = resolve; });
+      return route.fulfill({ json: { content: [announcementFixture(10, '늦은 이전 공고')], last: true } });
+    }
+    return route.fulfill({ json: { content: Array.from({ length: 8 }, (_, i) => announcementFixture(i + 1)), last: false } });
+  });
+  await page.goto('/');
+  await expect(page.locator('.notice-title')).toHaveCount(8);
+  await page.locator('[data-test="list-end"]').scrollIntoViewIfNeeded();
+  await expect.poll(() => Boolean(releaseOld)).toBe(true);
+  await page.locator('#edu').check();
+  await expect(page.locator('.notice-title')).toHaveText('새 교육 공고');
+  const oldResponse = page.waitForResponse(response => new URL(response.url()).searchParams.get('page') === '1');
+  releaseOld();
+  await oldResponse;
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  await expect(page.locator('.notice-title')).toHaveText('새 교육 공고');
+  expect(requests).toEqual([['', 0], ['', 1], ['EDU', 0]]);
+});
+
+test('모바일 교육 필터는 URL·새로고침·뒤로 가기에서 복원된다', async ({ page }) => {
+  await isolatedCommunity(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  const requests = [];
+  await page.route('**/api/announce?*', route => {
+    const query = new URL(route.request().url()).searchParams;
+    requests.push(Object.fromEntries(query));
+    return route.fulfill({ json: { content: [{ ...announcementFixture(90, '무료 백엔드 교육'), company: '교육기관', announcementType: 'EDU', payment: 0, deadLineDate: '2026-12-31T18:00:00' }], last: true } });
+  });
+  await page.goto('/?type=EDU&positions=BACKEND&languages=JAVA,SPRING&status=OPEN&tuition=FREE&q=교육');
+  await expect(page.locator('.notice-title')).toHaveText('무료 백엔드 교육');
+  expect(requests[0]).toMatchObject({ announcementType: 'EDU', positions: 'BACKEND', languages: 'JAVA,SPRING', recruitmentStatus: 'OPEN', tuition: 'FREE', title: '교육', page: '0' });
+  await page.getByRole('button', { name: '필터 열기' }).click();
+  await expect(page.getByRole('combobox', { name: '교육비' })).toHaveValue('FREE');
+  await expect(page.getByRole('combobox', { name: '내 경력' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Java 조건 해제', exact: true }).click();
+  await expect(page).toHaveURL(/languages=SPRING/);
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Spring 조건 해제', exact: true })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('button', { name: 'Java 조건 해제', exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole('button', { name: '전체 조건 초기화' }).click();
+  await expect(page).toHaveURL('/?type=EDU');
+});
+
+
+test('없는 페이지·상세 오류는 안내하고 재시도로 복구된다', async ({ page }) => {
+  const state = await isolatedCommunity(page);
+  await page.goto('/missing-page');
+  await expect(page.getByRole('heading', { name: '페이지를 찾을 수 없습니다.' })).toBeVisible();
+  await page.getByRole('link', { name: '공고 둘러보기' }).click();
+  await expect(page).toHaveURL('/');
+  await loginAs(page, state, 'reader');
+  let failed = false;
+  await page.route('**/api/announce/detail/71', route => {
+    if (!failed) { failed = true; return route.fulfill({ status: 503, json: {} }); }
+    return route.fulfill({ json: { title: '복구 공고', company: { name: '회사' }, announcementType: 'EMP', language: ['JAVA', 'SPRING'], minCareer: 0, maxCareer: 3, content: '<p>복구 본문</p>', accessUrl: 'https://example.com', startedDate: '2026-09-01T09:00:00', deadLineDate: '2026-12-31T18:30:00' } });
+  });
+  await page.goto('/detail/71?type=EDU&tuition=FREE');
+  await expect(page.locator('.details-announcement').getByRole('alert')).toContainText('불러오지 못했습니다');
+  await page.locator('.details-announcement').getByRole('button', { name: '재시도' }).click();
+  await expect(page.getByRole('heading', { name: '복구 공고' })).toBeVisible();
+  await expect(page.locator('[aria-label="기술 스택"]')).toHaveText('Java, Spring');
+  await expect(page.locator('.detail-facts')).toContainText('2026.12.31 18:30');
+  await page.getByRole('button', { name: '검색 결과로 돌아가기' }).click();
+  await expect(page).toHaveURL('/?type=EDU&tuition=FREE');
+});
+
+test('모집 구분은 모바일 카드와 상세·관련 공고에서 연차와 함께 구별된다', async ({ page }) => {
+  const state = await isolatedCommunity(page);
+  await loginAs(page, state, 'audience-reader');
+  const items = [
+    { id: 1, title: '경력 무관 채용', announcementType: 'EMP', minCareer: 0, maxCareer: 0 },
+    { id: 2, title: '신입 지원 가능 채용', announcementType: 'EMP', minCareer: 0, maxCareer: 3 },
+    { id: 3, title: '경력 개발자 채용', announcementType: 'EMP', minCareer: 3, maxCareer: 5 },
+    { id: 4, title: '백엔드 부트캠프', announcementType: 'EDU', minCareer: 0, maxCareer: 0 },
+  ].map(item => ({ ...item, company: null, image: '', language: ['JAVA', 'SPRING'], content: '공고 설명' }));
+  await page.route('**/api/announce', route => route.fulfill({ json: { content: items, last: true } }));
+  await page.route('**/api/announce?*', route => route.fulfill({ json: { content: items, last: true } }));
+  await page.route('**/api/announce/scroll', route => route.fulfill({ json: items }));
+  await page.route('**/api/announce/detail/3', route => route.fulfill({ json: items[2] }));
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await expect(page.locator('.job-card [aria-label="모집 구분"]')).toHaveText(['경력 무관', '신입·경력', '경력', '교육']);
+  await expect(page.locator('.job-card').nth(1)).toContainText('3년 이하');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole('link', { name: '경력 개발자 채용', exact: true }).click();
+  await expect(page.locator('.job-detail-heading .announcement-audience')).toHaveText('경력3~5년');
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(page.locator('.anncoucement-scroll [aria-label="모집 구분"]')).toHaveText(['경력 무관', '신입·경력', '경력', '교육']);
+});
+
+test('교육 빈 검색은 상황을 설명하고 필터 해제로 교육 목록을 복구한다', async ({ page }) => {
+  await isolatedCommunity(page);
+  await page.route('**/api/announce?*', route => {
+    const query = new URL(route.request().url()).searchParams;
+    return route.fulfill({ json: { content: query.get('title') || query.get('tuition') ? [] : [{ id: 4, title: '복구된 교육과정', announcementType: 'EDU', language: [] }], last: true } });
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/?type=EDU&tuition=FREE');
+  await expect(page.locator('.empty-state h2')).toHaveText('선택한 조건에 맞는 부트캠프·교육과정이 없습니다.');
+  await expect(page.locator('[data-test="retry"]')).toHaveCount(0);
+  await page.getByRole('textbox', { name: '공고 검색어' }).fill('없는 과정');
+  await page.getByRole('button', { name: '검색', exact: true }).click();
+  await expect(page.locator('.empty-state h2')).toHaveText('“없는 과정”에 해당하는 부트캠프·교육과정이 없습니다.');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole('button', { name: '검색·필터 해제' }).click();
+  await expect(page).toHaveURL('/?type=EDU');
+  await expect(page.locator('.notice-title')).toHaveText('복구된 교육과정');
+  await expect(page.getByRole('textbox', { name: '공고 검색어' })).toHaveValue('');
+});
+
+
+test('상세 교육 필터는 모바일 입력·새로고침·뒤로가기·빈 결과 해제에 연동된다', async ({ page }) => {
+  await isolatedCommunity(page); await page.setViewportSize({ width: 390, height: 844 });
+  const requests = [];
+  await page.route('**/api/announce?*', route => {
+    const query = new URL(route.request().url()).searchParams; requests.push(Object.fromEntries(query));
+    return route.fulfill({ json: { content: [], last: true } });
+  });
+  await page.goto('/?type=EDU');
+  await page.getByRole('button', { name: '필터 열기' }).click();
+  await page.locator('.education-filter-panel summary').click();
+  await page.getByLabel('수업 방식', { exact: true }).selectOption('ONLINE');
+  await page.getByLabel('참여 시간', { exact: true }).selectOption('PART_TIME');
+  await page.getByLabel('교육비 지원', { exact: true }).selectOption('CARD_REQUIRED');
+  await page.getByLabel('개강일 이후', { exact: true }).fill('2026-10-01');
+  await page.getByLabel('개강일 이후', { exact: true }).press('Tab');
+  await expect.poll(() => requests.at(-1)).toMatchObject({ deliveryMode: 'ONLINE', commitment: 'PART_TIME', fundingType: 'CARD_REQUIRED', startAfter: '2026-10-01', page: '0' });
+  await expect(page.locator('.empty-state h2')).toHaveText('선택한 조건에 맞는 부트캠프·교육과정이 없습니다.');
+  await page.reload();
+  await expect(page.getByRole('button', { name: '온라인 조건 해제', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: '온라인 조건 해제', exact: true }).click();
+  await expect(page).not.toHaveURL(/deliveryMode/);
+  await page.goBack(); await expect(page).toHaveURL(/deliveryMode=ONLINE/);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole('button', { name: '검색·필터 해제' }).click();
+  await expect(page).toHaveURL('/?type=EDU');
+  await page.goto('/?type=EMP&payment=5000');
+  await expect(page.getByLabel('최소 연봉')).toHaveCount(0);
+  expect(requests.at(-1).payment).toBeUndefined();
 });
