@@ -28,11 +28,11 @@ test('공고 더보기는 제목과 직군 조건을 유지한 다음 페이지�
   await flushPromises();
 
   expect(axios.get).toHaveBeenNthCalledWith(2, '/api/announce', { params: {
-    announcementType: 'EMP', positions: 'BACKEND', career: 0, payment: 0,
+    announcementType: 'EMP', positions: 'BACKEND', career: 0,
     title: 'Java', page: 0, size: 8,
   } });
   expect(axios.get).toHaveBeenNthCalledWith(3, '/api/announce', { params: {
-    announcementType: 'EMP', positions: 'BACKEND', career: 0, payment: 0,
+    announcementType: 'EMP', positions: 'BACKEND', career: 0,
     title: 'Java', page: 1, size: 8,
   } });
   expect(wrapper.text()).toContain('Java 채용');

@@ -42,3 +42,14 @@ it('공고 상세의 모집 기간을 ISO 구분자나 초 없이 보여준다',
   expect(wrapper.text()).not.toContain('T09:00:00');
   expect(wrapper.text()).not.toContain('T18:30:00');
 });
+it.each([
+  [{ announcementType: 'EMP', payment: null, salaryStatus: 'UNDISCLOSED' }, '연봉 미공개'],
+  [{ announcementType: 'EMP', payment: null, salaryStatus: 'NEGOTIABLE' }, '연봉 협의'],
+  [{ announcementType: 'EMP', payment: 4000, salaryMax: 6000, salaryStatus: 'DISCLOSED' }, '연봉 4,000~6,000만원'],
+  [{ announcementType: 'EDU', payment: null }, '교육비 정보 없음'],
+])('상세에서 금액 상태를 정확히 표시한다 %j', async (data, label) => {
+  axios.get.mockResolvedValue({ data: { ...data, language: [] } });
+  const wrapper = mount(AnnouncementDetail, { global: { mocks: { $store: { state: { Login: { token: 'jwt' } } }, $route: { params: { itemId: '1' } } } } });
+  await flushPromises();
+  expect(wrapper.text()).toContain(label);
+});

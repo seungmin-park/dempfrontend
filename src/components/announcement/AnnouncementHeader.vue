@@ -11,7 +11,7 @@
       <details class="filter-group"><summary>기술 스택 <span v-if="filters.languages?.length">{{ filters.languages.length }}</span><AppIcon name="chevron" :size="15" /></summary><div class="filter-popover"><label v-for="language in languages" :key="language"><input type="checkbox" :value="language" v-model="filters.languages" @change="commit" />{{ formatLanguages([language]) }}</label></div></details>
       <select aria-label="모집 상태" v-model="filters.recruitmentStatus" @change="commit"><option value="">모집 상태 전체</option><option value="OPEN">모집 중</option><option value="UPCOMING">모집 예정</option><option value="CLOSED">모집 마감</option></select>
       <select v-if="filters.announcementType === 'EDU'" aria-label="교육비" v-model="filters.tuition" @change="commit"><option value="">교육비 전체</option><option value="FREE">무료</option><option value="PAID">유료</option></select>
-      <template v-else><select aria-label="내 경력" v-model.number="filters.career" @change="commit"><option :value="0">경력 전체</option><option v-for="year in 15" :key="year" :value="year">내 경력 {{ year }}년</option></select><select aria-label="최소 연봉" v-model.number="filters.payment" @change="commit"><option :value="0">연봉 전체</option><option v-for="amount in [3000,4000,5000,6000,8000,10000]" :key="amount" :value="amount">{{ amount.toLocaleString('ko-KR') }}만원 이상</option></select></template>
+      <template v-else><select aria-label="내 경력" v-model.number="filters.career" @change="commit"><option :value="0">경력 전체</option><option v-for="year in 15" :key="year" :value="year">내 경력 {{ year }}년</option></select></template>
     </div>
     <div class="active-filters"><span v-for="chip in chips" :key="chip.key" class="filter-chip">{{ chip.label }}<button type="button" :aria-label="`${chip.label} 조건 해제`" @click="removeChip(chip.key)"><AppIcon name="close" :size="14" /></button></span><button type="button" class="reset-filters" aria-label="전체 조건 초기화" @click="reset"><AppIcon name="refresh" :size="14" />초기화</button></div>
   </section>
@@ -33,7 +33,6 @@ export default defineComponent({
       if (this.filters.recruitmentStatus) chips.push({ key: 'status', label: { OPEN: '모집 중', UPCOMING: '모집 예정', CLOSED: '모집 마감' }[this.filters.recruitmentStatus] });
       if (this.filters.tuition) chips.push({ key: 'tuition', label: this.filters.tuition === 'FREE' ? '무료' : '유료' });
       if (this.filters.career) chips.push({ key: 'career', label: `경력 ${this.filters.career}년` });
-      if (this.filters.payment) chips.push({ key: 'payment', label: `연봉 ${this.filters.payment.toLocaleString('ko-KR')}만원 이상` });
       if (this.filters.title) chips.push({ key: 'title', label: this.filters.title });
       return chips;
     },

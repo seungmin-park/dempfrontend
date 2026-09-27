@@ -3,7 +3,7 @@
   <div class="job-grid" :aria-busy="loading">
     <article v-for="notice in notices" :key="notice.id" class="item job-card" tabindex="0" role="link" :aria-label="notice.title ?? '공고 상세'" @click="openAnnouncementDetail(notice.id)" @keydown.enter="openAnnouncementDetail(notice.id)">
       <div class="item-image-box"><CompanyImage :src="notice.image" /></div>
-      <div class="job-card-content"><AnnouncementAudience :announcement="notice" /><span class="job-position">{{ formatPosition(notice.position) }}</span><p v-if="notice.company" class="job-company">{{ notice.company }}</p><h2 class="notice-title">{{ notice.title }}</h2><p class="job-stack" aria-label="기술 스택">{{ formatLanguages(notice.language) }}</p><div class="job-card-facts"><span v-if="notice.announcementType === 'EDU' && notice.payment != null">{{ notice.payment === 0 ? '무료 교육' : '교육비 ' + notice.payment.toLocaleString('ko-KR') + '만원' }}</span><span v-if="notice.deadLineDate">{{ formatRecruitDate(notice.deadLineDate).slice(0,10) }} 마감</span></div></div>
+      <div class="job-card-content"><AnnouncementAudience :announcement="notice" /><span class="job-position">{{ formatPosition(notice.position) }}</span><p v-if="notice.company" class="job-company">{{ notice.company }}</p><h2 class="notice-title">{{ notice.title }}</h2><p class="job-stack" aria-label="기술 스택">{{ formatLanguages(notice.language) }}</p><div class="job-card-facts"><span v-if="notice.announcementType === 'EDU'">{{ formatTuition(notice.payment) }}</span><span v-if="notice.deadLineDate">{{ formatRecruitDate(notice.deadLineDate).slice(0,10) }} 마감</span></div></div>
     </article>
   </div>
   <div ref="listEnd" data-test="list-end" aria-hidden="true" class="list-end"></div>
@@ -25,6 +25,7 @@
   </div>
 </template>
 <script lang="ts">
+import { formatTuition } from '@/presentation/compensation';
 import type { AnnouncementSummary, AnnouncementFilters, JobPosition } from '@/types/api';
 import { defineComponent } from "vue";
 import { markRaw } from "vue";
@@ -78,6 +79,7 @@ export default defineComponent({
 
   computed: { emptyState() { return announcementEmptyState(this.announcementSearchCondition); } },
   methods: {
+    formatTuition,
     resetSearch() {
       const type = this.announcementSearchCondition.announcementType;
       this.$router.push({ path: '/', query: type ? { type } : {} });

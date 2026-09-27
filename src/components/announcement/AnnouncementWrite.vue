@@ -11,7 +11,7 @@
       <div class="field"><label for="deadLineDate">모집 마감</label><Field id="deadLineDate" name="deadLineDate" type="datetime-local" v-model="deadLineDate" rules="required" :disabled="saving" /><ErrorMessage name="deadLineDate" class="field-error">모집 마감일을 입력해 주세요.</ErrorMessage></div>
       <div class="field"><label for="minCareer">최소 경력 (년)</label><Field id="minCareer" name="minCareer" type="number" min="0" v-model="minCareer" rules="required|min_value:0" :disabled="saving" /><ErrorMessage name="minCareer" class="field-error">0 이상의 경력을 입력해 주세요.</ErrorMessage></div>
       <div class="field"><label for="maxCareer">최대 경력 (년)</label><Field id="maxCareer" name="maxCareer" type="number" min="0" v-model="maxCareer" rules="required|min_value:0" :disabled="saving" /><ErrorMessage name="maxCareer" class="field-error">0 이상의 경력을 입력해 주세요.</ErrorMessage></div>
-      <div class="field"><label for="payment">{{ type === 'EDU' ? '교육비' : '연봉' }} (만원)</label><Field id="payment" name="payment" type="number" min="0" v-model="payment" rules="required|min_value:0" :disabled="saving" /><ErrorMessage name="payment" class="field-error">0 이상의 금액을 입력해 주세요.</ErrorMessage></div>
+      <CompensationFields id="payment" :type="type" v-model:payment="payment" v-model:salary-status="salaryStatus" v-model:salary-max="salaryMax" :disabled="saving" />
       <div class="field"><label for="announce_img">대표 이미지 (선택)</label><input id="announce_img" name="announce_img" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" ref="announceImg" :disabled="saving" @change="uploadImg" /><p class="field-hint">JPEG 또는 PNG 파일을 선택하세요.</p></div>
     </div>
     <div class="field"><AnnouncementBodyEditor id="content" v-model="content" v-model:body-images="bodyImages" :type="type" :cover-bytes="image?.size || 0" :disabled="saving" /></div>
@@ -20,6 +20,8 @@
   </ValidationForm>
 </template>
 <script lang="ts">
+import CompensationFields from './CompensationFields.vue';
+import { compensationError } from '@/presentation/compensation';
 import AnnouncementBodyEditor from '@/components/announcement/AnnouncementBodyEditor.vue';
 import { announcementAttachmentError } from '@/content/announcementAttachments';
 import { hasTextContent } from '@/content/sanitizeHtml';
@@ -44,7 +46,7 @@ export default defineComponent({
     }
   },
   components: {
-    AnnouncementBodyEditor,
+    AnnouncementBodyEditor, CompensationFields,
     ValidationForm,
     Field,
     ErrorMessage,
@@ -62,7 +64,9 @@ export default defineComponent({
       language: "",
       positions: positions,
       position: "" as AnnouncementForm["position"],
-      payment: 2400,
+      payment: null as number | null,
+      salaryStatus: undefined as AnnouncementForm['salaryStatus'],
+      salaryMax: null as number | null,
       image: null as File | null,
       content: "",
       bodyImages: [] as File[],
@@ -83,6 +87,8 @@ export default defineComponent({
     saveAnnounce() {
       if (this.saving) return;
       if (!hasTextContent(this.content)) { this.error = '본문 내용을 입력해 주세요.'; return; }
+      const amountError = compensationError(this);
+      if (amountError) { this.error = amountError; return; }
       const attachmentsError = announcementAttachmentError(this.image, this.bodyImages);
       if (attachmentsError) { this.error = attachmentsError; return; }
       this.saving = true;
@@ -98,6 +104,7 @@ export default defineComponent({
         maxCareer: this.maxCareer,
         language: this.language,
         payment: this.payment,
+        salaryStatus: this.type === 'EMP' ? this.salaryStatus : undefined, salaryMax: this.type === 'EMP' ? this.salaryMax : null,
         position: this.position,
         content: this.content,
         bodyImages: this.bodyImages,

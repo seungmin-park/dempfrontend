@@ -40,7 +40,7 @@ it('교육 전환은 경력·연봉을 해제하고 지원하지 않는 URL 조�
   const { wrapper } = await setup('/?type=EMP&career=3&payment=5000&languages=JAVA,NOPE&positions=BACKEND,INVALID');
   await wrapper.get('#edu').setValue(true);
   await flushPromises();
-  expect(axios.get.mock.lastCall[1].params).toMatchObject({ announcementType: 'EDU', career: 0, payment: 0, languages: 'JAVA', positions: 'BACKEND' });
+  expect(axios.get.mock.lastCall[1].params).toMatchObject({ announcementType: 'EDU', career: 0, languages: 'JAVA', positions: 'BACKEND' });
   expect(wrapper.find('[aria-label="내 경력"]').exists()).toBe(false);
   expect(wrapper.find('[aria-label="교육비"]').exists()).toBe(true);
 });
@@ -52,4 +52,10 @@ it('모바일 필터 열기와 전체 초기화는 선택 상태 및 결과를 �
   await flushPromises();
   expect(router.currentRoute.value.query).toEqual({ type: 'EDU' });
   expect(axios.get.mock.lastCall[1].params).toMatchObject({ announcementType: 'EDU', title: '', page: 0 });
+});
+it('연봉 필터를 숨기고 과거 연봉 URL도 검색에 적용하지 않는다', async () => {
+  const { wrapper } = await setup('/?type=EMP&payment=5000');
+  expect(wrapper.find('[aria-label="최소 연봉"]').exists()).toBe(false);
+  expect(axios.get.mock.lastCall[1].params.payment).toBeUndefined();
+  expect(wrapper.text()).not.toContain('연봉 5,000만원 이상');
 });

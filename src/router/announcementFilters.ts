@@ -16,7 +16,7 @@ export function filtersFromQuery(query: LocationQuery = {}): AnnouncementFilters
     recruitmentStatus: status === 'OPEN' || status === 'UPCOMING' || status === 'CLOSED' ? status : '',
     tuition: type === 'EDU' && (tuition === 'FREE' || tuition === 'PAID') ? tuition : '',
     career: type === 'EDU' ? 0 : positive(query.career),
-    payment: type === 'EDU' ? 0 : positive(query.payment),
+    payment: 0,
     title: text(query.q).trim(),
   };
 }
@@ -29,7 +29,6 @@ export function filtersToQuery(filters: AnnouncementFilters): LocationQueryRaw {
   if (filters.announcementType === 'EDU') { if (filters.tuition) query.tuition = filters.tuition; }
   else {
     if (filters.career) query.career = String(filters.career);
-    if (filters.payment) query.payment = String(filters.payment);
   }
   if (filters.title.trim()) query.q = filters.title.trim();
   return query;

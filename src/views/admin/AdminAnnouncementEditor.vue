@@ -8,7 +8,8 @@
         <div class="field"><label for="admin-type">공고 종류</label><select id="admin-type" v-model="form.type" required :disabled="saving"><option value="EMP">채용</option><option value="EDU">교육·부트캠프</option></select></div>
         <div class="field"><label for="admin-position">분야</label><select id="admin-position" v-model="form.position" required :disabled="saving"><option value="">분야 선택</option><option v-for="position in positions" :key="position" :value="position">{{ formatPosition(position) }}</option></select><p v-if="errors.position" class="field-error">{{ errors.position }}</p></div>
         <div v-for="field in dateFields" :key="field.key" class="field"><label :for="`admin-${field.key}`">{{ field.label }}</label><input :id="`admin-${field.key}`" v-model="form[field.key]" type="datetime-local" step="1" required :disabled="saving" /><p v-if="errors[field.key]" class="field-error">{{ errors[field.key] }}</p></div>
-        <div v-for="field in numberFields" :key="field.key" class="field"><label :for="`admin-${field.key}`">{{ field.key === 'payment' ? (form.type === 'EDU' ? '교육비 (만원, 무료는 0)' : '연봉 (만원)') : field.label }}</label><input :id="`admin-${field.key}`" v-model.number="form[field.key]" type="number" min="0" step="1" required :disabled="saving" /><p v-if="errors[field.key]" class="field-error">{{ errors[field.key] }}</p></div>
+        <div v-for="field in numberFields" :key="field.key" class="field"><label :for="`admin-${field.key}`">{{ field.label }}</label><input :id="`admin-${field.key}`" v-model.number="form[field.key]" type="number" min="0" step="1" required :disabled="saving" /><p v-if="errors[field.key]" class="field-error">{{ errors[field.key] }}</p></div>
+        <CompensationFields id="admin-payment" :type="form.type" v-model:payment="form.payment" v-model:salary-status="form.salaryStatus" v-model:salary-max="form.salaryMax" :disabled="saving" /><p v-if="errors.payment" class="field-error">{{ errors.payment }}</p>
         <fieldset class="field"><legend>기술 스택</legend><div class="radio-options"><label v-for="language in languages" :key="language"><input v-model="selectedLanguages" type="checkbox" :value="language" :disabled="saving" />{{ formatLanguages([language]) }}</label></div><p v-if="errors.language" class="field-error">{{ errors.language }}</p></fieldset>
         <div class="field"><label for="admin-image">공고 이미지 (선택)</label><CompanyImage v-if="imageUrl" :src="imageUrl" :alt="form.company" class="admin-image-preview" /><input id="admin-image" type="file" accept="image/jpeg,image/png" :disabled="saving" @change="selectImage" /><p class="field-hint">{{ editing ? '선택하지 않으면 기존 이미지를 유지합니다.' : 'JPEG 또는 PNG 이미지를 선택하세요.' }}</p><p v-if="errors.image" class="field-error">{{ errors.image }}</p></div>
       </div>
@@ -19,6 +20,8 @@
   </template>
 </template>
 <script lang="ts">
+import CompensationFields from '@/components/announcement/CompensationFields.vue';
+import { compensationError } from '@/presentation/compensation';
 import { announcementAttachmentError } from '@/content/announcementAttachments';
 import { hasTextContent } from '@/content/sanitizeHtml';
 import { defineComponent } from 'vue';
@@ -32,14 +35,14 @@ import positions from '@/data/positions';
 import AnnouncementBodyEditor from '@/components/announcement/AnnouncementBodyEditor.vue';
 import AsyncState from '@/components/common/AsyncState.vue';
 import CompanyImage from '@/components/common/CompanyImage.vue';
-function blankForm(): AnnouncementForm { return { title: '', company: '', type: 'EMP', position: '', minCareer: 0, maxCareer: 0, payment: 0, accessUrl: '', startedDate: null, deadLineDate: null, content: '', language: [], image: null }; }
+function blankForm(): AnnouncementForm { return { title: '', company: '', type: 'EMP', position: '', minCareer: 0, maxCareer: 0, payment: null, salaryMax: null, accessUrl: '', startedDate: null, deadLineDate: null, content: '', language: [], image: null }; }
 export default defineComponent({
-  components: { AnnouncementBodyEditor, AsyncState, CompanyImage },
+  components: { CompensationFields, AnnouncementBodyEditor, AsyncState, CompanyImage },
   data: () => ({ form: blankForm(), selectedLanguages: [] as Language[], bodyImages: [] as File[], imageUrl: '', loading: false, saving: false, loadError: '', error: '', errors: {} as Record<string,string>, generation: 0, positions,
     languages: ['JAVA','SPRING','JPA','HTML','CSS','React'] as Language[],
     textFields: [{ key: 'title', label: '제목', type: 'text' }, { key: 'company', label: '회사·교육기관', type: 'text' }, { key: 'accessUrl', label: '원문 공고 URL', type: 'url' }] as const,
     dateFields: [{ key: 'startedDate', label: '모집 시작' }, { key: 'deadLineDate', label: '모집 마감' }] as const,
-    numberFields: [{ key: 'minCareer', label: '최소 경력 (년)' }, { key: 'maxCareer', label: '최대 경력 (년, 무관은 0)' }, { key: 'payment', label: '금액 (만원)' }] as const,
+    numberFields: [{ key: 'minCareer', label: '최소 경력 (년)' }, { key: 'maxCareer', label: '최대 경력 (년, 무관은 0)' }] as const,
   }),
   computed: { editing(): boolean { return Boolean(this.$route.params.id); } },
   mounted() { this.load(); }, beforeUnmount() { this.generation++; },
@@ -68,8 +71,10 @@ export default defineComponent({
       if (!this.selectedLanguages.length) errors.language = '기술 스택을 하나 이상 선택해 주세요.';
       if (!this.form.startedDate) errors.startedDate = '모집 시작을 입력해 주세요.';
       if (!this.form.deadLineDate || (this.form.startedDate && this.form.deadLineDate < this.form.startedDate)) errors.deadLineDate = '마감은 모집 시작보다 빠를 수 없습니다.';
-      for (const field of ['minCareer','maxCareer','payment'] as const) if (!Number.isInteger(this.form[field]) || this.form[field] < 0) errors[field] = '0 이상의 정수를 입력해 주세요.';
+      for (const field of ['minCareer','maxCareer'] as const) if (!Number.isInteger(this.form[field]) || this.form[field] < 0) errors[field] = '0 이상의 정수를 입력해 주세요.';
       if (this.form.maxCareer && this.form.minCareer > this.form.maxCareer) errors.maxCareer = '최대 경력은 최소 경력보다 작을 수 없습니다.';
+      const amountError = compensationError(this.form);
+      if (amountError) errors.payment = amountError;
       const attachmentsError = announcementAttachmentError(this.form.image, this.bodyImages);
       if (attachmentsError) errors.image = attachmentsError;
       this.errors = errors; return Object.keys(errors).length === 0;

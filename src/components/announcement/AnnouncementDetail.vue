@@ -4,8 +4,8 @@
     <header class="job-detail-heading"><div class="company-logo"><CompanyImage :src="announcement.image" /></div><AnnouncementAudience :announcement="announcement" /><h1>{{ announcement.title }}</h1><p>{{ announcement.company }}</p></header>
     <div class="detail-facts">
       <p>회사명 : {{ announcement.company }}</p>
-      <p v-if="announcement.type === 'EDU'">교육비 : {{ announcement.payment === 0 ? '무료' : announcement.payment + ' 만원' }}</p>
-      <p v-if="announcement.type === 'EMP'">연봉 : {{ announcement.payment }} 만원</p>
+      <p v-if="announcement.type === 'EDU'">{{ formatTuition(announcement.payment) }}</p>
+      <p v-if="announcement.type === 'EMP'">{{ formatSalary(announcement) }}</p>
       <p>지원기간 : {{ formatRecruitDate(announcement.startedDate) }} ~ {{ formatRecruitDate(announcement.deadLineDate) }}</p>
       <p>포지션 : {{ formatPosition(announcement.position) }}</p>
       <p>기술 스택 : <span aria-label="기술 스택">{{ formatLanguages(announcement.language) }}</span></p>
@@ -16,6 +16,7 @@
   </article>
 </template>
 <script lang="ts">
+import { formatSalary, formatTuition } from '@/presentation/compensation';
 import type { AnnouncementDetail } from '@/types/api';
 import { routeId } from '@/router/query';
 import AnnouncementAudience from './AnnouncementAudience.vue';
@@ -49,7 +50,7 @@ export default defineComponent({
 
   },
   methods: {
-    formatPosition,
+    formatSalary, formatTuition, formatPosition,
     formatLanguages,
     formatRecruitDate,
     async loadAnnouncementDetail() {

@@ -5,9 +5,9 @@ export function toAnnouncementFormData(announcement: AnnouncementForm) {
   const form = new FormData();
   const fields = [
     'title', 'company', 'type', 'position', 'minCareer', 'maxCareer',
-    'startedDate', 'deadLineDate', 'content', 'accessUrl', 'payment',
+    'startedDate', 'deadLineDate', 'content', 'accessUrl', 'payment', 'salaryStatus', 'salaryMax',
   ] as const;
-  fields.forEach(field => form.append(field, String(announcement[field])));
+  fields.forEach(field => { if (announcement[field] != null && announcement[field] !== '') form.append(field, String(announcement[field])); });
   const languages = Array.isArray(announcement.language)
     ? announcement.language
     : String(announcement.language || '').split(',').map(value => value.trim()).filter(Boolean);
@@ -39,7 +39,6 @@ export function getAnnouncements(condition: AnnouncementSearchCondition) {
       announcementType: condition.announcementType,
       positions: condition.positions.join(','),
       career: condition.career,
-      payment: condition.payment,
       title: condition.title,
       ...(condition.languages?.length ? { languages: condition.languages.join(',') } : {}),
       ...(condition.recruitmentStatus ? { recruitmentStatus: condition.recruitmentStatus } : {}),

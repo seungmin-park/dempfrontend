@@ -3,6 +3,7 @@ import type positions from '@/data/positions';
 export type EntityId = number | string;
 export type JobPosition = typeof positions[number];
 export type Language = 'HTML' | 'CSS' | 'React' | 'JAVA' | 'JPA' | 'SPRING';
+export type SalaryStatus = 'UNDISCLOSED' | 'NEGOTIABLE' | 'DISCLOSED';
 export type AnnouncementType = 'EMP' | 'EDU';
 export interface Slice<T> { content: T[]; last: boolean; number: number }
 export interface MemberInfo { username: string; jwt: string }
@@ -32,7 +33,9 @@ export interface AnnouncementDetailResponse {
   deadLineDate: string | null;
   content: string | null;
   accessUrl: string | null;
-  payment: number;
+  payment: number | null;
+  salaryStatus?: SalaryStatus;
+  salaryMax?: number | null;
   language: Language[];
   position: JobPosition | null;
   announcementType: AnnouncementType | null;
@@ -61,7 +64,9 @@ export interface AnnouncementForm {
   deadLineDate: string | null;
   content: string;
   accessUrl: string;
-  payment: number;
+  payment: number | null;
+  salaryStatus?: SalaryStatus;
+  salaryMax?: number | null;
   language: string | Language[];
   image: File | null;
   bodyImages?: File[];
