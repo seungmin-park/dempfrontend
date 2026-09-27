@@ -1,96 +1,131 @@
-# DEMP
+# DEMP · Frontend
 
-## 검증과 배포 순서
+**개발자 채용·교육 공고 탐색과 질문·답변 커뮤니티의 Vue 3 + TypeScript 클라이언트.**
 
-CI는 Node 24.21.0에서 `npm ci` → 타입 검사 → 단위 테스트 → lint → build → Chromium 설치 → `npx playwright test` 순서로 실행한다. 각 명령은 실패하면 그 작업을 중단한다. Playwright는 Vue 개발 서버를 자동으로 시작하며, 테스트마다 회원·공고·질문·답변 API fixture를 새로 만든다. 외부 CDN 요청은 차단하고 Summernote 입력 경계를 테스트 대역으로 바꾼다. 따라서 브라우저 E2E는 화면·라우팅·인증 상태·요청 및 응답 처리 흐름을 검증한다. 실제 Spring/DB/S3 결합 실행을 검증한 결과로 해석하지 않는다. Spring의 H2 기반 서비스·MVC·REST Docs 테스트는 백엔드 CI에서 별도로 실행한다.
+사용자가 채용 조건과 교육 과정을 비교하고, 원본 공고로 이동해 지원하도록 돕습니다. 운영자는 관리자 화면에서 출처·조건·게시 상태를 관리합니다. 앱 이름은 **DEMP**입니다.
 
-양쪽 저장소의 같은 API 계약 커밋을 확인한 뒤 백엔드 CI와 프런트 CI를 모두 통과시킨다. 운영에서는 먼저 호환되는 백엔드를 배포해 `/api`와 인증·공고 응답을 확인하고, 이어 프런트 정적 산출물을 배포한다. 이상이 있으면 프런트 산출물을 직전 버전으로 되돌리고, 이어 백엔드를 직전 호환 버전으로 되돌린다. DB 변경이 포함된 배포는 사전 백업과 해당 변경의 별도 롤백 절차를 먼저 마련한다. 이 문서는 배포 실행 기록이 아니다.
+[백엔드·전체 설계](https://github.com/seungmin-park/demp) · [성능 개선 보고서](https://github.com/seungmin-park/demp/blob/main/docs/verification/measured-query-performance/README.md) · [전체 작업 기록](https://github.com/seungmin-park/demp/blob/main/tasks.md) · [운영·호환성](docs/operations.md)
 
-## API 연결과 인증 (Phase 4 T41)
+## 현재 화면
 
-모든 HTTP 요청은 `src/api/client.ts`의 Axios instance를 사용한다. 요청 직전에 Vuex의 토큰을 읽어 `X-AUTH-TOKEN`을 붙인다. API가 401을 반환하면 토큰과 사용자 이름을 함께 지우고, 현재 경로를 `redirect` query에 보존한 채 로그인 화면으로 이동한다. 보호 라우트는 토큰과 사용자 이름을 모두 요구하지만 토큰의 실제 유효성은 서버 응답으로 판단한다.
+![교육 과정 탐색](docs/screenshots/education-filters.png)
 
-개발 서버는 기본적으로 `http://localhost:5050`에서 실행하고 `/api`를 `http://localhost:8080`으로 전달한다. 다른 백엔드는 `DEV_API_TARGET`으로 지정한다. 예시는 `.env.example`을 참고한다. 브라우저가 백엔드에 직접 접근해야 할 때만 `VITE_API_BASE_URL`을 설정한다. 운영에서는 같은 출처의 `/api`를 reverse proxy로 백엔드에 전달하거나, 빌드 시 명시적인 `VITE_API_BASE_URL`을 넣어야 한다. Express `server.cjs`는 정적 파일과 SPA 라우트를 제공할 뿐 API proxy는 제공하지 않으며, 전달되지 않은 `/api` 요청에는 JSON 404를 반환한다. 외부 출처 직접 호출은 백엔드의 `APP_CORS_ALLOWED_ORIGINS` 허용목록도 맞춰야 한다.
+![질문·답변 반응](docs/screenshots/saved-reactions.png)
 
-## Phase 1 프런트 보안 경계
+화면은 로컬 예제 데이터로 촬영했습니다.
 
-로그인 자격 증명 콘솔 출력을 제거하고 질문·답변·공고 본문은 공통 SafeHtml에서 DOMPurify 허용목록으로 정화한다. 기존 데이터도 출력 직전에 보호한다.
-2026-09-14 검증: 전체 21개 테스트, lint, production build 통과. [Red/Green 및 설치 복구 기록](docs/phase1-frontend-verification.md).
+## 구현한 사용자 흐름
 
-## 설치·개발·검증 (Phase 7)
+| 화면 | 사용자가 할 수 있는 일 |
+|---|---|
+| 채용 | 신입·경력·무관 구분, 기술·직무 필터, 공고 상세 확인, 원본 지원 페이지 이동 |
+| 교육 | 교육 방식·지역·기간·비용·지원 조건 등 필터, 기수·지원금·마감 확인 |
+| 질문·답변 | 태그 탐색·정렬, Markdown 작성·미리보기, 추천·비추천·취소 |
+| 관리자 | 초안 작성·공개·마감/비공개, 출처·원문 확인일·변경 이력, 오류 제보 처리, 질문·답변 수정·삭제 |
+| 로그인 | 인증 상태 복원, 보호 경로 이동, 세션 만료 시 로그인 후 돌아갈 경로 보존 |
 
-`.tool-versions`의 asdf Node **24.21.0 LTS**와 Zulu Java 25를 사용한다. Vue 3.5.43 / Router 5.3.1 / Vuex 4.1, Vite 8.3.1, Vitest 5.0.2, ESLint 10 기반이다. Vue에는 고정 LTS 채널이 없어 최신 안정판을 선택했다.
+지원하기는 외부 원문 또는 별도 지원 URL로 이동합니다. 이미지는 선택 업로드이며 기본 이미지로도 등록할 수 있습니다. 외부 URL에서 이미지를 자동 수집하거나 원문을 대량 복제하는 기능은 없습니다.
+
+## UI에서 중요하게 다룬 부분
+
+### 데이터 요청 상태를 화면 의미와 맞추기
+
+```mermaid
+stateDiagram-v2
+  [*] --> Loading
+  Loading --> Results: 데이터 있음
+  Loading --> Empty: 조건에 맞는 데이터 없음
+  Loading --> Error: 요청 실패
+  Results --> Loading: 필터 변경
+  Empty --> Loading: 조건 초기화
+  Error --> Loading: 재시도
+```
+
+채용·부트캠프의 빈 결과 안내를 구분하고, 처음부터 없는 목록과 필터 결과 없음, 서버 오류를 같은 문구로 보여주지 않습니다. 필터가 바뀌면 이전 응답은 버리고 새 조건의 첫 페이지부터 시작합니다.
+
+### 무한 스크롤과 비동기 경쟁
+
+- 목록 끝에서 다음 페이지를 읽고, 진행 중·마지막 페이지·오류 상태에서는 자동 요청을 반복하지 않습니다.
+- 겹치는 ID는 한 번만 표시합니다. 자동 감지 외에 더보기·재시도도 제공합니다.
+- 반응 저장은 응답이 확정될 때까지 연타를 막습니다. 실패하면 기존 값을 보존하고, 화면 이동 후 도착한 응답은 반영하지 않습니다.
+- 부모의 같은 글 데이터 갱신이 저장 중 상태를 풀던 문제를 회귀 테스트로 재현해 수정했습니다.
+
+### 작성기와 안전한 본문 표시
+
+질문·답변은 공통 Markdown 작성기와 미리보기를 사용합니다. 기존 HTML 편집은 `markdownFromHtml`, 변환은 `renderMarkdown`을 사용합니다. 공고는 Tiptap 본문 작성기에서 표·이미지·붙여넣기를 지원합니다. API에는 정화한 HTML을 저장하고, 출력은 `SafeHtml`의 DOMPurify 허용목록을 통과합니다. Bootstrap/jQuery/Summernote CDN 의존성은 제거했습니다.
+
+기술 배열은 `Java, Spring`, 날짜는 `2026.09.27 09:00`처럼 표시합니다. API 저장 형식을 화면 표시 때문에 바꾸지 않습니다.
+
+## 구조와 타입 경계
+
+```mermaid
+flowchart LR
+  View[View: 페이지·라우팅] --> Component[Component: props/event·표현]
+  Component --> State[Composable / Vuex: 상태·비동기]
+  State --> API[API 모듈: HTTP 계약]
+  API --> Client[Axios: 토큰·401 처리]
+  Client --> Spring[Spring API]
+```
+
+제품 코드는 `src/**/*.ts`와 Vue SFC의 `<script lang="ts">`로 전환했습니다. `strict` 타입 검사는 DTO·nullable 값·이벤트·템플릿까지 적용합니다. Vue 컴포넌트는 표현·상태·API 경계로 검토하고, 독립 TypeScript 모듈은 책임과 작은 계약을 중심으로 나눴습니다.
+
+- `src/types/api.ts`: Slice·회원·공고·질문·답변·반응 계약.
+- `src/api/client.ts`: 요청 직전 `X-AUTH-TOKEN` 부착, 401 시 로그인 상태 정리.
+- 인증 저장은 기존 `vuex` localStorage 형식을 유지하며 손상된 JSON을 로그아웃 상태로 처리합니다.
+- 테스트·도구 설정 일부는 JavaScript입니다. 제품 strict 검사를 `any`나 `@ts-ignore`로 우회하지 않습니다.
+
+## 실행
+
+필요 조건: asdf Node 플러그인, Node **24.21.0**. 먼저 [백엔드 README](https://github.com/seungmin-park/demp#로컬-실행)에 따라 local 서버를 18080 포트로 실행합니다.
 
 ```sh
-asdf install
+asdf install nodejs
 node --version
 npm ci
+DEV_API_TARGET=http://127.0.0.1:18080 npm run dev
+```
+
+화면은 `http://localhost:5050`, 로컬 일반 회원은 **local-member / password**입니다. 관리자 화면은 서버가 `ROLE_ADMIN`을 부여한 계정으로 접근합니다. 일반 회원가입은 관리자 권한을 부여하지 않습니다. [관리자 계정 준비](https://github.com/seungmin-park/demp/blob/main/docs/verification/admin-console/account-setup.md)를 참고합니다.
+
+| 도구 | 고정 버전 |
+|---|---|
+| Vue / Router / Vuex | 3.5.43 / 5.3.1 / 4.1.0 |
+| TypeScript / vue-tsc | 6.0.3 / 3.3.11 |
+| Vite / Vitest | 8.3.1 / 5.0.2 |
+| Playwright | 1.63.0 |
+
+버전표는 저장소의 재현 환경입니다. TypeScript는 lint parser와의 공통 지원 범위를 기준으로 선택했고, 고정 LTS 채널이 없는 Vue는 업그레이드 당시 안정판을 사용했습니다.
+
+### API 주소
+
+기본 `/api` 요청은 Vite가 `http://localhost:8080`으로 proxy합니다. 위 예제는 `DEV_API_TARGET`으로 18080을 지정합니다. 배포 시 같은 출처 `/api` reverse proxy를 권장하며, 직접 호출이 필요하면 빌드 시 `VITE_API_BASE_URL`과 백엔드 CORS 허용목록을 맞춥니다.
+
+`npm start`의 Express 서버는 `dist`와 SPA 경로만 제공합니다. **API proxy는 제공하지 않으므로** 배포 환경에서 별도로 구성해야 합니다. 환경변수는 `.env.example`, 상세 내용은 [운영 문서](docs/operations.md)를 확인합니다.
+
+## 검증
+
+```sh
 npm test
 npm run typecheck
 npm run lint -- --no-fix
 npm run build
-DEV_API_TARGET=http://127.0.0.1:18080 npm run dev
+npx playwright install chromium
+npm run test:e2e -- --headed
 ```
 
-기존 `npm run serve`는 `dev`와 같은 Vite 서버를 실행한다. 새 환경변수는 `VITE_API_BASE_URL`이며 기존 `VUE_APP_API_BASE_URL`도 전환 기간에 지원한다. 둘 다 없으면 같은 출처 `/api`를 사용한다. 정적 서비스는 `npm start`(`server.cjs`)이며 `/api` reverse proxy는 배포 환경에서 설정한다.
+최종 확인: **단위·컴포넌트 156개, 타입 검사·lint·build 통과, headed Playwright 20개 통과**. 기능 변경 검증 기록은 [반응 기능 보고서](https://github.com/seungmin-park/demp/blob/main/docs/verification/persistent-content-reactions/t99-t101.md)에 있습니다.
 
-```text
-Vue SFC → Vite → 정적 dist
-DOM·API 계약 테스트 → Vitest + jsdom
-자동 사용자 흐름 → Playwright fixture → 실제 API 연결은 별도 cmux 브라우저
-```
+| 검증 | 범위와 한계 |
+|---|---|
+| Vitest | 렌더링·입력·emits·store 상태·비동기 실패/응답 역전 |
+| vue-tsc / ESLint / Vite build | 제품 타입·코드 규칙·배포 산출물 생성 |
+| Playwright | API fixture를 사용한 브라우저 사용자 흐름. 실제 DB/S3 검증 아님 |
+| cmux 실제 브라우저 | 로컬 Spring/H2에 로그인·게시·필터·스크롤·반응 저장/재조회 |
 
-현재 local E2E는 cmux 보조 터미널의 러너 로그와 내장 브라우저의 실제 클릭·입력·스크롤을 함께 확인한다. CI에서는 headless 자동 실행한다. Playwright가 API를 대역으로 제어하는 검증과 실제 Spring 임시 H2 검증은 다른 범위다.
+로컬 E2E는 현재 cmux 보조 pane에서 러너와 브라우저 과정을 볼 수 있게 진행합니다. CI는 headless입니다. 성공한 화면만 찍은 스크린샷을 자동 E2E 통과 근거로 대체하지 않습니다.
 
-### TypeScript 경계와 인증 저장
+## 성능 개선과 공개 범위
 
-제품 코드는 `src/**/*.ts`, 모든 Vue SFC의 `<script lang="ts">`로 전환했다. `npm run typecheck`는 `strict` 모드로 DTO, 인증 store, router, 이벤트, 비동기 상태와 템플릿을 검사하며 CI의 필수 단계다. API 계약은 `src/types/api.ts`에 있으며 백엔드의 `answerId`, `announcementType`, Slice의 `content/number/last`, nullable 레거시 값을 따른다.
+프런트는 전체 질문 배열을 한 번에 받던 흐름에서 페이지 단위 응답으로 바뀌었고, 무한 스크롤은 필요한 페이지를 순서대로 읽습니다. **서버 측 대용량 측정 수치를 브라우저 렌더링 속도나 Lighthouse 점수로 부르지 않습니다.** 원시 표본·SQL 수·실패 사례와 환경 제약은 [백엔드 성능 보고서](https://github.com/seungmin-park/demp/blob/main/docs/verification/measured-query-performance/README.md)를 참고합니다.
 
-TypeScript **6.0.3**, vue-tsc **3.3.11**, typescript-eslint **8.70.1**을 고정했다. 조사 시 latest TypeScript7은 lint parser의 지원 범위(`>=4.8.4 <6.1.0`) 밖이므로 공통 지원 최신 안정판 6.0.3을 사용한다. Vuex4의 package exports에 types 항목이 없어 tsconfig의 `vuex` 경로만 패키지에 포함된 공식 `types/index.d.ts`로 연결했다. 구현을 `any`로 선언해 우회하지 않는다.
-
-인증 저장은 작은 `persistAuthentication` Vuex plugin이 맡는다. 기존 localStorage `vuex` 키와 `{ Login: { username, token } }` 모양은 유지한다. JSON을 `unknown`으로 읽어 문자열인지 확인하고, 손상된 값은 로그아웃 상태로 처리한다. 저장 거부 시 현재 메모리 세션은 동작하지만 새로고침 후 로그인 유지가 보장되지 않는다. `vuex-persistedstate`와 그 하위 `shvl`을 제거했다.
-
-제품 코드의 명시적 `any`, `@ts-ignore`, `@ts-nocheck`는 없다. `skipLibCheck`는 외부 라이브러리 선언끼리의 검사만 생략하며 앱의 strict 검사를 끄지 않는다. DOM ref는 해당 template의 input/Element 타입으로 좁힌다. 기존 CDN Summernote 경계는 실제 사용하는 두 오버로드만 선언했고 공통 Markdown 작성기 적용 때 함께 제거한다. 도구 설정, `server.cjs`, 기존 단위/E2E 테스트는 JavaScript로 남겼다. `tests/types/api-contracts.ts`는 잘못된 JWT 타입이 계속 거절되는지도 검사한다.
-
-2026-09-27 최종 리뷰 수정 후: 단위 20 suites/57 tests, strict typecheck·lint·build 통과. cmux 검증 pane에서 Playwright 모의 API 흐름 7개와 실제 Spring/H2 요청 16개 assertion 통과. 내장 브라우저의 실제 로그인·새로고침·스크롤 검증은 모의 API 테스트와 구분한다. TypeScript 전환은 API/DB 저장 형식을 변경하지 않으며 롤백 시 기존 `vuex` 인증 저장을 그대로 읽을 수 있다.
-
-### 공고 인피니티 스크롤
-
-목록 끝이 보이면 다음 페이지를 요청한다. 진행 중 요청·마지막 페이지·오류 상태에서는 자동 요청을 반복하지 않는다. 필터가 바뀌면 첫 페이지부터 다시 시작하고 이전 요청의 늦은 응답은 폐기한다. 겹치는 ID는 중복 표시하지 않는다. 자동 감지가 없는 환경에서도 더보기와 재시도를 사용할 수 있다.
-
-신규 가입 비밀번호는 서버 BCrypt와 같은 72 UTF-8바이트 제한을 확인하고 초과 입력을 전송하지 않는다. 영문·숫자 72자 또는 한글24자 경계는 허용하며 입력을 절단하지 않는다. 기존 계정 로그인에는 이 신규 가입 제한을 적용하지 않는다.
-
-### 배포·롤백
-
-`npm ci`로 lockfile 설치 후 `npm run build`의 `dist`를 배포한다. 환경변수는 빌드 때 결정된다. Node 서버를 사용하는 배포는 Node24와 `server.cjs` 시작 명령으로 함께 변경한다. 이전 `dist`와 이전 Node18 서버/lockfile을 한 세트로 보관하고 롤백 시 함께 복원한다. 백엔드는 호환성을 먼저 검증한 산출물을 사용한다.
-
-과거 단계의 검증 건수와 도구는 [Phase 0 기록](docs/phase0-frontend-verification.md), [Phase 1 기록](docs/phase1-frontend-verification.md)에 보관한다. 디자인 개편과 관리자 화면은 후속 작업이며 제품 이름은 DEMP로 유지한다.
-
-## 초기 화면 기록
-
-1.공고/ 부트캠프 대시보드 + 로그인페이지, 질문 페이지 연결
-
-![메인페이지](https://user-images.githubusercontent.com/78605779/169678839-aec25acb-38dd-49d5-b8e4-8adfde4c5852.PNG)
-
-조건에 따른 필터링
-
-![조건 필터링](https://user-images.githubusercontent.com/78605779/169678838-5e4af80b-7d91-4078-aed9-c31f94adeec8.PNG)
-
-관리자 및 기업에서 공고를 등록하기 위한 페이지(크롤링을 통해 데이터를 가져올 예정으로 미 운영 계획)
-
-![공고 등록페이지](https://user-images.githubusercontent.com/78605779/169678837-1672d7b3-80b7-4ead-a699-55f7434c9e0f.PNG)
-
-2.질문 페이지 게시물에 존재하는 해시태그로 검색 및 생성일, 조회수, 추천수로 필터링 가능
-
-![질문페이지](https://user-images.githubusercontent.com/78605779/169678836-551b3877-851f-4066-a588-3227f53f6331.PNG)
-
-질문 상세 보기 및 질문과 동일한 해시태그 게시물 검색 가능, 댓글 달기 기능 추가
-
-![질문 상세 페이지](https://user-images.githubusercontent.com/78605779/169678835-7019af61-c14c-4fb7-9202-95cb7eefb5f7.PNG)
-
-## Phase 8 작성기·표시 규칙
-
-- 질문·답변·공고는 공통 MarkdownEditor를 사용한다. API에는 정화한 HTML을 저장한다. 기존 HTML 편집은 `markdownFromHtml`, 미리보기/저장은 `renderMarkdown`, 화면 출력은 SafeHtml을 사용한다.
-- 기술 배열은 `formatLanguages`로 `Java, Spring`, 모집 시각은 `formatRecruitDate`로 `2026.09.27 09:00` 형식으로 표시한다. 원본 API 값은 유지한다.
-- 공통 스타일은 `src/assets/styles/main.css`. Bootstrap/jQuery/Summernote CDN은 사용하지 않는다.
-- 검증 명령: `npm test`, `npm run typecheck`, `npm run lint`, `npm run build`. 로컬 E2E는 현재 cmux 보조 pane과 내장 브라우저에서 실행한다.
+공개 운영 배포·실사용 트래픽 측정은 수행하지 않았습니다. 운영 반영 전 실제 MySQL·파일 저장·동시 사용자 부하 확인이 필요합니다. 초기 화면과 과거 테스트 건수는 `docs/`의 날짜별 기록에 보존하며, 이 문서는 현재 구현을 설명합니다.
