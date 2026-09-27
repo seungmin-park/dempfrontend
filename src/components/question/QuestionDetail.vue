@@ -12,13 +12,14 @@
           </span>
         </div>
         <div class="qusetion-detail-info-reaction">
-          <button @click="recomendUp">👍{{ question.recomend }}</button>
-          <button @click="dislikedUp">👎{{ question.dislike }}</button>
+          <button disabled>👍{{ question.recommend }}</button>
+          <button disabled>👎{{ question.dislike }}</button>
+          <span>반응 저장 기능 준비 중</span>
         </div>
       </div>
     </div>
     <div class="qusetion-detail-content">
-      <span v-html="question.content"></span>
+      <SafeHtml :content="question.content" />
       <div>
         <router-link
           class="hashtags"
@@ -33,8 +34,10 @@
 </template>
 
 <script>
-import axios from "axios";
+import { getQuestionDetail } from '@/api/questions';
+import SafeHtml from "@/components/common/SafeHtml.vue";
 export default {
+  components: { SafeHtml },
   data() {
     return {
       question: {
@@ -42,7 +45,7 @@ export default {
         title: "",
         content: "",
         hits: 0,
-        recomend: 0,
+        recommend: 0,
         dislike: 0,
         username: "",
       },
@@ -56,22 +59,11 @@ export default {
       });
     }},
   mounted() {
-    this.getQuestion();
+    this.loadQuestionDetail();
   },
   methods: {
-    recomendUp() {
-      this.question.recomend++;
-    },
-    dislikedUp() {
-      this.question.dislike++;
-    },
-    getQuestion() {
-      axios
-        .get(`/api/question/detail/${this.$route.params.questionId}`,{
-          headers:{
-            'X-AUTH-TOKEN': this.$store.state.Login.token
-          },
-        })
+    loadQuestionDetail() {
+      getQuestionDetail(this.$route.params.questionId)
         .then((res) => {
           this.question = res.data;
         });

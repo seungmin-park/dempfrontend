@@ -6,6 +6,7 @@
     "start": "node server.js",
     "serve": "vue-cli-service serve --port 5050",
     "build": "vue-cli-service build",
+    "test": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
@@ -16,29 +17,35 @@
     "babel-preset-es2015": "^6.24.1",
     "bootstrap": "^5.1.3",
     "core-js": "^3.8.3",
+    "dompurify": "3.4.15",
     "express": "^4.18.1",
     "infinite-loading-vue3": "^1.0.1",
     "mitt": "^3.0.0",
-    "node-sass": "^7.0.1",
+    "sass": "1.77.8",
     "sass-loader": "^12.6.0",
     "serve-static": "^1.15.0",
     "vee-validate": "^4.5.10",
+    "vue": "3.2.36",
     "vue-router": "^4.0.13",
     "vuedraggable": "^2.24.3",
     "vuex": "^4.0.2",
     "vuex-persistedstate": "^4.1.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.17.8",
+    "@babel/core": "7.22.20",
     "@babel/eslint-parser": "^7.12.16",
     "@babel/plugin-proposal-class-properties": "^7.16.7",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-react": "^7.16.7",
     "@fortawesome/fontawesome-svg-core": "^6.1.0",
     "@fortawesome/free-solid-svg-icons": "^6.1.0",
+    "@playwright/test": "1.48.2",
     "@vue/cli-plugin-babel": "~5.0.0",
     "@vue/cli-plugin-eslint": "~5.0.0",
+    "@vue/cli-plugin-unit-jest": "~5.0.0",
     "@vue/cli-service": "^5.0.4",
+    "@vue/test-utils": "2.0.2",
+    "@vue/vue3-jest": "27.0.0",
     "babel-loader": "^8.2.4",
     "eslint": "^7.32.0",
     "eslint-plugin-vue": "^8.0.3"
@@ -48,6 +55,16 @@
     "env": {
       "node": true
     },
+    "overrides": [
+      {
+        "files": [
+          "tests/unit/**/*.spec.js"
+        ],
+        "env": {
+          "jest": true
+        }
+      }
+    ],
     "extends": [
       "plugin:vue/vue3-essential",
       "eslint:recommended"

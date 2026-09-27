@@ -4,7 +4,7 @@
       v-for="notice in notices"
       :key="notice.id"
       class="item"
-      @click="getDetailAnnounce(notice.id)"
+      @click="openAnnouncementDetail(notice.id)"
     >
       <div class="item-image-box">
         <img
@@ -20,33 +20,30 @@
     </div>
   </main>
   <div style="padding-left: 100px ;display: block; float: none">
-    <button v-if="!last" @click="loadDataFromServer" class="w-75 btn btn-secondary btn-lg">더보기</button>
+    <button v-if="!last && !error" :disabled="loading" @click="loadNextPage" class="w-75 btn btn-secondary btn-lg">더보기</button>
+    <p v-if="error" role="alert">{{ error }} <button data-test="retry" @click="loadNextPage">재시도</button></p>
     <br>
     <b v-if="last" style="font-weight: 600; font-size: 20px; margin: 0">더 이상 채용/교육 공고 내용이 존재하지 않습니다.</b>
   </div>
 </template>
 
 <script>
-import axios from "axios";
+import { getAnnouncements } from "@/api/announcements";
 export default {
   name: "demp-announcement",
   mounted() {
-    {
-      this.emitter.on("announcementSearchCondition", (e) => {
-        this.announcementSearchCondition = e;
-        this.notices = [];
-        this.announcementSearchCondition.page = 0;
-        this.last = false;
-        this.loadDataFromServer();
-      });
-      this.loadDataFromServer();
-    }
+    this.emitter.on("announcementSearchCondition", this.onSearchCondition);
+    this.loadNextPage();
+  },
+  unmounted() {
+    this.requestGeneration++;
+    this.emitter.off("announcementSearchCondition", this.onSearchCondition);
   },
   data() {
     return {
       notices: [],
       announcementSearchCondition: {
-        typeName: "",
+        announcementType: "",
         positions: [],
         // languages: [],
         career: 0,
@@ -54,42 +51,44 @@ export default {
         title: "",
         page:0,
       },
-      last:false
+      last:false,
+      loading:false,
+      error:null,
+      requestGeneration:0,
     };
   },
 
   methods: {
-    async loadDataFromServer(){
+    onSearchCondition(condition) {
+      this.announcementSearchCondition = { ...condition, page: 0 };
+      this.notices = [];
+      this.last = false;
+      this.error = null;
+      this.requestGeneration++;
+      this.loading = false;
+      this.loadNextPage();
+    },
+    async loadNextPage(){
+      if (this.last || this.loading) return;
+      const generation = ++this.requestGeneration;
+      this.loading = true;
+      this.error = null;
       try {
-        if (this.last){
-          return
-        }
-        const result = await axios
-            .get("/api/announce", {
-              params: {
-                typeName: this.announcementSearchCondition.typeName,
-                positions: this.announcementSearchCondition.positions.join(","),
-                career: this.announcementSearchCondition.career,
-                payment: this.announcementSearchCondition.payment,
-                title: this.announcementSearchCondition.title,
-                page: this.announcementSearchCondition.page,
-                size: 8,
-              },
-            })
-        if (result.data.content.length){
+        const result = await getAnnouncements({ ...this.announcementSearchCondition });
+        if (generation !== this.requestGeneration) return;
+        if (result.data.content.length) {
           this.notices.push(...result.data.content);
           this.announcementSearchCondition.page ++;
-          this.last = result.data.last;
-        }else {
-          this.last = true;
         }
+        this.last = result.data.last || result.data.content.length === 0;
       }
-      catch(err){
-        console.log(err)
-        this.last = true;
+      catch {
+        if (generation === this.requestGeneration) this.error = "공고를 불러오지 못했습니다.";
+      } finally {
+        if (generation === this.requestGeneration) this.loading = false;
       }
     },
-    getDetailAnnounce(id){
+    openAnnouncementDetail(id){
       if (this.$store.state.Login.token != ""){
         this.$router.push(`/detail/${id}`);
       }else {
@@ -99,7 +98,7 @@ export default {
   },
   watch: {
     typeName: function () {
-      this.loadDataFromServer();
+      this.loadNextPage();
     },
   },
 };

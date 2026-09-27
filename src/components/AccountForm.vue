@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <Form as="form" @submit="AccountMethod" enctype="multipart/form-data">
+    <Form as="form" @submit="registerAccount" enctype="multipart/form-data">
       <div class="py-5 text-center">
         <h2>회원 가입</h2>
       </div>
@@ -21,7 +21,7 @@
         <p v-if="checkedUsername" style="color: #0A7DC6">
           사용 가능한 아이디 입니다.
         </p>
-          <button @click="validUsername" class="w-100 btn btn-secondary btn-lg">아이디 중복 검사</button>
+          <button type="button" @click="validUsername" class="w-100 btn btn-secondary btn-lg">아이디 중복 검사</button>
         <label for="password">비밀번호</label>
         <Field
           type="password"
@@ -42,7 +42,7 @@
             name="checkedPassword"
             v-model="checkedPassword"
             placeholder="password"
-            :rules="`required|equal:${password}`"
+            rules="required|equal"
             class="form-control"
         />
         <ErrorMessage class="errorMessage" name="checkedPassword" as="div">
@@ -63,7 +63,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import { register, checkUsername } from '@/api/members';
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { defineRule } from "vee-validate";
 import { required, url, min_value } from "@vee-validate/rules";
@@ -71,9 +71,8 @@ import { required, url, min_value } from "@vee-validate/rules";
 defineRule("required", required);
 defineRule("url", url);
 defineRule("min_value", min_value);
-defineRule("equal",(value,[password]) => {
-  console.log(value)
-  if (value != password){
+defineRule("equal",(value, _params, context) => {
+  if (value !== context.form.password){
     return "비밀번호가 일치하지 않습니다.";
   }
   return true;
@@ -100,7 +99,7 @@ export default {
       });
     }},
   methods: {
-    AccountMethod() {
+    registerAccount() {
       if (!this.checkedUsername){
         alert("아이디 중복 검사를 실시해 주시기 바랍니다.");
         return;
@@ -108,22 +107,13 @@ export default {
       var form = new FormData();
       form.append("username", this.username);
       form.append("password", this.password);
-      axios
-        .post("/api/member/save", form, {
-          Headers: {
-            "Content-type": "form-data",
-          },
-        })
+      register(form)
         .then(() => {
           this.$router.push("/login");
         });
     },
     validUsername(){
-      axios.get("/api/member/validUsername",{
-        params:{
-          username: this.username
-        }
-      })
+      checkUsername(this.username)
           .then((res) =>{
             this.checkedUsername = res.data;
             if (!this.checkedUsername){

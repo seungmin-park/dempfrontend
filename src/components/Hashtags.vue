@@ -1,5 +1,5 @@
 <template>
-  <div class="comp_hashtag" @click="setHashtags" ref="group">
+  <div class="comp_hashtag" @click="focusTagInput" ref="group">
     <p class="help" v-if="helpVisible">{{ defaultPlaceholder }}</p>
 
     <!-- Hashtags -->
@@ -28,8 +28,8 @@
         ref="input"
         v-model.trim="value"
         @focus="initSelect"
-        @keydown.space.prevent="addHashTags"
-        @keydown.enter.prevent="addHashTags"
+        @keydown.space.prevent="addTagFromInput"
+        @keydown.enter.prevent="addTagFromInput"
         @keydown.backspace="initErrorMsg"
         @keydown.delete="initErrorMsg"
         placeholder="태그입력"
@@ -63,22 +63,14 @@ export default {
     };
   },
   methods: {
-    setVisible() {
-      return (this.helpVisible = false);
-    },
-    async setHashtags() {
-      if (this.tags.length > 0) {
-        return;
-      }
-
-      const result = await this.setVisible();
-
-      if (!result) this.$refs.input.focus();
+    focusTagInput() {
+      if (this.tags.length > 0) return;
+      this.helpVisible = false;
+      this.$nextTick(() => this.$refs.input.focus());
     },
 
     addTag() {
       this.tags.push({ value: this.value, select: false });
-      return true;
     },
     unselectTag() {
       this.tags.forEach((tag) => (tag.select = false));
@@ -121,7 +113,7 @@ export default {
     initErrorMsg() {
       this.errorMsg = null;
     },
-    validate() {
+    tagValidationError() {
       if (this.tags.some((tag) => tag.value === this.value)) {
         return "중복된 단어를 입력하셨습니다.";
       }
@@ -133,7 +125,7 @@ export default {
 
       return false;
     },
-    async addHashTags(event) {
+    addTagFromInput(event) {
       // CASE 공백
       if (event.target.value === "") {
         this.initErrorMsg();
@@ -141,14 +133,14 @@ export default {
         return;
       }
       // CASE 유효성(중복,특문)
-      const resultMsg = await this.validate();
+      const resultMsg = this.tagValidationError();
       if (resultMsg) {
         this.errorMsg = resultMsg;
         this.$refs.input.focus();
         return;
       }
 
-      await this.addTag();
+      this.addTag();
 
       this.errorMsg = null;
       this.value = null;

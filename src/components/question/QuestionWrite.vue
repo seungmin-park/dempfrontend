@@ -1,5 +1,5 @@
 <template>
-  <Form as="form" @submit="saveQuestion" class="qusetion-add">
+  <Form as="form" @submit="submitQuestion" class="qusetion-add">
     <div class="qusetion-add">
       <div>
         <table>
@@ -27,7 +27,7 @@
             </td>
             <td>
               <textarea
-                v-model="content"
+                v-model="questionForm.content"
                 id="content"
                 name="content"
                 as="textarea"
@@ -54,9 +54,8 @@ import { Form, Field, ErrorMessage } from "vee-validate";
 import { defineRule } from "vee-validate";
 import { required, url, min_value, image } from "@vee-validate/rules";
 import Hashtags from "@/components/Hashtags";
-import axios from "axios";
+import { createQuestion } from '@/api/questions';
 
-var temp = [];
 defineRule("required", required);
 defineRule("url", url);
 defineRule("min_value", min_value);
@@ -111,36 +110,24 @@ export default {
       }
       return "해당 값은 필수 항목 입니다.";
     },
-    saveQuestion() {
-      // eslint-disable-next-line
-      this.questionForm.content = $("#content").summernote("code");
-      this.convertHashtags();
-      axios
-        .post("/api/question/add", this.questionForm, {
-          headers: {
-          'X-AUTH-TOKEN': this.$store.state.Login.token,
-            "Content-Type": `application/json`,
-          },
-        })
-        .then((res) => {
-          console.log(res);
+    submitQuestion() {
+      const payload = {
+        ...this.questionForm,
+        // eslint-disable-next-line no-undef
+        content: $("#content").summernote("code"),
+        hashtags: this.questionForm.hashtags.map((tag) => tag.value),
+      };
+      createQuestion(payload)
+        .then(() => {
           this.$router.push({
             path: "/question",
             query: { orderBy: "createdDate" },
           });
         })
-        .catch((e) => {
-          console.log(e);
-        });
+        .catch(() => undefined);
     },
     addHashtags(hashtag) {
       this.questionForm.hashtags = hashtag;
-    },
-    convertHashtags() {
-      this.questionForm.hashtags.forEach((element) => {
-        temp.push(element.value);
-      });
-      this.questionForm.hashtags = temp;
     },
   },
 };

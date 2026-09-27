@@ -5,12 +5,13 @@
         🙋‍♂️ 작성자 : {{ answer.username }}
       </div>
       <div class="question-answer-info-content">
-        <span v-html="answer.content"></span>
+        <SafeHtml :content="answer.content" />
       </div>
     </div>
     <div class="question-answer-reaction">
-      <button>👍{{ answer.recomend }}</button>
-      <button>👎{{ answer.dislike }}</button>
+      <button disabled>👍{{ answer.recommend }}</button>
+      <button disabled>👎{{ answer.dislike }}</button>
+      <span>반응 저장 기능 준비 중</span>
     </div>
   </div>
   <div>
@@ -21,13 +22,15 @@
       as="textarea"
       wrap="hard"
     ></textarea>
-    <button type="submit" @click="saveAnswer">댓글 달기</button>
+    <button type="submit" @click="submitAnswer">댓글 달기</button>
   </div>
 </template>
 
 <script>
-import axios from "axios";
+import { getAnswers, createAnswer } from '@/api/answers';
+import SafeHtml from "@/components/common/SafeHtml.vue";
 export default {
+  components: { SafeHtml },
   data() {
     return {
       answers: [],
@@ -40,29 +43,21 @@ export default {
     };
   },
   mounted() {
-    this.getAnswer();
+    this.loadAnswers();
     this.initSummernote();
   },
   methods: {
-    getAnswer() {
-      axios.get(`/api/answer/${this.$route.params.questionId}`,{
-        headers:{
-          'X-AUTH-TOKEN': this.$store.state.Login.token
-        },
-      }).then((res) => {
+    loadAnswers() {
+      getAnswers(this.$route.params.questionId).then((res) => {
         this.answers = res.data;
       });
     },
-    saveAnswer() {
+    submitAnswer() {
       // eslint-disable-next-line
       this.answerForm.answerContent = $("#answer").summernote("code");
       this.answerForm.questionId = this.$route.params.questionId;
       this.answerForm.username = this.$store.state.Login.username;
-      axios.post(`/api/answer/save`, this.answerForm,{
-        headers:{
-          "X-AUTH-TOKEN": this.$store.state.Login.token,
-        },
-      }).then((res) => {
+      createAnswer(this.answerForm).then((res) => {
         this.answers = res.data;
       });
     },

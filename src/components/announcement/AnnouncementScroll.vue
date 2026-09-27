@@ -30,7 +30,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import { getAnnouncementScroll } from '@/api/announcements';
 export default {
   name: "announcement-scroll",
   mounted() {
@@ -45,11 +45,7 @@ export default {
   },
   methods: {
     getScroll() {
-      axios.get("/api/announce/scroll",{
-        headers: {
-          "X-AUTH-TOKEN": this.$store.state.Login.token,
-        },
-      }).then((res) => {
+      getAnnouncementScroll().then((res) => {
         this.announcement = res.data;
       });
     },

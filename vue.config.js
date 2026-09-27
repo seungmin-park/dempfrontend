@@ -1,19 +1,14 @@
 const { defineConfig } = require("@vue/cli-service");
+
 module.exports = defineConfig({
   transpileDependencies: true,
-});
-
-const target = "http://54.180.115.180:8080";
-
-module.exports = {
   devServer: {
-    port: 8080,
+    port: 5050,
     proxy: {
-      //proxy 요청을 보낼 api 시작 부분
       "/api": {
-        target,
+        target: process.env.DEV_API_TARGET || "http://localhost:8080",
         changeOrigin: true,
       },
     },
   },
-};
+});
