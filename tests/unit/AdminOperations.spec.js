@@ -36,6 +36,7 @@ it('기존 HTML 질문을 Markdown으로 불러와 안전한 HTML로 저장하�
   const wrapper = mount(AdminPostEditor, { ...options({ id: '7' }), props: { kind: 'questions' } });
   await flushPromises();
   expect(wrapper.get('#admin-content').element.value).toContain('## 기존 제목');
+  expect(wrapper.get('.admin-original h2').text()).toBe('기존 제목');
   await wrapper.get('#admin-content').setValue('## 수정 제목\n\n<u>밑줄</u>');
   await wrapper.get('form').trigger('submit');
   await wrapper.get('form').trigger('submit');

@@ -11,7 +11,10 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5050,
       strictPort: true,
-      proxy: { '/api': { target: env.DEV_API_TARGET || 'http://localhost:8080', changeOrigin: true } },
+      proxy: {
+        '/api': { target: env.DEV_API_TARGET || 'http://localhost:8080', changeOrigin: true },
+        '/local-files': { target: env.DEV_API_TARGET || 'http://localhost:8080', changeOrigin: true },
+      },
     },
     test: {
       environment: 'jsdom',

@@ -2,7 +2,7 @@
   <AsyncState :loading="loading" :error="loadError" @retry="load" />
   <div v-if="item && !loading && !loadError">
     <div class="admin-section-heading"><div><h2>{{ kind === 'questions' ? '질문' : '답변' }} 내용·수정</h2><p>작성자 {{ item.username }} · #{{ item.id }}</p></div><router-link class="button button-secondary" :to="`/admin/${kind}`">목록</router-link></div>
-    <details class="admin-original"><summary>현재 저장된 내용 보기</summary><SafeHtml :html="item.content" /></details>
+    <details class="admin-original"><summary>현재 저장된 내용 보기</summary><SafeHtml :content="item.content || ''" /></details>
     <form class="write-form" @submit.prevent="save">
       <div class="field"><label for="admin-title">{{ kind === 'questions' ? '질문 제목' : '연결된 질문' }}</label><input id="admin-title" v-model="title" required :readonly="kind === 'answers'" :disabled="saving" /></div>
       <p v-if="item.hashtags.length" class="field-hint">태그: {{ item.hashtags.join(', ') }}</p>
