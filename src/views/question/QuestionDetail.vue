@@ -11,9 +11,9 @@
 </template>
 
 <script>
-import QuestionDetail from "../../components/question/QuestionDetail";
-import QuestionAnswer from "../../components/question/QuestionAnswer";
-import QuestionReturn from "../../components/question/QuestionReturn";
+import QuestionDetail from "../../components/question/QuestionDetail.vue";
+import QuestionAnswer from "../../components/question/QuestionAnswer.vue";
+import QuestionReturn from "../../components/question/QuestionReturn.vue";
 export default {
   components: {
     QuestionDetail,

@@ -1,10 +1,11 @@
+import { vi } from 'vitest';
 import { createApiClient } from '@/api/client';
 
-jest.unmock('axios');
+vi.unmock('axios');
 
 test('요청 시 현재 토큰을 붙이고 401이면 인증 만료를 한 번 알린다', async () => {
   let token = 'expired-token';
-  const onUnauthorized = jest.fn();
+  const onUnauthorized = vi.fn();
   const client = createApiClient({ baseURL: 'https://api.example', getToken: () => token, onUnauthorized });
   const requests = [];
   const adapter = async config => {

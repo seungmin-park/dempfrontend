@@ -1,11 +1,12 @@
+import { vi } from 'vitest';
 import { flushPromises, mount } from '@vue/test-utils';
 import axios from 'axios';
 import QuestionList from '@/components/question/QuestionList.vue';
 import { createMemoryHistory, createRouter } from 'vue-router';
 
-jest.mock('axios');
+vi.mock('axios');
 
-afterEach(() => jest.clearAllMocks());
+afterEach(() => vi.clearAllMocks());
 
 test('질문 페이지를 넘겨도 검색 조건을 유지하고 마지막 페이지에서 다음을 막는다', async () => {
   axios.get
@@ -13,9 +14,9 @@ test('질문 페이지를 넘겨도 검색 조건을 유지하고 마지막 페�
     .mockResolvedValueOnce({ data: { content: [{ id: 3, title: 'Java 다음 질문', hits: 0, recommend: 0 }], last: true, number: 1 } });
   const wrapper = mount(QuestionList, { global: { mocks: {
     $route: { query: { orderBy: 'hits', title: 'Java', hashtags: ['JAVA'] } },
-    $router: { push: jest.fn() },
+    $router: { push: vi.fn() },
     $store: { state: { Login: { token: 'token' } } },
-    emitter: { on: jest.fn(), off: jest.fn() },
+    emitter: { on: vi.fn(), off: vi.fn() },
   } } });
   await flushPromises();
 
@@ -38,8 +39,8 @@ test('질문 페이지를 넘겨도 검색 조건을 유지하고 마지막 페�
 test('목록은 서버의 recommend 값을 추천 수로 표시한다', async () => {
   axios.get.mockResolvedValue({ data: { content: [{ id: 3, title: '추천 질문', hits: 0, recommend: 3 }], last: true, number: 0 } });
   const wrapper = mount(QuestionList, { global: { mocks: {
-    $route: { query: {} }, $router: { push: jest.fn() },
-    $store: { state: { Login: { token: 'token' } } }, emitter: { on: jest.fn(), off: jest.fn() },
+    $route: { query: {} }, $router: { push: vi.fn() },
+    $store: { state: { Login: { token: 'token' } } }, emitter: { on: vi.fn(), off: vi.fn() },
   } } });
   await flushPromises();
   expect(wrapper.get('.question-list-count-recommend').text()).toContain('3');
@@ -58,7 +59,7 @@ test('검색 조건이 바뀌면 첫 페이지부터 새 태그 조건으로 조
   await router.isReady();
   const wrapper = mount(QuestionList, { global: { mocks: {
     $store: { state: { Login: { token: 'token' } } },
-    emitter: { on: jest.fn(), off: jest.fn() },
+    emitter: { on: vi.fn(), off: vi.fn() },
   }, plugins: [router] } });
   await flushPromises();
   await wrapper.get('[data-test="next-page"]').trigger('click');
@@ -82,7 +83,7 @@ test('이전 검색 응답이 늦게 와도 최신 검색 결과를 유지한다
   await router.push({ path: '/question', query: { title: '옛 검색' } });
   await router.isReady();
   const wrapper = mount(QuestionList, { global: { mocks: {
-    $store: { state: { Login: { token: 'token' } } }, emitter: { on: jest.fn(), off: jest.fn() },
+    $store: { state: { Login: { token: 'token' } } }, emitter: { on: vi.fn(), off: vi.fn() },
   }, plugins: [router] } });
   await router.push({ path: '/question', query: { title: '새 검색' } });
   await flushPromises();
@@ -98,11 +99,11 @@ test('이벤트 구독은 해제되어 다시 마운트해도 한 번만 조회�
   axios.get.mockResolvedValue({ data: { content: [], last: true, number: 0 } });
   const handlers = new Set();
   const emitter = {
-    on: jest.fn((name, handler) => handlers.add(handler)),
-    off: jest.fn((name, handler) => handlers.delete(handler)),
+    on: vi.fn((name, handler) => handlers.add(handler)),
+    off: vi.fn((name, handler) => handlers.delete(handler)),
   };
   const options = { global: { mocks: {
-    $route: { query: {} }, $router: { push: jest.fn() },
+    $route: { query: {} }, $router: { push: vi.fn() },
     $store: { state: { Login: { token: 'token' } } }, emitter,
   } } };
   const first = mount(QuestionList, options);

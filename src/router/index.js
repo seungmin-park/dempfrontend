@@ -13,46 +13,46 @@ const routes = [
   {
     path: "/",
     name: "AnnouncementList",
-    component: () => import("../views/announcement/AnnouncementList"),
+    component: () => import("../views/announcement/AnnouncementList.vue"),
   },
   {
     path: "/login",
     name: "Login",
-    component: () => import("@/components/LoginForm"),
+    component: () => import("@/components/LoginForm.vue"),
   },
   {
     path: "/account",
     name: "Register",
-    component: () => import("@/components/AccountForm"),
+    component: () => import("@/components/AccountForm.vue"),
   },
   {
     path: "/detail/:itemId",
     name: "detail",
     meta: { requiresAuth: true },
-    component: () => import("../views/announcement/AnnouncementDetail"),
+    component: () => import("../views/announcement/AnnouncementDetail.vue"),
   },
   {
     path: "/addAnnounce",
     name: "addAnnounce",
     meta: { requiresAuth: true },
-    component: () => import("../views/announcement/AnnouncementWrite"),
+    component: () => import("../views/announcement/AnnouncementWrite.vue"),
   },
   {
     path: "/question",
     name: "question",
-    component: () => import("../views/question/QuestionList"),
+    component: () => import("../views/question/QuestionList.vue"),
   },
   {
     path: "/questions/:questionId",
     name: "questions",
     meta: { requiresAuth: true },
-    component: () => import("../views/question/QuestionDetail"),
+    component: () => import("../views/question/QuestionDetail.vue"),
   },
   {
     path: "/questions/new",
     name: "addQuestion",
     meta: { requiresAuth: true },
-    component: () => import("../views/question/QuestionWrite"),
+    component: () => import("../views/question/QuestionWrite.vue"),
   },
 ];
 

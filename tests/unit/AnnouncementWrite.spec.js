@@ -1,19 +1,20 @@
+import { vi } from 'vitest';
 import { flushPromises, mount } from '@vue/test-utils';
 import axios from 'axios';
 import AnnouncementWrite from '@/components/announcement/AnnouncementWrite.vue';
 
-jest.mock('axios');
+vi.mock('axios');
 
 afterEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
   delete global.$;
 });
 
 test('공고 등록은 서버의 평면 multipart 필드로 요청한다', async () => {
-  const summernote = jest.fn(argument => argument === 'code' ? '<p>설명</p>' : undefined);
+  const summernote = vi.fn(argument => argument === 'code' ? '<p>설명</p>' : undefined);
   global.$ = () => ({ summernote });
   axios.post.mockResolvedValue({ data: 'ok' });
-  const push = jest.fn();
+  const push = vi.fn();
   const wrapper = mount(AnnouncementWrite, { global: { mocks: {
     $store: { state: { Login: { token: 'token' } } },
     $router: { push },
@@ -24,9 +25,12 @@ test('공고 등록은 서버의 평면 multipart 필드로 요청한다', async
     minCareer: 0, maxCareer: 3,
     startedDate: '2026-09-01T00:00:00', deadLineDate: '2026-09-30T23:59:00',
     accessUrl: 'https://example.com/jobs/1', payment: 3000,
-    language: ['JAVA', 'SPRING'], image,
+    language: ['JAVA', 'SPRING'],
   });
 
+  const imageInput = wrapper.get('input[type="file"]');
+  Object.defineProperty(imageInput.element, 'files', { value: [image] });
+  await imageInput.trigger('change');
   wrapper.vm.saveAnnounce();
   await flushPromises();
 
@@ -43,10 +47,10 @@ test('공고 등록은 서버의 평면 multipart 필드로 요청한다', async
 });
 
 test('공고 이미지는 필수 JPEG 또는 PNG로 선택을 제한한다', () => {
-  global.$ = () => ({ summernote: jest.fn() });
+  global.$ = () => ({ summernote: vi.fn() });
   const wrapper = mount(AnnouncementWrite, { global: { mocks: {
     $store: { state: { Login: { token: 'token' } } },
-    $router: { push: jest.fn() },
+    $router: { push: vi.fn() },
   } } });
 
   const imageInput = wrapper.get('input[type="file"]');

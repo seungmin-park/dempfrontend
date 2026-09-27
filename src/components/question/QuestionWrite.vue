@@ -1,8 +1,8 @@
 <template>
-  <Form as="form" @submit="submitQuestion" class="qusetion-add">
+  <ValidationForm as="form" @submit="submitQuestion" class="qusetion-add">
     <div class="qusetion-add">
       <div>
-        <table>
+        <table><tbody>
           <tr>
             <td>
               <label for="question-title">제목: </label>
@@ -35,7 +35,7 @@
               ></textarea>
             </td>
           </tr>
-        </table>
+        </tbody></table>
       </div>
       <hashtags
         :placeholder="`#해시태그를작성하세요`"
@@ -46,14 +46,14 @@
         <button type="submit">작성하기</button>
       </div>
     </div>
-  </Form>
+  </ValidationForm>
 </template>
 
 <script>
-import { Form, Field, ErrorMessage } from "vee-validate";
+import { Form as ValidationForm, Field, ErrorMessage } from "vee-validate";
 import { defineRule } from "vee-validate";
 import { required, url, min_value, image } from "@vee-validate/rules";
-import Hashtags from "@/components/Hashtags";
+import Hashtags from "@/components/Hashtags.vue";
 import { createQuestion } from '@/api/questions';
 
 defineRule("required", required);
@@ -70,7 +70,6 @@ export default {
       });
     }},
   mounted() {
-    // eslint-disable-next-line
     $("#content").summernote({
       height: 500,
       width: 1500,
@@ -88,7 +87,7 @@ export default {
     });
   },
   components: {
-    Form,
+    ValidationForm,
     Field,
     Hashtags,
     ErrorMessage,
@@ -113,7 +112,6 @@ export default {
     submitQuestion() {
       const payload = {
         ...this.questionForm,
-        // eslint-disable-next-line no-undef
         content: $("#content").summernote("code"),
         hashtags: this.questionForm.hashtags.map((tag) => tag.value),
       };

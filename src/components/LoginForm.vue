@@ -3,7 +3,7 @@
     <div class="py-5 text-center">
       <h2>로그인</h2>
     </div>
-    <Form as="form" @submit="loginMethod" enctype="multipart/form-data">
+    <ValidationForm as="form" @submit="loginMethod" enctype="multipart/form-data">
         <label for="username">아이디</label>
         <Field
           type="text"
@@ -41,13 +41,13 @@
           </router-link>
         </div>
       </div>
-    </Form>
+    </ValidationForm>
   </div>
 </template>
 
 <script>
 import { login } from '@/api/members';
-import { Form, Field, ErrorMessage } from "vee-validate";
+import { Form as ValidationForm, Field, ErrorMessage } from "vee-validate";
 import { defineRule } from "vee-validate";
 import { required, url, min_value } from "@vee-validate/rules";
 
@@ -56,7 +56,7 @@ defineRule("url", url);
 defineRule("min_value", min_value);
 export default {
   components: {
-    Form,
+    ValidationForm,
     Field,
     ErrorMessage,
   },

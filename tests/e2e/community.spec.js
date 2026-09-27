@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+import { test, expect } from '@playwright/test';
 
 function multipartValue(body, name) {
   const match = body.match(new RegExp(`name="${name}"\\r?\\n\\r?\\n([^\\r\\n]+)`));
@@ -25,7 +25,7 @@ async function isolatedCommunity(page) {
     });
   });
   await page.route(/^https:\/\//, route => route.abort());
-  await page.route('**/api/**', async route => {
+  await page.route('http://127.0.0.1:5050/api/**', async route => {
     const request = route.request();
     const url = new URL(request.url());
     const path = url.pathname;
@@ -186,4 +186,87 @@ test('늦게 도착한 이전 검색 결과가 새 결과를 덮지 않는다', 
   await expect(page.locator('.question-list-title')).toHaveText('Q. 최신 질문');
   releaseOld();
   await expect(page.locator('.question-list-title')).toHaveText('Q. 최신 질문');
+});
+
+function announcementFixture(id, title = `스크롤 공고 ${id}`) {
+  return { id, title, language: ['JAVA'], position: 'BACKEND', image: '/fixture.png' };
+}
+
+test('실제 스크롤은 다음 페이지를 한 번씩 요청하고 마지막에서 멈춘다', async ({ page }) => {
+  await isolatedCommunity(page);
+  await page.setViewportSize({ width: 900, height: 450 });
+  const pages = [];
+  const announcements = Array.from({ length: 18 }, (_, i) => announcementFixture(i + 1));
+  await page.route('**/api/announce?*', route => {
+    const current = Number(new URL(route.request().url()).searchParams.get('page'));
+    pages.push(current);
+    return route.fulfill({ json: { content: announcements.slice(current * 8, current * 8 + 8), last: current === 2 } });
+  });
+  await page.goto('/');
+  await expect(page.locator('.notice-title')).toHaveCount(8);
+  await page.locator('[data-test="list-end"]').scrollIntoViewIfNeeded();
+  await expect(page.locator('.notice-title')).toHaveCount(16);
+  await page.locator('[data-test="list-end"]').scrollIntoViewIfNeeded();
+  await expect(page.locator('.notice-title')).toHaveCount(18);
+  await expect(page.getByText('더 이상 채용/교육 공고')).toBeVisible();
+  await page.mouse.wheel(0, 2000);
+  expect(pages).toEqual([0, 1, 2]);
+  expect(new Set(await page.locator('.notice-title').allTextContents()).size).toBe(18);
+});
+
+test('스크롤 실패는 목록을 보존하고 같은 페이지를 재시도한다', async ({ page }) => {
+  await isolatedCommunity(page);
+  await page.setViewportSize({ width: 900, height: 450 });
+  const pages = [];
+  let failed = false;
+  await page.route('**/api/announce?*', route => {
+    const current = Number(new URL(route.request().url()).searchParams.get('page'));
+    pages.push(current);
+    if (current === 1 && !failed) {
+      failed = true;
+      return route.fulfill({ status: 503, json: { message: 'temporary failure' } });
+    }
+    return route.fulfill({ json: { content: current === 0
+      ? Array.from({ length: 8 }, (_, i) => announcementFixture(i + 1))
+      : [announcementFixture(9, '재시도 성공 공고')], last: current === 1 } });
+  });
+  await page.goto('/');
+  await expect(page.locator('.notice-title')).toHaveCount(8);
+  await page.locator('[data-test="list-end"]').scrollIntoViewIfNeeded();
+  await expect(page.getByRole('alert')).toContainText('불러오지 못했습니다');
+  await expect(page.locator('.notice-title')).toHaveCount(8);
+  await page.getByRole('button', { name: '재시도' }).click();
+  await expect(page.locator('.notice-title')).toHaveCount(9);
+  expect(pages).toEqual([0, 1, 1]);
+});
+
+test('스크롤 중 필터 변경은 첫 페이지부터 조회하고 늦은 이전 페이지를 버린다', async ({ page }) => {
+  await isolatedCommunity(page);
+  await page.setViewportSize({ width: 900, height: 450 });
+  let releaseOld;
+  const requests = [];
+  await page.route('**/api/announce?*', async route => {
+    const query = new URL(route.request().url()).searchParams;
+    const current = Number(query.get('page'));
+    const type = query.get('announcementType');
+    requests.push([type, current]);
+    if (type === 'EDU') return route.fulfill({ json: { content: [announcementFixture(99, '새 교육 공고')], last: true } });
+    if (current === 1) {
+      await new Promise(resolve => { releaseOld = resolve; });
+      return route.fulfill({ json: { content: [announcementFixture(10, '늦은 이전 공고')], last: true } });
+    }
+    return route.fulfill({ json: { content: Array.from({ length: 8 }, (_, i) => announcementFixture(i + 1)), last: false } });
+  });
+  await page.goto('/');
+  await expect(page.locator('.notice-title')).toHaveCount(8);
+  await page.locator('[data-test="list-end"]').scrollIntoViewIfNeeded();
+  await expect.poll(() => Boolean(releaseOld)).toBe(true);
+  await page.locator('#edu').check();
+  await expect(page.locator('.notice-title')).toHaveText('새 교육 공고');
+  const oldResponse = page.waitForResponse(response => new URL(response.url()).searchParams.get('page') === '1');
+  releaseOld();
+  await oldResponse;
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  await expect(page.locator('.notice-title')).toHaveText('새 교육 공고');
+  expect(requests).toEqual([['', 0], ['', 1], ['EDU', 0]]);
 });

@@ -19,6 +19,7 @@
       <div class="medium-font">포지션 : {{ notice.position }}</div>
     </div>
   </main>
+  <div ref="listEnd" data-test="list-end" aria-hidden="true" class="list-end"></div>
   <div style="padding-left: 100px ;display: block; float: none">
     <button v-if="!last && !error" :disabled="loading" @click="loadNextPage" class="w-75 btn btn-secondary btn-lg">더보기</button>
     <p v-if="error" role="alert">{{ error }} <button data-test="retry" @click="loadNextPage">재시도</button></p>
@@ -28,15 +29,23 @@
 </template>
 
 <script>
+import { markRaw } from "vue";
 import { getAnnouncements } from "@/api/announcements";
 export default {
   name: "demp-announcement",
   mounted() {
     this.emitter.on("announcementSearchCondition", this.onSearchCondition);
+    if (typeof IntersectionObserver !== "undefined") {
+      this.pageObserver = markRaw(new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting) && !this.error) this.loadNextPage();
+      }, { rootMargin: "200px" }));
+      this.pageObserver.observe(this.$refs.listEnd);
+    }
     this.loadNextPage();
   },
   unmounted() {
     this.requestGeneration++;
+    this.pageObserver?.disconnect();
     this.emitter.off("announcementSearchCondition", this.onSearchCondition);
   },
   data() {
@@ -55,6 +64,7 @@ export default {
       loading:false,
       error:null,
       requestGeneration:0,
+      pageObserver:null,
     };
   },
 
@@ -77,7 +87,12 @@ export default {
         const result = await getAnnouncements({ ...this.announcementSearchCondition });
         if (generation !== this.requestGeneration) return;
         if (result.data.content.length) {
-          this.notices.push(...result.data.content);
+          const visibleIds = new Set(this.notices.map(notice => notice.id));
+          this.notices.push(...result.data.content.filter(notice => {
+            if (visibleIds.has(notice.id)) return false;
+            visibleIds.add(notice.id);
+            return true;
+          }));
           this.announcementSearchCondition.page ++;
         }
         this.last = result.data.last || result.data.content.length === 0;
@@ -85,7 +100,14 @@ export default {
       catch {
         if (generation === this.requestGeneration) this.error = "공고를 불러오지 못했습니다.";
       } finally {
-        if (generation === this.requestGeneration) this.loading = false;
+        if (generation === this.requestGeneration) {
+          this.loading = false;
+          await this.$nextTick();
+          if (generation === this.requestGeneration && !this.last && !this.error && this.pageObserver) {
+            this.pageObserver.unobserve(this.$refs.listEnd);
+            this.pageObserver.observe(this.$refs.listEnd);
+          }
+        }
       }
     },
     openAnnouncementDetail(id){
@@ -105,6 +127,7 @@ export default {
 </script>
 
 <style scoped>
+.list-end { clear: both; height: 1px; }
 main {
   display: flex;
   width: 100%;

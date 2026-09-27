@@ -53,7 +53,6 @@ export default {
       });
     },
     submitAnswer() {
-      // eslint-disable-next-line
       this.answerForm.answerContent = $("#answer").summernote("code");
       this.answerForm.questionId = this.$route.params.questionId;
       this.answerForm.username = this.$store.state.Login.username;
@@ -62,7 +61,6 @@ export default {
       });
     },
     initSummernote() {
-      // eslint-disable-next-line
       $("#answer").summernote({
         height: 250,
         width: 1250,

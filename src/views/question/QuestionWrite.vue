@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import QuestionWrite from "../../components/question/QuestionWrite";
+import QuestionWrite from "../../components/question/QuestionWrite.vue";
 
 export default {
   components: {

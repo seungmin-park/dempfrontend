@@ -17,7 +17,7 @@ export function createApiClient({ baseURL, getToken, onUnauthorized }) {
 }
 
 export const apiClient = createApiClient({
-  baseURL: process.env.VUE_APP_API_BASE_URL || '',
+  baseURL: import.meta.env.VITE_API_BASE_URL || import.meta.env.VUE_APP_API_BASE_URL || '',
   getToken: () => store.state.Login.token,
   onUnauthorized: clearExpiredSession,
 });

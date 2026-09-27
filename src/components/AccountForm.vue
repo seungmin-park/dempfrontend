@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <Form as="form" @submit="registerAccount" enctype="multipart/form-data">
+    <ValidationForm as="form" @submit="registerAccount" enctype="multipart/form-data">
       <div class="py-5 text-center">
         <h2>회원 가입</h2>
       </div>
@@ -58,13 +58,13 @@
           <button type="submit" class="w-100 btn btn-secondary btn-lg">회원가입</button>
         </div>
       </div>
-    </Form>
+    </ValidationForm>
   </div>
 </template>
 
 <script>
 import { register, checkUsername } from '@/api/members';
-import { Form, Field, ErrorMessage } from "vee-validate";
+import { Form as ValidationForm, Field, ErrorMessage } from "vee-validate";
 import { defineRule } from "vee-validate";
 import { required, url, min_value } from "@vee-validate/rules";
 
@@ -79,7 +79,7 @@ defineRule("equal",(value, _params, context) => {
 })
 export default {
   components: {
-    Form,
+    ValidationForm,
     Field,
     ErrorMessage,
   },

@@ -1,8 +1,8 @@
 <template>
-  <Form as="form" @submit="saveAnnounce" enctype="multipart/form-data">
+  <ValidationForm as="form" @submit="saveAnnounce" enctype="multipart/form-data">
     <div class="add-form">
       <div>
-        <table>
+        <table><tbody>
           <tr>
             <td>
               <label for="announce-title">제목: </label>
@@ -230,19 +230,19 @@
               ></textarea>
             </td>
           </tr>
-        </table>
+        </tbody></table>
       </div>
       <div class="form-action-button">
         <button type="reset">취소</button>
         <button type="submit">작성하기</button>
       </div>
     </div>
-  </Form>
+  </ValidationForm>
 </template>
 
 <script>
 import positions from "../../data/positions";
-import { Form, Field, ErrorMessage } from "vee-validate";
+import { Form as ValidationForm, Field, ErrorMessage } from "vee-validate";
 import { defineRule } from "vee-validate";
 import { required, url, min_value, image } from "@vee-validate/rules";
 import { createAnnouncement } from "@/api/announcements";
@@ -259,7 +259,6 @@ export default {
     }
   },
   mounted() {
-    // eslint-disable-next-line
     $("#content").summernote({
       height: 800,
       minHeight: null,
@@ -276,7 +275,7 @@ export default {
     });
   },
   components: {
-    Form,
+    ValidationForm,
     Field,
     ErrorMessage,
   },
@@ -318,7 +317,6 @@ export default {
       this.image = this.$refs.announceImg.files[0];
     },
     saveAnnounce() {
-      // eslint-disable-next-line
       this.content = $("#content").summernote("code");
       createAnnouncement({
         title: this.title,

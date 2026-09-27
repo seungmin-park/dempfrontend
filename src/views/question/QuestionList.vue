@@ -14,10 +14,10 @@
 </template>
 
 <script>
-import QuestionList from "../../components/question/QuestionList";
-import QuestionSearch from "../../components/question/QuestionSearch";
-import QuestionMenu from "../../components/question/QuestionMenu";
-import QuestionControl from "../../components/question/QuestionControl";
+import QuestionList from "../../components/question/QuestionList.vue";
+import QuestionSearch from "../../components/question/QuestionSearch.vue";
+import QuestionMenu from "../../components/question/QuestionMenu.vue";
+import QuestionControl from "../../components/question/QuestionControl.vue";
 export default {
   components: {
     QuestionList,

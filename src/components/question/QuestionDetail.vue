@@ -25,9 +25,8 @@
           class="hashtags"
           v-for="hashtag in question.hashtags"
           :key="hashtag"
-          v-text="`#${hashtag}`"
           :to="{ name: 'question', query: { hashtags: hashtag } }"
-        ></router-link>
+        >#{{ hashtag }}</router-link>
       </div>
     </div>
   </div>

@@ -1,11 +1,12 @@
+import { vi } from 'vitest';
 import { flushPromises, mount } from '@vue/test-utils';
 import axios from 'axios';
 import AnnouncementDetail from '@/components/announcement/AnnouncementDetail.vue';
 
-jest.mock('axios');
+vi.mock('axios');
 
 afterEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
   delete global.$;
 });
 
@@ -28,7 +29,7 @@ test('공고 상세의 기간·금액·회사·본문을 평면 응답 계약으
   const wrapper = mount(AnnouncementDetail, { global: { mocks: {
     $store: { state: { Login: { token: 'token' } } },
     $route: { params: { itemId: 71 } },
-    $router: { replace: jest.fn(), currentRoute: { value: { fullPath: '/detail/71' } } },
+    $router: { replace: vi.fn(), currentRoute: { value: { fullPath: '/detail/71' } } },
   } } });
 
   await flushPromises();

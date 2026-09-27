@@ -1,7 +1,7 @@
-const axios = jest.genMockFromModule('axios');
-axios.interceptors = {
-  request: { use: jest.fn() },
-  response: { use: jest.fn() },
+import { vi } from 'vitest';
+const axios = {
+  get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn(),
+  interceptors: { request: { use: vi.fn() }, response: { use: vi.fn() } },
 };
-axios.create = jest.fn(() => axios);
-module.exports = axios;
+axios.create = vi.fn(() => axios);
+export default axios;

@@ -10,8 +10,8 @@
 </template>
 
 <script>
-import AnnouncementScroll from "../../components/announcement/AnnouncementScroll";
-import AnnouncementDetail from "../../components/announcement/AnnouncementDetail";
+import AnnouncementScroll from "../../components/announcement/AnnouncementScroll.vue";
+import AnnouncementDetail from "../../components/announcement/AnnouncementDetail.vue";
 export default {
   components: {
     AnnouncementScroll,
