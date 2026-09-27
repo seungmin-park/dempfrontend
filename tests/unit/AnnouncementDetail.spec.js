@@ -38,6 +38,7 @@ test('공고 상세의 기간·금액·회사·본문을 평면 응답 계약으
   expect(wrapper.text()).toContain('연봉 : 3000 만원');
   expect(wrapper.text()).toContain('지원기간 : 2026.09.01 00:00 ~ 2026.09.30 23:59');
   expect(wrapper.get('[aria-label="기술 스택"]').text()).toBe('Java, Spring');
-  expect(wrapper.text()).toContain('경력 : 0년 ~ 3년');
+  expect(wrapper.get('[aria-label="모집 구분"]').text()).toBe('신입·경력');
+  expect(wrapper.get('.announcement-audience').text()).toContain('3년 이하');
   expect(wrapper.get('.detail-announce-content').text()).toContain('설명');
 });

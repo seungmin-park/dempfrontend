@@ -38,7 +38,7 @@ export interface AnnouncementDetailResponse {
   announcementType: AnnouncementType | null;
 }
 export type AnnouncementDetail = Omit<AnnouncementDetailResponse, 'company'> & { company: string; type: AnnouncementType | null };
-export interface AnnouncementScroll { id: number; title: string | null; company: Company | null; image: string }
+export interface AnnouncementScroll extends Pick<AnnouncementSummary, 'announcementType' | 'minCareer' | 'maxCareer'> { id: number; title: string | null; company: Company | null; image: string }
 export interface AnnouncementFilters {
   languages?: Language[];
   recruitmentStatus?: 'OPEN' | 'UPCOMING' | 'CLOSED' | '';

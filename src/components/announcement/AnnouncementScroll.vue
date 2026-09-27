@@ -16,6 +16,7 @@
         <CompanyImage :src="item.image" />
       </div>
       <div class="anncoucement-scroll-items-description">
+        <AnnouncementAudience :announcement="item" />
         <p class="item-title">{{ item.company?.name ?? '' }}</p>
         <p class="item-company">{{ item.title }}</p>
       </div>
@@ -25,6 +26,7 @@
 </template>
 <script lang="ts">
 import type { AnnouncementScroll } from '@/types/api';
+import AnnouncementAudience from './AnnouncementAudience.vue';
 import CompanyImage from '@/components/common/CompanyImage.vue';
 import AsyncState from '@/components/common/AsyncState.vue';
 import { requestErrorMessage } from '@/presentation/requestError';
@@ -32,7 +34,7 @@ import { defineComponent } from "vue";
 import { getAnnouncementScroll } from '@/api/announcements';
 export default defineComponent({
   name: "announcement-scroll",
-  components: { CompanyImage, AsyncState },
+  components: { AnnouncementAudience, CompanyImage, AsyncState },
   mounted() {
     {
       this.getScroll();

@@ -1,7 +1,7 @@
 <template>
   <AsyncState :loading="loading" :error="error" @retry="loadAnnouncementDetail" />
   <article v-if="!loading && !error" class="job-detail">
-    <header class="job-detail-heading"><div class="company-logo"><CompanyImage :src="announcement.image" /></div><span class="section-label">{{ announcement.type === 'EDU' ? '교육·부트캠프' : '채용 공고' }}</span><h1>{{ announcement.title }}</h1><p>{{ announcement.company }}</p></header>
+    <header class="job-detail-heading"><div class="company-logo"><CompanyImage :src="announcement.image" /></div><AnnouncementAudience :announcement="announcement" /><h1>{{ announcement.title }}</h1><p>{{ announcement.company }}</p></header>
     <div class="detail-facts">
       <p>회사명 : {{ announcement.company }}</p>
       <p v-if="announcement.type === 'EDU'">교육비 : {{ announcement.payment === 0 ? '무료' : announcement.payment + ' 만원' }}</p>
@@ -9,7 +9,7 @@
       <p>지원기간 : {{ formatRecruitDate(announcement.startedDate) }} ~ {{ formatRecruitDate(announcement.deadLineDate) }}</p>
       <p>포지션 : {{ formatPosition(announcement.position) }}</p>
       <p>기술 스택 : <span aria-label="기술 스택">{{ formatLanguages(announcement.language) }}</span></p>
-      <p>경력 : {{ careerText }}</p>
+
     </div>
     <section class="detail-announce-content"><h2>상세 내용</h2><SafeHtml :content="announcement.content ?? ''" /></section>
     <div class="apply-bar"><a v-if="applicationUrl" :href="applicationUrl" class="button button-primary" target="_blank" rel="noopener noreferrer">지원하기</a><span v-else class="field-hint">지원 링크가 없습니다.</span></div>
@@ -18,6 +18,7 @@
 <script lang="ts">
 import type { AnnouncementDetail } from '@/types/api';
 import { routeId } from '@/router/query';
+import AnnouncementAudience from './AnnouncementAudience.vue';
 import CompanyImage from '@/components/common/CompanyImage.vue';
 import { formatPosition } from '@/presentation/positions';
 import AsyncState from '@/components/common/AsyncState.vue';
@@ -28,7 +29,7 @@ import { getAnnouncementDetail } from "@/api/announcements";
 import { formatLanguages, formatRecruitDate } from '@/presentation/announcement';
 
 export default defineComponent({
-  components: { AsyncState, SafeHtml, CompanyImage },
+  components: { AnnouncementAudience, AsyncState, SafeHtml, CompanyImage },
   created(){
     if (this.$store.state.Login.token == "") {
       this.$router.replace({
@@ -45,13 +46,7 @@ export default defineComponent({
   unmounted() { this.requestGeneration++; },
   computed: {
     applicationUrl() { return safeApplicationUrl(this.announcement.accessUrl); },
-    careerText() {
-      if (this.announcement.minCareer == null || this.announcement.maxCareer == null) return '경력 정보 없음';
-      if (this.announcement.maxCareer === 0) {
-        return `${this.announcement.minCareer}년 이상`;
-      }
-      return `${this.announcement.minCareer}년 ~ ${this.announcement.maxCareer}년`;
-    },
+
   },
   methods: {
     formatPosition,

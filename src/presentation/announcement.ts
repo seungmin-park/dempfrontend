@@ -1,4 +1,4 @@
-import type { Language } from '@/types/api';
+import type { Language, AnnouncementSummary } from '@/types/api';
 
 const languageLabels: Record<Language, string> = {
   HTML: 'HTML', CSS: 'CSS', React: 'React', JAVA: 'Java', JPA: 'JPA', SPRING: 'Spring',
@@ -13,4 +13,17 @@ export function formatRecruitDate(value: string | null | undefined): string {
   if (!value) return '일정 미정';
   const parts = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(value);
   return parts ? `${parts[1]}.${parts[2]}.${parts[3]} ${parts[4]}:${parts[5]}` : '일정 미정';
+}
+
+
+// A zero maximum is the existing API's unbounded range, not "new graduates only".
+export function announcementAudience(item: Pick<AnnouncementSummary, 'announcementType' | 'minCareer' | 'maxCareer'>) {
+  if (item.announcementType === 'EDU') return { label: '교육', detail: '', tone: 'education' };
+  const { minCareer: min, maxCareer: max } = item;
+  if (min == null || max == null || min < 0 || max < 0 || (max > 0 && min > max)) {
+    return { label: '채용', detail: '경력 정보 없음', tone: 'neutral' };
+  }
+  if (min === 0 && max === 0) return { label: '경력 무관', detail: '', tone: 'any' };
+  if (min === 0) return { label: '신입·경력', detail: `${max}년 이하`, tone: 'entry' };
+  return { label: '경력', detail: max === 0 ? `${min}년 이상` : min === max ? `${min}년` : `${min}~${max}년`, tone: 'experienced' };
 }

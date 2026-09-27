@@ -309,3 +309,27 @@ test('없는 페이지·상세 오류는 안내하고 재시도로 복구된다'
   await page.getByRole('button', { name: '검색 결과로 돌아가기' }).click();
   await expect(page).toHaveURL('/?type=EDU&tuition=FREE');
 });
+
+test('모집 구분은 모바일 카드와 상세·관련 공고에서 연차와 함께 구별된다', async ({ page }) => {
+  const state = await isolatedCommunity(page);
+  await loginAs(page, state, 'audience-reader');
+  const items = [
+    { id: 1, title: '경력 무관 채용', announcementType: 'EMP', minCareer: 0, maxCareer: 0 },
+    { id: 2, title: '신입 지원 가능 채용', announcementType: 'EMP', minCareer: 0, maxCareer: 3 },
+    { id: 3, title: '경력 개발자 채용', announcementType: 'EMP', minCareer: 3, maxCareer: 5 },
+    { id: 4, title: '백엔드 부트캠프', announcementType: 'EDU', minCareer: 0, maxCareer: 0 },
+  ].map(item => ({ ...item, company: null, image: '', language: ['JAVA', 'SPRING'], content: '공고 설명' }));
+  await page.route('**/api/announce', route => route.fulfill({ json: { content: items, last: true } }));
+  await page.route('**/api/announce?*', route => route.fulfill({ json: { content: items, last: true } }));
+  await page.route('**/api/announce/scroll', route => route.fulfill({ json: items }));
+  await page.route('**/api/announce/detail/3', route => route.fulfill({ json: items[2] }));
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await expect(page.locator('.job-card [aria-label="모집 구분"]')).toHaveText(['경력 무관', '신입·경력', '경력', '교육']);
+  await expect(page.locator('.job-card').nth(1)).toContainText('3년 이하');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole('link', { name: '경력 개발자 채용', exact: true }).click();
+  await expect(page.locator('.job-detail-heading .announcement-audience')).toHaveText('경력3~5년');
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(page.locator('.anncoucement-scroll [aria-label="모집 구분"]')).toHaveText(['경력 무관', '신입·경력', '경력', '교육']);
+});
