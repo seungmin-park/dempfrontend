@@ -13,6 +13,13 @@ async function isolatedCommunity(page) {
     answers: [],
     requests: [],
     expired: false,
+    reactions: new Map(),
+  };
+  const reactionState = (target, id, username) => {
+    const prefix = `${target}:${id}:`;
+    const votes = [...state.reactions.entries()].filter(([key]) => key.startsWith(prefix)).map(([, value]) => value);
+    return { recommend: votes.filter(value => value === 'RECOMMEND').length, dislike: votes.filter(value => value === 'DISLIKE').length,
+      myReaction: state.reactions.get(`${prefix}${username}`) || 'NONE' };
   };
   await page.route(/^https:\/\//, route => route.abort());
   await page.route('http://127.0.0.1:5050/api/**', async route => {
@@ -44,6 +51,13 @@ async function isolatedCommunity(page) {
       if (!username || state.expired) return reply(401, { message: 'expired' });
       return reply(200, { title: '개발자 채용', company: { name: '테스트 회사' }, announcementType: 'EMP', position: 'BACKEND', language: ['JAVA'], minCareer: 0, maxCareer: 0, startedDate: '2026-09-01T00:00:00', deadLineDate: '2026-10-01T00:00:00', content: '<p>안전한 공고</p><img src=x onerror="window.__xss = true">', accessUrl: '/apply', payment: 3000, image: '/fixture.png' });
     }
+    const reaction = path.match(/^\/api\/(question|answer)\/(\d+)\/reaction$/);
+    if (reaction && method === 'PUT') {
+      if (!username || state.expired) return reply(401, {});
+      const [, target, id] = reaction;
+      state.reactions.set(`${target}:${id}:${username}`, request.postDataJSON().reaction);
+      return reply(200, reactionState(target, id, username));
+    }
     if (path === '/api/question/hashtags') return reply(200, []);
     if (path === '/api/question' && method === 'GET') {
       const title = url.searchParams.get('title') || '';
@@ -61,7 +75,7 @@ async function isolatedCommunity(page) {
     if (questionDetail) {
       if (!username || state.expired) return reply(401, { message: 'expired' });
       const question = state.questions.find(q => q.id === Number(questionDetail[1]));
-      return question ? reply(200, { ...question, hits: 1, recommend: 0, dislike: 0 }) : reply(404, {});
+      return question ? reply(200, { ...question, hits: 1, ...reactionState('question', question.id, username) }) : reply(404, {});
     }
     if (path === '/api/question/update' && method === 'PATCH') {
       const form = request.postDataJSON();
@@ -69,7 +83,7 @@ async function isolatedCommunity(page) {
       return reply(question && question.username === username ? 200 : 403, {});
     }
     const answerList = path.match(/^\/api\/answer\/(\d+)$/);
-    if (answerList) return reply(200, state.answers.filter(a => a.questionId === Number(answerList[1])));
+    if (answerList) return reply(200, state.answers.filter(a => a.questionId === Number(answerList[1])).map(answer => ({ ...answer, ...reactionState('answer', answer.answerId, username) })));
     if (path === '/api/answer/save' && method === 'POST') {
       if (!username || state.expired) return reply(401, { message: 'expired' });
       const form = request.postDataJSON();
@@ -383,4 +397,27 @@ test('상세 교육 필터는 모바일 입력·새로고침·뒤로가기·빈 
   await page.goto('/?type=EMP&payment=5000');
   await expect(page.getByLabel('최소 연봉')).toHaveCount(0);
   expect(requests.at(-1).payment).toBeUndefined();
+});
+
+test('질문·답변 반응 저장과 취소는 새로고침 후에도 유지된다', async ({ page }) => {
+  const state = await isolatedCommunity(page);
+  state.questions.push({ id: 1, title: '반응 QA 질문', content: '질문 내용', username: 'writer', hashtags: [] });
+  state.answers.push({ answerId: 1, questionId: 1, content: '반응 QA 답변', username: 'writer', recommend: 0, dislike: 0 });
+  await loginAs(page, state, 'voter');
+  await page.goto('/questions/1');
+  const question = page.locator('.question-detail .content-reactions');
+  const answer = page.locator('.question-answer .content-reactions');
+  await question.getByRole('button', { name: '추천 0', exact: true }).click();
+  await expect(question.getByRole('button', { name: '추천 1', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await question.getByRole('button', { name: '비추천 0', exact: true }).click();
+  await expect(question.getByRole('button', { name: '추천 0', exact: true })).toHaveAttribute('aria-pressed', 'false');
+  await answer.getByRole('button', { name: '추천 0', exact: true }).click();
+  await expect(answer.getByRole('button', { name: '추천 1', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await page.reload();
+  await expect(question.getByRole('button', { name: '비추천 1', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(answer.getByRole('button', { name: '추천 1', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await question.getByRole('button', { name: '비추천 1', exact: true }).click();
+  await expect(question.getByRole('button', { name: '비추천 0', exact: true })).toHaveAttribute('aria-pressed', 'false');
+  await page.reload();
+  await expect(question.getByRole('button', { name: '비추천 0', exact: true })).toHaveAttribute('aria-pressed', 'false');
 });
