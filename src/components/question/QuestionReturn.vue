@@ -2,8 +2,9 @@
   <button class="question-answer-btn" @click="$router.go(-1)">돌아가기</button>
 </template>
 
-<script>
-export default {};
+<script lang="ts">
+import { defineComponent } from "vue";
+export default defineComponent({});
 </script>
 
 <style>

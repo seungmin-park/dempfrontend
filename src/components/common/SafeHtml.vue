@@ -2,7 +2,8 @@
   <div v-html="sanitizedContent"></div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from "vue";
 import DOMPurify from 'dompurify';
 
 const htmlPolicy = {
@@ -13,7 +14,7 @@ const htmlPolicy = {
   ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.:-]|$))/i,
 };
 
-export default {
+export default defineComponent({
   name: 'SafeHtml',
   props: { content: { type: String, default: '' } },
   computed: {
@@ -21,5 +22,5 @@ export default {
       return DOMPurify.sanitize(this.content || '', htmlPolicy);
     },
   },
-};
+});
 </script>

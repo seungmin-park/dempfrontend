@@ -11,15 +11,16 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from "vue";
 import AnnouncementList from "../../components/announcement/AnnouncementList.vue";
 import AnnouncementHeader from "../../components/announcement/AnnouncementHeader.vue";
-export default {
+export default defineComponent({
   components: {
     AnnouncementList,
     AnnouncementHeader,
   },
-};
+});
 </script>
 
 <style>

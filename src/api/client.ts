@@ -2,15 +2,23 @@ import axios from 'axios';
 import { store } from '@/store';
 import { router } from '@/router';
 
-export function createApiClient({ baseURL, getToken, onUnauthorized }) {
+interface ApiClientOptions {
+  baseURL: string;
+  getToken: () => string;
+  onUnauthorized: () => void;
+}
+
+export function createApiClient({ baseURL, getToken, onUnauthorized }: ApiClientOptions) {
   const client = axios.create({ baseURL });
   client.interceptors.request.use(config => {
     const token = getToken();
     if (token) config.headers['X-AUTH-TOKEN'] = token;
     return config;
   });
-  client.interceptors.response.use(response => response, error => {
-    if (error.response && error.response.status === 401) onUnauthorized();
+  client.interceptors.response.use(response => response, (error: unknown) => {
+    if (typeof error === 'object' && error !== null && 'response' in error
+      && typeof error.response === 'object' && error.response !== null
+      && 'status' in error.response && error.response.status === 401) onUnauthorized();
     return Promise.reject(error);
   });
   return client;

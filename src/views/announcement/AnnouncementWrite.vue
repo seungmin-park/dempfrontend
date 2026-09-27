@@ -4,11 +4,12 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from "vue";
 import AnnouncementWrite from "../../components/announcement/AnnouncementWrite.vue";
-export default {
+export default defineComponent({
   components: {
     AnnouncementWrite,
   },
-};
+});
 </script>

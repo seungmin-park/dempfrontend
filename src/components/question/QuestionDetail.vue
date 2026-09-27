@@ -32,10 +32,12 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { routeId } from '@/router/query';
+import { defineComponent } from "vue";
 import { getQuestionDetail } from '@/api/questions';
 import SafeHtml from "@/components/common/SafeHtml.vue";
-export default {
+export default defineComponent({
   components: { SafeHtml },
   data() {
     return {
@@ -47,6 +49,7 @@ export default {
         recommend: 0,
         dislike: 0,
         username: "",
+        hashtags: [] as string[],
       },
     };
   },
@@ -62,13 +65,13 @@ export default {
   },
   methods: {
     loadQuestionDetail() {
-      getQuestionDetail(this.$route.params.questionId)
+      getQuestionDetail(routeId(this.$route.params.questionId))
         .then((res) => {
           this.question = res.data;
         });
     },
   },
-};
+});
 </script>
 
 <style>

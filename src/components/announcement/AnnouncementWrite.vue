@@ -174,7 +174,7 @@
                 <option value="">====분야====</option>
                 <option
                   v-for="position in positions"
-                  :key="position.id"
+                  :key="position"
                   :value="position"
                 >
                   {{ position }}
@@ -240,7 +240,9 @@
   </ValidationForm>
 </template>
 
-<script>
+<script lang="ts">
+import type { AnnouncementForm } from '@/types/api';
+import { defineComponent } from "vue";
 import positions from "../../data/positions";
 import { Form as ValidationForm, Field, ErrorMessage } from "vee-validate";
 import { defineRule } from "vee-validate";
@@ -252,7 +254,7 @@ defineRule("url", url);
 defineRule("min_value", min_value);
 defineRule("image", image);
 
-export default {
+export default defineComponent({
   created(){
     if (!this.$store.state.Login.token) {
       this.$router.push("/login");
@@ -284,16 +286,16 @@ export default {
       title: "",
       company: "",
       accessUrl: "",
-      type: "",
-      startedDate: null,
-      deadLineDate: null,
+      type: "" as AnnouncementForm["type"],
+      startedDate: null as string | null,
+      deadLineDate: null as string | null,
       minCareer: 0,
       maxCareer: 0,
       language: "",
       positions: positions,
-      position: "",
+      position: "" as AnnouncementForm["position"],
       payment: 2400,
-      image: null,
+      image: null as File | null,
       content: "",
     };
   },
@@ -307,14 +309,14 @@ export default {
   //   });
   // },
   methods: {
-    isRequired(value) {
-      if (value && value.trim()) {
+    isRequired(value: unknown) {
+      if (typeof value === 'string' && value.trim()) {
         return true;
       }
       return "해당 값은 필수 항목 입니다.";
     },
     uploadImg() {
-      this.image = this.$refs.announceImg.files[0];
+      this.image = (this.$refs.announceImg as HTMLInputElement).files?.[0] ?? null;
     },
     saveAnnounce() {
       this.content = $("#content").summernote("code");
@@ -341,7 +343,7 @@ export default {
         });
     },
   },
-};
+});
 </script>
 
 <style>

@@ -37,7 +37,7 @@ async function isolatedCommunity(page) {
     if (path === '/api/member/save' && method === 'POST') {
       const name = multipartValue(request.postData(), 'username');
       state.members.set(name, multipartValue(request.postData(), 'password'));
-      return reply(200, 'ok');
+      return reply(200, { id: state.members.size, username: name });
     }
     if (path === '/api/member/login' && method === 'POST') {
       const name = multipartValue(request.postData(), 'username');
@@ -48,18 +48,18 @@ async function isolatedCommunity(page) {
     }
     if (path === '/api/announce' && method === 'GET') {
       const emp = url.searchParams.get('announcementType');
-      return reply(200, { content: emp === 'EDU' ? [] : [{ id: 71, title: '개발자 채용', language: ['JAVA'], position: 'BACKEND', image: '/fixture.png' }], last: true });
+      return reply(200, { content: emp === 'EDU' ? [] : [{ id: 71, title: '개발자 채용', language: ['JAVA'], position: 'BACKEND', image: '/fixture.png' }], number: 0, last: true });
     }
     if (path === '/api/announce/detail/71') {
       if (!username || state.expired) return reply(401, { message: 'expired' });
-      return reply(200, { id: 71, title: '개발자 채용', company: { name: '테스트 회사' }, announcementType: 'EMP', position: 'BACKEND', language: ['JAVA'], minCareer: 0, maxCareer: 0, startedDate: '2026-09-01T00:00:00', deadLineDate: '2026-10-01T00:00:00', content: '<p>안전한 공고</p><img src=x onerror="window.__xss = true">', accessUrl: '/apply', image: '/fixture.png' });
+      return reply(200, { title: '개발자 채용', company: { name: '테스트 회사' }, announcementType: 'EMP', position: 'BACKEND', language: ['JAVA'], minCareer: 0, maxCareer: 0, startedDate: '2026-09-01T00:00:00', deadLineDate: '2026-10-01T00:00:00', content: '<p>안전한 공고</p><img src=x onerror="window.__xss = true">', accessUrl: '/apply', payment: 3000, image: '/fixture.png' });
     }
     if (path === '/api/question/hashtags') return reply(200, []);
     if (path === '/api/question' && method === 'GET') {
       const title = url.searchParams.get('title') || '';
       const content = url.searchParams.get('content') || '';
       const questions = state.questions.filter(q => q.title.includes(title) && q.content.includes(content));
-      return reply(200, { content: questions.map(({ id, title }) => ({ id, title, hits: 0, recommend: 0 })), number: 0, last: true, totalElements: questions.length });
+      return reply(200, { content: questions.map(({ id, title }) => ({ id, title, hits: 0, recommend: 0 })), number: 0, last: true });
     }
     if (path === '/api/question/add' && method === 'POST') {
       if (!username || state.expired) return reply(401, { message: 'expired' });
@@ -83,7 +83,7 @@ async function isolatedCommunity(page) {
     if (path === '/api/answer/save' && method === 'POST') {
       if (!username || state.expired) return reply(401, { message: 'expired' });
       const form = request.postDataJSON();
-      state.answers.push({ id: state.answers.length + 1, questionId: Number(form.questionId), username, content: form.answerContent, recommend: 0, dislike: 0 });
+      state.answers.push({ answerId: state.answers.length + 1, questionId: Number(form.questionId), username, content: form.answerContent, recommend: 0, dislike: 0 });
       return reply(200, state.answers.filter(a => a.questionId === Number(form.questionId)));
     }
     return reply(404, { message: 'fixture endpoint missing' });

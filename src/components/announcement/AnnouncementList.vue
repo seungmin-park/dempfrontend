@@ -28,10 +28,12 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import type { AnnouncementSummary, AnnouncementFilters, JobPosition } from '@/types/api';
+import { defineComponent } from "vue";
 import { markRaw } from "vue";
 import { getAnnouncements } from "@/api/announcements";
-export default {
+export default defineComponent({
   name: "demp-announcement",
   mounted() {
     this.emitter.on("announcementSearchCondition", this.onSearchCondition);
@@ -39,7 +41,7 @@ export default {
       this.pageObserver = markRaw(new IntersectionObserver(entries => {
         if (entries.some(entry => entry.isIntersecting) && !this.error) this.loadNextPage();
       }, { rootMargin: "200px" }));
-      this.pageObserver.observe(this.$refs.listEnd);
+      this.pageObserver.observe(this.$refs.listEnd as Element);
     }
     this.loadNextPage();
   },
@@ -50,10 +52,10 @@ export default {
   },
   data() {
     return {
-      notices: [],
+      notices: [] as AnnouncementSummary[],
       announcementSearchCondition: {
-        announcementType: "",
-        positions: [],
+        announcementType: "" as AnnouncementFilters["announcementType"],
+        positions: [] as JobPosition[],
         // languages: [],
         career: 0,
         payment: 0,
@@ -62,14 +64,14 @@ export default {
       },
       last:false,
       loading:false,
-      error:null,
+      error:null as string | null,
       requestGeneration:0,
-      pageObserver:null,
+      pageObserver:null as IntersectionObserver | null,
     };
   },
 
   methods: {
-    onSearchCondition(condition) {
+    onSearchCondition(condition: AnnouncementFilters) {
       this.announcementSearchCondition = { ...condition, page: 0 };
       this.notices = [];
       this.last = false;
@@ -104,13 +106,13 @@ export default {
           this.loading = false;
           await this.$nextTick();
           if (generation === this.requestGeneration && !this.last && !this.error && this.pageObserver) {
-            this.pageObserver.unobserve(this.$refs.listEnd);
-            this.pageObserver.observe(this.$refs.listEnd);
+            this.pageObserver.unobserve(this.$refs.listEnd as Element);
+            this.pageObserver.observe(this.$refs.listEnd as Element);
           }
         }
       }
     },
-    openAnnouncementDetail(id){
+    openAnnouncementDetail(id: number){
       if (this.$store.state.Login.token != ""){
         this.$router.push(`/detail/${id}`);
       }else {
@@ -123,7 +125,7 @@ export default {
       this.loadNextPage();
     },
   },
-};
+});
 </script>
 
 <style scoped>

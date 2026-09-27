@@ -7,7 +7,7 @@ vi.mock('axios');
 
 test('답변 추천 수를 서버 값으로 표시하고 반응 버튼을 비활성화한다', async () => {
   global.$ = () => ({ summernote: vi.fn() });
-  axios.get.mockResolvedValue({ data: [{ id: 4, username: 'writer', content: '답변', recommend: 3, dislike: 0 }] });
+  axios.get.mockResolvedValue({ data: [{ answerId: 4, username: 'writer', content: '답변', recommend: 3, dislike: 0 }] });
   const wrapper = mount(QuestionAnswer, { global: { mocks: {
     $store: { state: { Login: { token: 'token' } } }, $route: { params: { questionId: 7 } },
   } } });

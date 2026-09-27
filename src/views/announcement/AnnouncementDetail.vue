@@ -9,15 +9,16 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from "vue";
 import AnnouncementScroll from "../../components/announcement/AnnouncementScroll.vue";
 import AnnouncementDetail from "../../components/announcement/AnnouncementDetail.vue";
-export default {
+export default defineComponent({
   components: {
     AnnouncementScroll,
     AnnouncementDetail,
   },
-};
+});
 </script>
 
 <style>

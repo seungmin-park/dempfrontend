@@ -11,7 +11,7 @@
         <div class="detail-announce-info-location">
           <p>
             <a
-              :href="announcement.accessUrl"
+              :href="announcement.accessUrl ?? undefined"
               style="text-decoration: none; color: rgba(0, 0, 0, 0.7)"
               >지원하기</a
             >
@@ -57,18 +57,21 @@
         지원 자격 :
         <SafeHtml
           class="detail-announce-content-sub"
-          :content="announcement.content"
+          :content="announcement.content ?? ''"
         />
       </span>
     </div>
   </main>
 </template>
 
-<script>
+<script lang="ts">
+import type { AnnouncementDetail } from '@/types/api';
+import { routeId } from '@/router/query';
+import { defineComponent } from "vue";
 import SafeHtml from "@/components/common/SafeHtml.vue";
 import { getAnnouncementDetail } from "@/api/announcements";
 
-export default {
+export default defineComponent({
   components: { SafeHtml },
   created(){
     if (this.$store.state.Login.token == "") {
@@ -82,7 +85,7 @@ export default {
       this.loadAnnouncementDetail();
     }
   },
-  data() {
+  data(): { announcement: Partial<AnnouncementDetail> } {
     return {
       announcement: {
         image: "https://inhatc-demp.s3.ap-northeast-2.amazonaws.com/noimg.jpg",
@@ -101,7 +104,7 @@ export default {
   },
   methods: {
     loadAnnouncementDetail() {
-      getAnnouncementDetail(this.$route.params.itemId)
+      getAnnouncementDetail(routeId(this.$route.params.itemId))
         .then((announcement) => {
           this.announcement = announcement;
         });
@@ -117,7 +120,7 @@ export default {
       },
     },
   },
-};
+});
 </script>
 
 <style>

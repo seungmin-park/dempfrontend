@@ -23,20 +23,24 @@
   </main>
 </template>
 
-<script>
+<script lang="ts">
+import type { QuestionSummary } from '@/types/api';
+import type { LocationQuery, RouteLocationNormalizedLoaded } from 'vue-router';
+import { queryText } from '@/router/query';
+import { defineComponent } from "vue";
 import { fetchQuestionPage } from "@/api/questions";
-export default {
+export default defineComponent({
   data() {
     return {
       orderBy: "",
       title: "",
       content: "",
-      hashtags: [],
-      questions: [],
+      hashtags: [] as string[],
+      questions: [] as QuestionSummary[],
       page: 0,
       last: true,
       loading: false,
-      error: null,
+      error: null as string | null,
       requestGeneration: 0,
     };
   },
@@ -50,21 +54,21 @@ export default {
     this.emitter.off("getByHashtags", this.onHashtagsChanged);
   },
   methods: {
-    onHashtagsChanged(hashtags) {
+    onHashtagsChanged(hashtags: string[]) {
       this.hashtags = hashtags;
       this.requestGeneration++;
       this.loading = false;
       this.loadQuestionPage(0);
     },
-    applyRoute(query) {
-      this.orderBy = query.orderBy || "";
-      this.title = query.title || "";
-      this.content = query.content || "";
+    applyRoute(query: LocationQuery) {
+      this.orderBy = queryText(query.orderBy);
+      this.title = queryText(query.title);
+      this.content = queryText(query.content);
       this.hashtags = Array.isArray(query.hashtags)
-        ? query.hashtags.filter(Boolean)
+        ? query.hashtags.filter((tag): tag is string => typeof tag === 'string' && tag.length > 0)
         : String(query.hashtags || "").split(",").filter(Boolean);
     },
-    async loadQuestionPage(page) {
+    async loadQuestionPage(page: number) {
       if (this.loading || page < 0) return;
       const generation = ++this.requestGeneration;
       this.loading = true;
@@ -89,7 +93,7 @@ export default {
         if (generation === this.requestGeneration) this.loading = false;
       }
     },
-    openQuestionDetail(questionId) {
+    openQuestionDetail(questionId: number) {
       if (this.$store.state.Login.token != "") {
         this.$router.push(`/questions/${questionId}`)
       }else {
@@ -99,7 +103,7 @@ export default {
   },
   watch: {
     $route: {
-      handler(newValue) {
+      handler(newValue: RouteLocationNormalizedLoaded) {
         this.applyRoute(newValue.query);
         this.requestGeneration++;
         this.loading = false;
@@ -107,7 +111,7 @@ export default {
       },
     },
   },
-};
+});
 </script>
 
 <style>

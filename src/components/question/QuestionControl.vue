@@ -10,7 +10,7 @@
       질문하기
     </button>
     <div v-if="visible" @change="getByHashtags">
-      <div v-for="hashtag in hashtags" :key="hashtag.id">
+      <div v-for="hashtag in hashtags" :key="hashtag">
         <label :for="hashtag" class="dropdown-item">
           <input
             v-model="searchTags"
@@ -25,14 +25,16 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+
+import { defineComponent } from "vue";
 import { getQuestionHashtags } from '@/api/questions';
-export default {
+export default defineComponent({
   data() {
     return {
       visible: false,
-      searchTags: [],
-      hashtags: [],
+      searchTags: [] as string[],
+      hashtags: [] as string[],
     };
   },
   mounted() {
@@ -60,7 +62,7 @@ export default {
       }
     }
   },
-};
+});
 </script>
 
 <style>

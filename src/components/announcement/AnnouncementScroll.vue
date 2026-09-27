@@ -9,7 +9,7 @@
 
     <div
       @click="
-        this.$router.push({
+        $router.push({
           name: 'detail',
           params: { itemId: item.id },
         })
@@ -22,16 +22,18 @@
         <img :src="item.image" alt="" />
       </div>
       <div class="anncoucement-scroll-items-description">
-        <p class="item-title">{{ item.company.name }}</p>
+        <p class="item-title">{{ item.company?.name ?? '' }}</p>
         <p class="item-company">{{ item.title }}</p>
       </div>
     </div>
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import type { AnnouncementScroll } from '@/types/api';
+import { defineComponent } from "vue";
 import { getAnnouncementScroll } from '@/api/announcements';
-export default {
+export default defineComponent({
   name: "announcement-scroll",
   mounted() {
     {
@@ -40,7 +42,7 @@ export default {
   },
   data() {
     return {
-      announcement: {},
+      announcement: [] as AnnouncementScroll[],
     };
   },
   methods: {
@@ -50,7 +52,7 @@ export default {
       });
     },
   },
-};
+});
 </script>
 
 <style>

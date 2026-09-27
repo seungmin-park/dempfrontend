@@ -1,5 +1,5 @@
 <template>
-  <div class="question-answer" v-for="answer in answers" :key="answer.id">
+  <div class="question-answer" v-for="answer in answers" :key="answer.answerId">
     <div class="question-answer-info">
       <div class="question-answer-info-user">
         🙋‍♂️ 작성자 : {{ answer.username }}
@@ -26,18 +26,21 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import type { Answer } from '@/types/api';
+import { routeId } from '@/router/query';
+import { defineComponent } from "vue";
 import { getAnswers, createAnswer } from '@/api/answers';
 import SafeHtml from "@/components/common/SafeHtml.vue";
-export default {
+export default defineComponent({
   components: { SafeHtml },
   data() {
     return {
-      answers: [],
+      answers: [] as Answer[],
       answer: "",
       answerForm: {
         username: "",
-        questionId: 0,
+        questionId: "",
         answerContent: "",
       },
     };
@@ -48,13 +51,13 @@ export default {
   },
   methods: {
     loadAnswers() {
-      getAnswers(this.$route.params.questionId).then((res) => {
+      getAnswers(routeId(this.$route.params.questionId)).then((res) => {
         this.answers = res.data;
       });
     },
     submitAnswer() {
       this.answerForm.answerContent = $("#answer").summernote("code");
-      this.answerForm.questionId = this.$route.params.questionId;
+      this.answerForm.questionId = routeId(this.$route.params.questionId);
       this.answerForm.username = this.$store.state.Login.username;
       createAnswer(this.answerForm).then((res) => {
         this.answers = res.data;
@@ -78,7 +81,7 @@ export default {
       });
     },
   },
-};
+});
 </script>
 
 <style>

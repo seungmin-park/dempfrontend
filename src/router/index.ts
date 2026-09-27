@@ -1,7 +1,10 @@
 import { createWebHistory, createRouter } from "vue-router";
 import { store } from '@/store';
 
-export function createAuthGuard(authStore) {
+import type { RootState } from '@/store/types';
+import type { NavigationGuard } from 'vue-router';
+
+export function createAuthGuard(authStore: { state: RootState }): NavigationGuard {
   return to => {
     if (!to.meta.requiresAuth) return true;
     const { token, username } = authStore.state.Login;

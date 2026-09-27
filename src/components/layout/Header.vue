@@ -12,15 +12,16 @@
         면접 질문
       </router-link>
       <!-- <button id="login" @click="redirectGithubLogin">LOGIN WITH GITHUB</button> -->
-      <button v-if="this.$store.state.Login.token == ``" id="login" @click="redirectLogin">로그인</button>
+      <button v-if="$store.state.Login.token == ``" id="login" @click="redirectLogin">로그인</button>
       <button v-else id="logout" @click="logout">로그아웃</button>
     </span>
   </header>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from "vue";
 import { getGithubLoginUrl } from '@/api/auth';
-export default {
+export default defineComponent({
   name: "demp-header",
   methods: {
     redirectGithubLogin() {
@@ -37,7 +38,7 @@ export default {
       this.$router.push("/");
     },
   },
-};
+});
 </script>
 
 <style>

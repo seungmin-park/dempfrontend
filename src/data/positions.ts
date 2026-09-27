@@ -20,4 +20,4 @@ export default [
   "IOT",
   "APPLICATION_PROGRAM",
   "BLOCK_CHAIN",
-];
+] as const;

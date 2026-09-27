@@ -10,17 +10,18 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from "vue";
 import QuestionDetail from "../../components/question/QuestionDetail.vue";
 import QuestionAnswer from "../../components/question/QuestionAnswer.vue";
 import QuestionReturn from "../../components/question/QuestionReturn.vue";
-export default {
+export default defineComponent({
   components: {
     QuestionDetail,
     QuestionAnswer,
     QuestionReturn,
   },
-};
+});
 </script>
 
 <style>

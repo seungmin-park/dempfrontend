@@ -26,7 +26,7 @@
             @click="
               () => {
                 announcementSearchCondition.announcementType = ``;
-                this.changeCondition();
+                changeCondition();
               }
             "
           >
@@ -36,7 +36,7 @@
         <span
           class="selected-condition-element element-position"
           v-for="position in announcementSearchCondition.positions"
-          :key="position.id"
+          :key="position"
         >
           {{ position }}
           <button class="delete-condition" @click="removePosition(position)">
@@ -53,7 +53,7 @@
             @click="
               () => {
                 announcementSearchCondition.career = 0;
-                this.changeCondition();
+                changeCondition();
               }
             "
           >
@@ -70,7 +70,7 @@
             @click="
               () => {
                 announcementSearchCondition.payment = 0;
-                this.changeCondition();
+                changeCondition();
               }
             "
           >
@@ -114,7 +114,7 @@
           <div class="dropdown-menu" v-if="positionStatus">
             <div class="dropdown-item-wraper">
               <ul>
-                <li v-for="position in positions" :key="position.id">
+                <li v-for="position in positions" :key="position">
                   <label :for="position" class="dropdown-item">
                     <input
                       v-model="announcementSearchCondition.positions"
@@ -215,10 +215,12 @@
     </div>
   </div>
 </template>
-<script>
+<script lang="ts">
+import type { AnnouncementFilters, JobPosition } from '@/types/api';
+import { defineComponent } from "vue";
 import positions from "../../data/positions";
 
-export default {
+export default defineComponent({
   data() {
     return {
       positionStatus: false,
@@ -230,8 +232,8 @@ export default {
         3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500, 7000, 7500, 8000,
       ],
       announcementSearchCondition: {
-        announcementType: "",
-        positions: [],
+        announcementType: "" as AnnouncementFilters["announcementType"],
+        positions: [] as JobPosition[],
         // languages: [],
         career: 0,
         payment: 0,
@@ -278,8 +280,8 @@ export default {
     },
     initCondition() {
       this.announcementSearchCondition = {
-        announcementType: "",
-        positions: [],
+        announcementType: "" as AnnouncementFilters["announcementType"],
+        positions: [] as JobPosition[],
         // languages: [],
         career: 0,
         payment: 0,
@@ -287,7 +289,7 @@ export default {
       };
       this.changeCondition();
     },
-    removePosition(position) {
+    removePosition(position: JobPosition) {
       this.announcementSearchCondition.positions =
         this.announcementSearchCondition.positions.filter(
           (element) => element !== position
@@ -295,7 +297,7 @@ export default {
       this.changeCondition();
     },
   },
-};
+});
 </script>
 
 <style scoped>

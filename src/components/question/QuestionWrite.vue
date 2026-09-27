@@ -49,7 +49,9 @@
   </ValidationForm>
 </template>
 
-<script>
+<script lang="ts">
+import type { HashtagInput } from '@/types/api';
+import { defineComponent } from "vue";
 import { Form as ValidationForm, Field, ErrorMessage } from "vee-validate";
 import { defineRule } from "vee-validate";
 import { required, url, min_value, image } from "@vee-validate/rules";
@@ -61,7 +63,7 @@ defineRule("url", url);
 defineRule("min_value", min_value);
 defineRule("image", image);
 
-export default {
+export default defineComponent({
   created(){
     if (this.$store.state.Login.token == "") {
       this.$router.replace({
@@ -98,13 +100,13 @@ export default {
         title: "",
         content: "",
         username:this.$store.state.Login.username,
-        hashtags: [],
+        hashtags: [] as HashtagInput[],
       },
     };
   },
   methods: {
-    isRequired(value) {
-      if (value && value.trim()) {
+    isRequired(value: unknown) {
+      if (typeof value === 'string' && value.trim()) {
         return true;
       }
       return "해당 값은 필수 항목 입니다.";
@@ -124,11 +126,11 @@ export default {
         })
         .catch(() => undefined);
     },
-    addHashtags(hashtag) {
+    addHashtags(hashtag: HashtagInput[]) {
       this.questionForm.hashtags = hashtag;
     },
   },
-};
+});
 </script>
 
 <style>

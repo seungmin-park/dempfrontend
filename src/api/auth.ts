@@ -1,5 +1,5 @@
 import { apiClient } from './client';
 
 export function getGithubLoginUrl() {
-  return apiClient.get('/api/auth/github');
+  return apiClient.get<string>('/api/auth/github');
 }

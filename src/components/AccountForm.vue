@@ -62,7 +62,8 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from "vue";
 import { register, checkUsername } from '@/api/members';
 import { Form as ValidationForm, Field, ErrorMessage } from "vee-validate";
 import { defineRule } from "vee-validate";
@@ -77,7 +78,7 @@ defineRule("equal",(value, _params, context) => {
   }
   return true;
 })
-export default {
+export default defineComponent({
   components: {
     ValidationForm,
     Field,
@@ -104,7 +105,7 @@ export default {
         alert("아이디 중복 검사를 실시해 주시기 바랍니다.");
         return;
       }
-      var form = new FormData();
+      const form = new FormData();
       form.append("username", this.username);
       form.append("password", this.password);
       register(form)
@@ -122,7 +123,7 @@ export default {
           })
     }
   },
-};
+});
 </script>
 
 <style>

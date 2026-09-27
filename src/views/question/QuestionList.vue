@@ -13,19 +13,20 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from "vue";
 import QuestionList from "../../components/question/QuestionList.vue";
 import QuestionSearch from "../../components/question/QuestionSearch.vue";
 import QuestionMenu from "../../components/question/QuestionMenu.vue";
 import QuestionControl from "../../components/question/QuestionControl.vue";
-export default {
+export default defineComponent({
   components: {
     QuestionList,
     QuestionSearch,
     QuestionMenu,
     QuestionControl,
   },
-};
+});
 </script>
 
 <style>

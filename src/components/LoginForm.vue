@@ -45,7 +45,9 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { queryText } from '@/router/query';
+import { defineComponent } from "vue";
 import { login } from '@/api/members';
 import { Form as ValidationForm, Field, ErrorMessage } from "vee-validate";
 import { defineRule } from "vee-validate";
@@ -54,7 +56,7 @@ import { required, url, min_value } from "@vee-validate/rules";
 defineRule("required", required);
 defineRule("url", url);
 defineRule("min_value", min_value);
-export default {
+export default defineComponent({
   components: {
     ValidationForm,
     Field,
@@ -75,11 +77,11 @@ export default {
       });
     }},
   mounted() {
-    this.redirect = this.$route.query.redirect || "";
+    this.redirect = queryText(this.$route.query.redirect);
   },
   methods: {
     loginMethod() {
-      var form = new FormData();
+      const form = new FormData();
       form.append("username", this.username);
       form.append("password", this.password);
       login(form)
@@ -96,7 +98,7 @@ export default {
       });
     },
   },
-};
+});
 </script>
 
 <style>

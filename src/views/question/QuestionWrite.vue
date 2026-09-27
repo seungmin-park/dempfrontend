@@ -6,14 +6,15 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from "vue";
 import QuestionWrite from "../../components/question/QuestionWrite.vue";
 
-export default {
+export default defineComponent({
   components: {
     QuestionWrite,
   },
-};
+});
 </script>
 
 <style></style>
