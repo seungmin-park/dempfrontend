@@ -1,3 +1,4 @@
+import type { EducationInfo } from '@/data/education';
 import type positions from '@/data/positions';
 
 export type EntityId = number | string;
@@ -10,6 +11,7 @@ export interface MemberInfo { username: string; jwt: string }
 export interface Member { id: number; username: string }
 export interface Company { name: string | null }
 export interface AnnouncementSummary {
+  education?: EducationInfo | null;
   company?: string | null;
   announcementType?: AnnouncementType | null;
   minCareer?: number | null;
@@ -24,6 +26,7 @@ export interface AnnouncementSummary {
   image: string;
 }
 export interface AnnouncementDetailResponse {
+  education?: EducationInfo | null;
   image: string;
   company: Company | null;
   title: string | null;
@@ -42,7 +45,10 @@ export interface AnnouncementDetailResponse {
 }
 export type AnnouncementDetail = Omit<AnnouncementDetailResponse, 'company'> & { company: string; type: AnnouncementType | null };
 export interface AnnouncementScroll extends Pick<AnnouncementSummary, 'announcementType' | 'minCareer' | 'maxCareer'> { id: number; title: string | null; company: Company | null; image: string }
-export interface AnnouncementFilters {
+export interface AnnouncementFilters extends EducationInfo {
+  duration?: string;
+  startAfter?: string;
+  startBefore?: string;
   languages?: Language[];
   recruitmentStatus?: 'OPEN' | 'UPCOMING' | 'CLOSED' | '';
   tuition?: 'FREE' | 'PAID' | '';
@@ -53,7 +59,7 @@ export interface AnnouncementFilters {
   title: string;
 }
 export interface AnnouncementSearchCondition extends AnnouncementFilters { page: number }
-export interface AnnouncementForm {
+export interface AnnouncementForm extends EducationInfo {
   title: string;
   company: string;
   type: AnnouncementType | '';

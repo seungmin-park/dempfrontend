@@ -16,7 +16,8 @@ it.each([
   [{ type: 'EDU' }, '아직 등록된 부트캠프·교육과정이 없습니다.', '전체 공고에서 채용 기회도 둘러보세요.'],
   [{ q: '없는 회사' }, '“없는 회사”에 해당하는 공고가 없습니다.', '검색어의 철자를 확인하거나 더 짧은 단어로 검색해 보세요.'],
   [{ languages: 'JAVA', career: '3' }, '선택한 조건에 맞는 공고가 없습니다.', '직무·기술 스택·경력 등 선택한 조건을 줄여보세요.'],
-  [{ type: 'EDU', tuition: 'FREE', status: 'OPEN' }, '선택한 조건에 맞는 부트캠프·교육과정이 없습니다.', '분야·기술 스택·모집 상태·교육비 조건을 줄여보세요.'],
+  [{ type: 'EDU', deliveryMode: 'ONLINE' }, '선택한 조건에 맞는 부트캠프·교육과정이 없습니다.', '수업 방식·지역·일정·교육비 등 선택한 조건을 줄여보세요.'],
+  [{ type: 'EDU', tuition: 'FREE', status: 'OPEN' }, '선택한 조건에 맞는 부트캠프·교육과정이 없습니다.', '수업 방식·지역·일정·교육비 등 선택한 조건을 줄여보세요.'],
 ])('성공한 빈 응답은 조건 %j에 맞는 안내를 보여준다', async (query, title, description) => {
   axios.get.mockResolvedValue({ data: { content: [], last: true } });
   const { wrapper } = setup(query); await flushPromises();

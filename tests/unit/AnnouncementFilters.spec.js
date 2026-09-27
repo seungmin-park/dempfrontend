@@ -59,3 +59,14 @@ it('연봉 필터를 숨기고 과거 연봉 URL도 검색에 적용하지 않�
   expect(axios.get.mock.lastCall[1].params.payment).toBeUndefined();
   expect(wrapper.text()).not.toContain('연봉 5,000만원 이상');
 });
+it('교육 상세 조건은 URL에서 복원되어 실제 검색 API에 전달되고 채용 전환 시 제거된다', async () => {
+  const { wrapper, router } = await setup('/?type=EDU&deliveryMode=ONLINE&region=SEOUL&commitment=PART_TIME&fundingType=CARD_REQUIRED&selectionProcess=NO_CODING&learningLevel=BEGINNER&duration=LONG&startAfter=2026-10-01');
+  expect(axios.get.mock.lastCall[1].params).toMatchObject({ deliveryMode: 'ONLINE', region: 'SEOUL', commitment: 'PART_TIME', fundingType: 'CARD_REQUIRED', selectionProcess: 'NO_CODING', learningLevel: 'BEGINNER', duration: 'LONG', startAfter: '2026-10-01' });
+  expect(wrapper.get('[aria-label="수업 방식"]').element.value).toBe('ONLINE');
+  await wrapper.get('[aria-label="온라인 조건 해제"]').trigger('click');
+  await flushPromises();
+  expect(router.currentRoute.value.query.deliveryMode).toBeUndefined();
+  await wrapper.get('#emp').setValue(true); await flushPromises();
+  expect(router.currentRoute.value.query.commitment).toBeUndefined();
+  expect(axios.get.mock.lastCall[1].params.fundingType).toBeUndefined();
+});

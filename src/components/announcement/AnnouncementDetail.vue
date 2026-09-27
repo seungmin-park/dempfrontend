@@ -11,11 +11,13 @@
       <p>기술 스택 : <span aria-label="기술 스택">{{ formatLanguages(announcement.language) }}</span></p>
 
     </div>
+    <section v-if="announcement.type === 'EDU'" class="education-detail"><h2>교육과정 한눈에 보기</h2><dl><div v-for="field in educationFields" :key="field.key"><dt>{{ field.label }}</dt><dd>{{ educationLabel(field.key, announcement.education?.[field.key]) }}</dd></div><div><dt>교육 일정</dt><dd>{{ announcement.education?.learningStartDate || '시작일 미확인' }} ~ {{ announcement.education?.learningEndDate || '종료일 미확인' }}<span v-if="announcement.education?.durationDays"> · {{ announcement.education.durationDays }}일</span></dd></div></dl><p class="field-hint">지원 조건과 정확한 수업 시간·본인 부담금은 원문에서 최종 확인하세요.</p></section>
     <section class="detail-announce-content"><h2>상세 내용</h2><SafeHtml images :content="announcement.content ?? ''" /></section>
     <div class="apply-bar"><span v-if="applicationUrl" class="field-hint">원문 공고에서 상세 내용을 확인하고 지원하세요. 새 탭으로 열립니다.</span><a v-if="applicationUrl" :href="applicationUrl" class="button button-primary" target="_blank" rel="noopener noreferrer">지원하기</a><span v-else class="field-hint">지원 링크가 없습니다.</span></div>
   </article>
 </template>
 <script lang="ts">
+import { educationFields, educationLabel } from '@/data/education';
 import { formatSalary, formatTuition } from '@/presentation/compensation';
 import type { AnnouncementDetail } from '@/types/api';
 import { routeId } from '@/router/query';
@@ -43,14 +45,14 @@ export default defineComponent({
       this.loadAnnouncementDetail();
     }
   },
-  data() { return { announcement: {} as Partial<AnnouncementDetail>, loading: true, error: '', requestGeneration: 0 }; },
+  data() { return { educationFields, announcement: {} as Partial<AnnouncementDetail>, loading: true, error: '', requestGeneration: 0 }; },
   unmounted() { this.requestGeneration++; },
   computed: {
     applicationUrl() { return safeApplicationUrl(this.announcement.accessUrl); },
 
   },
   methods: {
-    formatSalary, formatTuition, formatPosition,
+    educationLabel, formatSalary, formatTuition, formatPosition,
     formatLanguages,
     formatRecruitDate,
     async loadAnnouncementDetail() {

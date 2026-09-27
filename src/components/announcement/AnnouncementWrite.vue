@@ -5,7 +5,7 @@
       <div class="field"><label for="company">회사·교육기관</label><Field id="company" name="company" type="text" v-model="company" rules="required" placeholder="회사 또는 교육기관 이름" :disabled="saving" /><ErrorMessage name="company" class="field-error">회사·교육기관을 확인해 주세요.</ErrorMessage></div>
       <div class="field"><label for="accessUrl">원문 공고 URL</label><Field id="accessUrl" name="accessUrl" type="url" v-model="accessUrl" rules="required|url" placeholder="https://" :disabled="saving" /><ErrorMessage name="accessUrl" class="field-error">원문 공고 URL을 확인해 주세요.</ErrorMessage></div>
       <div class="field"><label for="language">기술 스택</label><Field id="language" name="language" type="text" v-model="language" rules="required" placeholder="JAVA, SPRING" :disabled="saving" /><ErrorMessage name="language" class="field-error">기술 스택을 확인해 주세요.</ErrorMessage></div>
-      <fieldset class="field"><legend>공고 종류</legend><div class="radio-options"><label><Field type="radio" name="type" v-model="type" value="EMP" rules="required" :disabled="saving" /> 채용</label><label><Field type="radio" name="type" v-model="type" value="EDU" :disabled="saving" /> 교육·부트캠프</label></div><ErrorMessage name="type" class="field-error">공고 종류를 선택해 주세요.</ErrorMessage></fieldset>
+      <fieldset class="field"><legend>공고 종류</legend><div class="radio-options"><label><Field type="radio" name="type" v-model="type" @change="changeType" value="EMP" rules="required" :disabled="saving" /> 채용</label><label><Field type="radio" name="type" v-model="type" @change="changeType" value="EDU" :disabled="saving" /> 교육·부트캠프</label></div><ErrorMessage name="type" class="field-error">공고 종류를 선택해 주세요.</ErrorMessage></fieldset>
       <div class="field"><label for="position">분야</label><Field as="select" id="position" name="position" v-model="position" rules="required" :disabled="saving"><option value="">분야 선택</option><option v-for="item in positions" :key="item" :value="item">{{ formatPosition(item) }}</option></Field><ErrorMessage name="position" class="field-error">분야를 선택해 주세요.</ErrorMessage></div>
       <div class="field"><label for="startedDate">모집 시작</label><Field id="startedDate" name="startedDate" type="datetime-local" v-model="startedDate" rules="required" :disabled="saving" /><ErrorMessage name="startedDate" class="field-error">모집 시작일을 입력해 주세요.</ErrorMessage></div>
       <div class="field"><label for="deadLineDate">모집 마감</label><Field id="deadLineDate" name="deadLineDate" type="datetime-local" v-model="deadLineDate" rules="required" :disabled="saving" /><ErrorMessage name="deadLineDate" class="field-error">모집 마감일을 입력해 주세요.</ErrorMessage></div>
@@ -14,12 +14,15 @@
       <CompensationFields id="payment" :type="type" v-model:payment="payment" v-model:salary-status="salaryStatus" v-model:salary-max="salaryMax" :disabled="saving" />
       <div class="field"><label for="announce_img">대표 이미지 (선택)</label><input id="announce_img" name="announce_img" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" ref="announceImg" :disabled="saving" @change="uploadImg" /><p class="field-hint">JPEG 또는 PNG 파일을 선택하세요.</p></div>
     </div>
+    <EducationFields v-if="type === 'EDU'" id="education-" v-model="education" :disabled="saving" />
     <div class="field"><AnnouncementBodyEditor id="content" v-model="content" v-model:body-images="bodyImages" :type="type" :cover-bytes="image?.size || 0" :disabled="saving" /></div>
     <p v-if="error" role="alert" class="form-error">{{ error }}</p>
     <div class="form-actions"><router-link class="button button-secondary" to="/">취소</router-link><button type="submit" class="button button-primary" :disabled="saving">{{ saving ? '저장 중…' : '등록하기' }}</button></div>
   </ValidationForm>
 </template>
 <script lang="ts">
+import EducationFields from './EducationFields.vue';
+import { educationError, type EducationInfo } from '@/data/education';
 import CompensationFields from './CompensationFields.vue';
 import { compensationError } from '@/presentation/compensation';
 import AnnouncementBodyEditor from '@/components/announcement/AnnouncementBodyEditor.vue';
@@ -46,13 +49,14 @@ export default defineComponent({
     }
   },
   components: {
-    AnnouncementBodyEditor, CompensationFields,
+    AnnouncementBodyEditor, CompensationFields, EducationFields,
     ValidationForm,
     Field,
     ErrorMessage,
   },
   data() {
     return {
+      education: {} as EducationInfo,
       title: "",
       company: "",
       accessUrl: "",
@@ -75,6 +79,7 @@ export default defineComponent({
   },
   methods: {
     formatPosition,
+    changeType() { this.payment = null; this.salaryStatus = undefined; this.salaryMax = null; },
     isRequired(value: unknown) {
       if (typeof value === 'string' && value.trim()) {
         return true;
@@ -87,6 +92,7 @@ export default defineComponent({
     saveAnnounce() {
       if (this.saving) return;
       if (!hasTextContent(this.content)) { this.error = '본문 내용을 입력해 주세요.'; return; }
+      if (this.type === 'EDU' && educationError(this.education)) { this.error = educationError(this.education); return; }
       const amountError = compensationError(this);
       if (amountError) { this.error = amountError; return; }
       const attachmentsError = announcementAttachmentError(this.image, this.bodyImages);
@@ -94,6 +100,7 @@ export default defineComponent({
       this.saving = true;
       this.error = "";
       createAnnouncement({
+        ...this.education,
         title: this.title,
         company: this.company,
         accessUrl: this.accessUrl,

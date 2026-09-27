@@ -1,3 +1,4 @@
+import { educationFields, durations, validDate } from '@/data/education';
 import type { LocationQuery, LocationQueryRaw } from 'vue-router';
 import type { AnnouncementFilters, Language } from '@/types/api';
 import positions from '@/data/positions';
@@ -9,7 +10,14 @@ export function filtersFromQuery(query: LocationQuery = {}): AnnouncementFilters
   const type = text(query.type);
   const status = text(query.status);
   const tuition = text(query.tuition);
+  const education: Partial<AnnouncementFilters> = {};
+  if (type === 'EDU') {
+    for (const field of educationFields) { const value = text(query[field.key]); if (Object.hasOwn(field.options, value)) education[field.key] = value; }
+    if (Object.hasOwn(durations, text(query.duration))) education.duration = text(query.duration);
+    for (const key of ['startAfter','startBefore'] as const) if (validDate(text(query[key]))) education[key] = text(query[key]);
+  }
   return {
+    ...education,
     announcementType: type === 'EMP' || type === 'EDU' ? type : '',
     positions: [...new Set(positions.filter(item => values(query.positions).includes(item)))],
     languages: [...new Set(languages.filter(item => values(query.languages).includes(item)))],
@@ -29,6 +37,10 @@ export function filtersToQuery(filters: AnnouncementFilters): LocationQueryRaw {
   if (filters.announcementType === 'EDU') { if (filters.tuition) query.tuition = filters.tuition; }
   else {
     if (filters.career) query.career = String(filters.career);
+  }
+  if (filters.announcementType === 'EDU') {
+    for (const field of educationFields) if (filters[field.key]) query[field.key] = filters[field.key];
+    for (const key of ['duration','startAfter','startBefore'] as const) if (filters[key]) query[key] = filters[key];
   }
   if (filters.title.trim()) query.q = filters.title.trim();
   return query;

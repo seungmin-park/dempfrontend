@@ -1,3 +1,4 @@
+import { educationFields } from '@/data/education';
 import type { AnnouncementForm, AnnouncementDetailResponse, AnnouncementDetail, AnnouncementSummary, AnnouncementSearchCondition, AnnouncementScroll, EntityId, Slice } from '@/types/api';
 import { apiClient } from './client';
 
@@ -8,6 +9,11 @@ export function toAnnouncementFormData(announcement: AnnouncementForm) {
     'startedDate', 'deadLineDate', 'content', 'accessUrl', 'payment', 'salaryStatus', 'salaryMax',
   ] as const;
   fields.forEach(field => { if (announcement[field] != null && announcement[field] !== '') form.append(field, String(announcement[field])); });
+  if (announcement.type === 'EDU') {
+    for (const key of [...educationFields.map(field => field.key), 'learningStartDate', 'learningEndDate'] as const) {
+      if (announcement[key]) form.append(key, String(announcement[key]));
+    }
+  }
   const languages = Array.isArray(announcement.language)
     ? announcement.language
     : String(announcement.language || '').split(',').map(value => value.trim()).filter(Boolean);
@@ -43,6 +49,9 @@ export function getAnnouncements(condition: AnnouncementSearchCondition) {
       ...(condition.languages?.length ? { languages: condition.languages.join(',') } : {}),
       ...(condition.recruitmentStatus ? { recruitmentStatus: condition.recruitmentStatus } : {}),
       ...(condition.tuition ? { tuition: condition.tuition } : {}),
+      ...(condition.announcementType === 'EDU' ? Object.fromEntries(
+        [...educationFields.map(field => field.key), 'duration', 'startAfter', 'startBefore'].filter(key => condition[key as keyof AnnouncementSearchCondition]).map(key => [key, condition[key as keyof AnnouncementSearchCondition]])
+      ) : {}),
       page: condition.page,
       size: 8,
     },

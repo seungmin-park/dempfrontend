@@ -353,3 +353,34 @@ test('교육 빈 검색은 상황을 설명하고 필터 해제로 교육 목록
   await expect(page.locator('.notice-title')).toHaveText('복구된 교육과정');
   await expect(page.getByRole('textbox', { name: '공고 검색어' })).toHaveValue('');
 });
+
+
+test('상세 교육 필터는 모바일 입력·새로고침·뒤로가기·빈 결과 해제에 연동된다', async ({ page }) => {
+  await isolatedCommunity(page); await page.setViewportSize({ width: 390, height: 844 });
+  const requests = [];
+  await page.route('**/api/announce?*', route => {
+    const query = new URL(route.request().url()).searchParams; requests.push(Object.fromEntries(query));
+    return route.fulfill({ json: { content: [], last: true } });
+  });
+  await page.goto('/?type=EDU');
+  await page.getByRole('button', { name: '필터 열기' }).click();
+  await page.locator('.education-filter-panel summary').click();
+  await page.getByLabel('수업 방식', { exact: true }).selectOption('ONLINE');
+  await page.getByLabel('참여 시간', { exact: true }).selectOption('PART_TIME');
+  await page.getByLabel('교육비 지원', { exact: true }).selectOption('CARD_REQUIRED');
+  await page.getByLabel('개강일 이후', { exact: true }).fill('2026-10-01');
+  await page.getByLabel('개강일 이후', { exact: true }).press('Tab');
+  await expect.poll(() => requests.at(-1)).toMatchObject({ deliveryMode: 'ONLINE', commitment: 'PART_TIME', fundingType: 'CARD_REQUIRED', startAfter: '2026-10-01', page: '0' });
+  await expect(page.locator('.empty-state h2')).toHaveText('선택한 조건에 맞는 부트캠프·교육과정이 없습니다.');
+  await page.reload();
+  await expect(page.getByRole('button', { name: '온라인 조건 해제', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: '온라인 조건 해제', exact: true }).click();
+  await expect(page).not.toHaveURL(/deliveryMode/);
+  await page.goBack(); await expect(page).toHaveURL(/deliveryMode=ONLINE/);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole('button', { name: '검색·필터 해제' }).click();
+  await expect(page).toHaveURL('/?type=EDU');
+  await page.goto('/?type=EMP&payment=5000');
+  await expect(page.getByLabel('최소 연봉')).toHaveCount(0);
+  expect(requests.at(-1).payment).toBeUndefined();
+});
