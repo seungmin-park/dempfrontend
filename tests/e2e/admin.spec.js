@@ -7,7 +7,7 @@ async function adminFixture(page, role = 'admin') {
   await page.route('http://127.0.0.1:5050/api/**', async route => {
     const request = route.request(), url = new URL(request.url()), path = url.pathname, method = request.method();
     const reply = (status, data) => route.fulfill({ status, contentType: 'application/json', body: status === 204 ? '' : JSON.stringify(data) });
-    if (path.startsWith('/api/announce/detail/')) return reply(200, state.items.find(item => item.id === Number(path.split('/').pop())) || {});
+    if (path.startsWith('/api/announce/detail/')) { const item = state.items.find(item => item.id === Number(path.split('/').pop()) && item.publicationStatus === 'PUBLISHED'); return reply(item ? 200 : 404, item || {}); }
     if (!path.startsWith('/api/admin')) return reply(200, { content: [], number: 0, last: true });
     if (state.expired || state.role === 'guest') return reply(401, {});
     if (state.role !== 'admin') return reply(403, {});
@@ -17,9 +17,12 @@ async function adminFixture(page, role = 'admin') {
     if (path.includes('/announcements') && ['POST','PATCH'].includes(method)) {
       const body = request.postData() || '';
       const value = name => [...body.matchAll(new RegExp(`name="${name}"\\r?\\n\\r?\\n([\\s\\S]*?)\\r?\\n--`, 'g'))].map(match => match[1]);
-      const fields = Object.fromEntries(['title','content','accessUrl','position','startedDate','deadLineDate','minCareer','maxCareer','payment'].map(name => [name, value(name)[0]]));
+      const fields = Object.fromEntries(['publicationStatus','sourceName','applicationUrl','recruitmentAudience','cohort','stipendNote','title','content','accessUrl','position','startedDate','deadLineDate','minCareer','maxCareer','payment'].map(name => [name, value(name)[0]]));
       for (const key of ['minCareer','maxCareer']) fields[key] = Number(fields[key]);
       fields.payment = value('payment').length ? Number(value('payment')[0]) : null;
+      fields.recruitmentClosed = value('recruitmentClosed')[0] === 'true';
+      fields.sourceVerifiedAt = value('sourceVerified')[0] === 'true' ? '2026-09-27T12:00:00' : null;
+      fields.stipendAmount = value('stipendAmount').length ? Number(value('stipendAmount')[0]) : null;
       fields.salaryStatus = value('salaryStatus')[0];
       fields.salaryMax = value('salaryMax').length ? Number(value('salaryMax')[0]) : null;
       fields.education = value('type')[0] === 'EDU' ? Object.fromEntries(['deliveryMode','region','commitment','fundingType','selectionProcess','learningLevel','learningStartDate','learningEndDate'].map(key => [key, value(key)[0] || null])) : null;
@@ -136,6 +139,7 @@ test('본문 붙여넣기와 이미지 저장 후 재조회하고 지원하기�
   await page.context().route('**/original-employer-job', route => route.fulfill({ contentType: 'text/html; charset=utf-8', body: '<meta charset="utf-8"><h1>기업 원문 공고</h1>' }));
   await page.goto('/admin/announcements/new');
   await page.getByLabel('제목', { exact: true }).fill('원문 연결 공고');
+  await page.getByLabel('게시 상태', { exact: true }).selectOption('PUBLISHED');
   await page.getByLabel('회사·교육기관').fill('DEMP');
   await page.getByLabel('원문 공고 URL').fill('http://127.0.0.1:5050/original-employer-job');
   await page.getByLabel('분야', { exact: true }).selectOption('BACKEND');
@@ -172,4 +176,34 @@ test('본문 붙여넣기와 이미지 저장 후 재조회하고 지원하기�
   await expect(original).toHaveURL('http://127.0.0.1:5050/original-employer-job');
   await expect(original.getByRole('heading')).toHaveText('기업 원문 공고');
   await original.close();
+});
+
+test('초안은 공개 상세에서 숨기고 검토 후 게시하며 수동 마감 상태를 보존한다', async ({ page }) => {
+  const state = await adminFixture(page); await page.goto('/admin/announcements/new');
+  await expect(page.getByLabel('게시 상태', { exact: true })).toHaveValue('DRAFT');
+  await page.getByLabel('제목', { exact: true }).fill('게시 수명주기 검증');
+  await page.getByLabel('회사·교육기관').fill('DEMP');
+  await page.getByLabel('원문 공고 URL').fill('https://example.com/original');
+  await page.getByLabel('출처 이름', { exact: true }).fill('회사 채용');
+  await page.getByLabel('분야', { exact: true }).selectOption('BACKEND');
+  await page.getByLabel('모집 대상', { exact: true }).selectOption('NEW');
+  await page.getByLabel('모집 시작').fill('2026-09-01T09:00');
+  await page.getByLabel('모집 마감').fill('2026-12-31T18:00');
+  await page.getByLabel('Java', { exact: true }).check();
+  await page.locator('#admin-content').fill('원문 확인 요약');
+  await page.getByRole('button', { name: '등록하기', exact: true }).click();
+  await expect(page).toHaveURL(/\/admin\/announcements$/);
+  const id = state.items[0].id;
+  await page.goto(`/detail/${id}`); await expect(page.getByRole('alert')).toContainText('찾을 수 없습니다');
+  for (const status of ['REVIEW', 'PUBLISHED']) {
+    await page.goto(`/admin/announcements/${id}`);
+    await page.getByLabel('게시 상태', { exact: true }).selectOption(status);
+    await page.getByRole('button', { name: '변경 저장', exact: true }).click();
+    await expect(page).toHaveURL(/\/admin\/announcements$/);
+    expect(state.items[0].publicationStatus).toBe(status);
+  }
+  await page.goto(`/detail/${id}`); await expect(page.locator('.job-detail').getByLabel('모집 구분')).toHaveText('신입');
+  await page.goto(`/admin/announcements/${id}`); await page.getByLabel('모집 종료 (수동 마감)').check();
+  await page.getByRole('button', { name: '변경 저장', exact: true }).click(); await expect(page).toHaveURL(/\/admin\/announcements$/);
+  await page.goto(`/detail/${id}`); await expect(page.getByRole('link', { name: '원문 확인', exact: true })).toBeVisible();
 });

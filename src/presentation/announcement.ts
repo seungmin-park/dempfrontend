@@ -17,9 +17,15 @@ export function formatRecruitDate(value: string | null | undefined): string {
 
 
 // A zero maximum is the existing API's unbounded range, not "new graduates only".
-export function announcementAudience(item: Pick<AnnouncementSummary, 'announcementType' | 'minCareer' | 'maxCareer' | 'recruitmentAudience'>) {
+export function announcementAudience(item: Pick<AnnouncementSummary, 'announcementType' | 'minCareer' | 'maxCareer' | 'recruitmentAudience'>): { label: string; detail: string; tone: string } {
   if (item.announcementType === 'EDU') return { label: '교육', detail: '', tone: 'education' };
-  if (item.recruitmentAudience) { const label = { NEW: '신입', EXPERIENCED: '경력', ANY: '경력 무관', MIXED: '신입·경력' }[item.recruitmentAudience]; return { label, detail: '', tone: item.recruitmentAudience === 'EXPERIENCED' ? 'experienced' : item.recruitmentAudience === 'ANY' ? 'any' : 'entry' }; }
+  if (item.recruitmentAudience) {
+    const audience = item.recruitmentAudience;
+    const label = { NEW: '신입', EXPERIENCED: '경력', ANY: '경력 무관', MIXED: '신입·경력' }[audience];
+    const legacy = announcementAudience({ ...item, recruitmentAudience: null });
+    const detail = audience === 'EXPERIENCED' || audience === 'MIXED' ? legacy.detail : '';
+    return { label, detail, tone: audience === 'EXPERIENCED' ? 'experienced' : audience === 'ANY' ? 'any' : 'entry' };
+  }
   const { minCareer: min, maxCareer: max } = item;
   if (min == null || max == null || min < 0 || max < 0 || (max > 0 && min > max)) {
     return { label: '채용', detail: '경력 정보 없음', tone: 'neutral' };

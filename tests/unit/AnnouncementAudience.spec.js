@@ -35,3 +35,8 @@ for (const [announcementType, minCareer, maxCareer, label, years] of cases) {
     }
   });
 }
+it.each([['EXPERIENCED', 3, 5, '3~5년'], ['EXPERIENCED', 3, 0, '3년 이상'], ['MIXED', 0, 5, '5년 이하']])('명시적 %s 모집 대상도 저장된 연차 범위를 표시한다', async (recruitmentAudience, minCareer, maxCareer, years) => {
+  axios.get.mockResolvedValue({ data: { content: [{ id: 1, title: '명시적 대상', announcementType: 'EMP', recruitmentAudience, minCareer, maxCareer, language: [] }], last: true } });
+  const wrapper = mount(AnnouncementList, { global: { mocks: { emitter: { on: vi.fn(), off: vi.fn() } } } });
+  await flushPromises(); expect(wrapper.get('.announcement-audience').text()).toContain(years); wrapper.unmount();
+});
