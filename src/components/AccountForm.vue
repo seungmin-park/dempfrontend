@@ -48,12 +48,13 @@
         </ErrorMessage>
       </div>
 
+      <p v-if="error" class="form-error" role="alert">{{ error }}</p>
       <div class="auth-actions">
         <div class="col">
           <button type="reset" class="button button-secondary">취소</button>
         </div>
         <div class="col">
-          <button type="submit" class="button button-primary">회원가입</button>
+          <button type="submit" :disabled="saving" class="button button-primary">회원가입</button>
         </div>
       </div>
     </ValidationForm>
@@ -84,6 +85,7 @@ export default defineComponent({
   },
   data() {
     return {
+      saving: false, error: "", usernameCheckGeneration: 0,
       username: "",
       password: "",
       checkedPassword: "",
@@ -100,27 +102,32 @@ export default defineComponent({
   methods: {
     validateRegistrationPassword,
     registerAccount() {
+      if (this.saving) return;
+      this.error = "";
       if (!this.checkedUsername){
-        alert("아이디 중복 검사를 실시해 주시기 바랍니다.");
+        this.error = "아이디 중복 검사를 먼저 진행해 주세요.";
         return;
       }
+      this.saving = true;
       const form = new FormData();
       form.append("username", this.username);
       form.append("password", this.password);
       register(form)
         .then(() => {
           this.$router.push("/login");
-        });
+        }).catch(() => { this.error = "가입하지 못했습니다. 입력한 내용을 확인하고 다시 시도해 주세요."; }).finally(() => { this.saving = false; });
     },
     validUsername(){
-      checkUsername(this.username)
-          .then((res) =>{
-            this.checkedUsername = res.data;
-            if (!this.checkedUsername){
-              alert("사용 불가능한 아이디 입니다.");
-            }
-          })
-    }
+      const generation = ++this.usernameCheckGeneration;
+      this.error = '';
+      this.checkedUsername = false;
+      checkUsername(this.username).then(res => {
+        if (generation !== this.usernameCheckGeneration) return;
+        this.checkedUsername = res.data;
+        if (!res.data) this.error = '이미 사용 중인 아이디입니다.';
+      }).catch(() => { if (generation === this.usernameCheckGeneration) this.error = '아이디를 확인하지 못했습니다. 다시 시도해 주세요.'; });
+    },
   },
+  watch: { username() { this.checkedUsername = false; this.usernameCheckGeneration++; } },
 });
 </script>

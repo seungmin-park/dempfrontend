@@ -107,7 +107,7 @@ test('회원가입부터 공고·질문·답변의 별도 재조회까지', asyn
   await page.locator('#emp').check();
   await expect(page.locator('.notice-title')).toHaveText('개발자 채용');
   await page.locator('.notice-title').click();
-  await expect(page).toHaveURL('/detail/71');
+  await expect(page).toHaveURL('/detail/71?type=EMP');
   await expect(page.getByRole('heading', { name: '개발자 채용' })).toBeVisible();
   await expect(page.getByText('테스트 회사', { exact: true })).toBeVisible();
   await page.getByRole('link', { name: '면접 질문' }).click();
@@ -285,4 +285,27 @@ test('모바일 교육 필터는 URL·새로고침·뒤로 가기에서 복원�
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole('button', { name: '전체 조건 초기화' }).click();
   await expect(page).toHaveURL('/?type=EDU');
+});
+
+
+test('없는 페이지·상세 오류는 안내하고 재시도로 복구된다', async ({ page }) => {
+  const state = await isolatedCommunity(page);
+  await page.goto('/missing-page');
+  await expect(page.getByRole('heading', { name: '페이지를 찾을 수 없습니다.' })).toBeVisible();
+  await page.getByRole('link', { name: '공고 둘러보기' }).click();
+  await expect(page).toHaveURL('/');
+  await loginAs(page, state, 'reader');
+  let failed = false;
+  await page.route('**/api/announce/detail/71', route => {
+    if (!failed) { failed = true; return route.fulfill({ status: 503, json: {} }); }
+    return route.fulfill({ json: { title: '복구 공고', company: { name: '회사' }, announcementType: 'EMP', language: ['JAVA', 'SPRING'], minCareer: 0, maxCareer: 3, content: '<p>복구 본문</p>', accessUrl: 'https://example.com', startedDate: '2026-09-01T09:00:00', deadLineDate: '2026-12-31T18:30:00' } });
+  });
+  await page.goto('/detail/71?type=EDU&tuition=FREE');
+  await expect(page.locator('.details-announcement').getByRole('alert')).toContainText('불러오지 못했습니다');
+  await page.locator('.details-announcement').getByRole('button', { name: '재시도' }).click();
+  await expect(page.getByRole('heading', { name: '복구 공고' })).toBeVisible();
+  await expect(page.locator('[aria-label="기술 스택"]')).toHaveText('Java, Spring');
+  await expect(page.locator('.detail-facts')).toContainText('2026.12.31 18:30');
+  await page.getByRole('button', { name: '검색 결과로 돌아가기' }).click();
+  await expect(page).toHaveURL('/?type=EDU&tuition=FREE');
 });

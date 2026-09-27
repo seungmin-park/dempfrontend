@@ -44,11 +44,10 @@ test('로그인 성공 시 인증 상태와 이동 경로를 반영하고 자격
 
 test('로그인 실패 시 오류를 알리고 인증 상태와 경로를 바꾸지 않는다', async () => {
   axios.post.mockRejectedValue(new Error('unauthorized'));
-  const alert = vi.spyOn(window, 'alert').mockImplementation(() => {});
   vi.spyOn(console, 'log').mockImplementation(() => {});
   const { wrapper, commit, push } = mountLogin();
   await submit(wrapper);
-  expect(alert).toHaveBeenCalledWith('아이디 혹은 비밀번호가 잘못 되었습니다.');
+  expect(wrapper.get('[role="alert"]').text()).toContain('아이디와 비밀번호를 확인하고 다시 시도');
   expect(commit).not.toHaveBeenCalled();
   expect(push).not.toHaveBeenCalled();
 });

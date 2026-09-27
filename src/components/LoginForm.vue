@@ -31,9 +31,10 @@
           비밀번호를 입력해 주세요.
         </ErrorMessage>
 
+      <p v-if="error" class="form-error" role="alert">{{ error }}</p>
       <div class="auth-actions">
         <div class="col">
-          <button type="submit" class="button button-primary">로그인</button>
+          <button type="submit" :disabled="saving" class="button button-primary">로그인</button>
         </div>
         <div class="col">
           <router-link class="button button-secondary" :to="{ path: '/account' }">
@@ -63,6 +64,7 @@ export default defineComponent({
   },
   data() {
     return {
+      saving: false, error: "",
       username: "",
       password: "",
       token: "",
@@ -80,6 +82,8 @@ export default defineComponent({
   },
   methods: {
     loginMethod() {
+      if (this.saving) return;
+      this.saving = true; this.error = "";
       const form = new FormData();
       form.append("username", this.username);
       form.append("password", this.password);
@@ -93,8 +97,8 @@ export default defineComponent({
             this.$router.push({path: this.redirect});
           }
         }).catch(() => {
-          alert("아이디 혹은 비밀번호가 잘못 되었습니다.")
-      });
+          this.error = "로그인하지 못했습니다. 아이디와 비밀번호를 확인하고 다시 시도해 주세요.";
+      }).finally(() => { this.saving = false; });
     },
   },
 });

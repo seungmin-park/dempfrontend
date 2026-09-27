@@ -7,7 +7,7 @@
     </article>
   </div>
   <div ref="listEnd" data-test="list-end" aria-hidden="true" class="list-end"></div>
-  <div class="list-status"><button v-if="!last && !error" :disabled="loading" @click="loadNextPage" class="button button-secondary">{{ loading ? '불러오는 중…' : '더보기' }}</button><p v-if="error" role="alert" class="form-error">{{ error }} <button class="button button-secondary" data-test="retry" @click="loadNextPage">재시도</button></p><p v-if="last" class="end-message">더 이상 채용/교육 공고 내용이 존재하지 않습니다.</p></div>
+  <div class="list-status"><button v-if="!last && !error" :disabled="loading" @click="loadNextPage" class="button button-secondary">{{ loading ? '불러오는 중…' : '더보기' }}</button><p v-if="error" role="alert" class="form-error">{{ error }} <button class="button button-secondary" data-test="retry" @click="loadNextPage">재시도</button></p><p v-if="last && notices.length" class="end-message">더 이상 채용/교육 공고 내용이 존재하지 않습니다.</p><div v-if="last && !notices.length" class="empty-state"><h2>조건에 맞는 공고가 없습니다.</h2><p>검색어를 바꾸거나 선택한 조건을 줄여보세요.</p></div></div>
 </template>
 <script lang="ts">
 import type { AnnouncementSummary, AnnouncementFilters, JobPosition } from '@/types/api';
@@ -103,7 +103,8 @@ export default defineComponent({
     },
     openAnnouncementDetail(id: number){
       if (this.$store.state.Login.token != ""){
-        this.$router.push(`/detail/${id}`);
+        const query = this.$route?.query;
+        this.$router.push(query && Object.keys(query).length ? { path: `/detail/${id}`, query } : `/detail/${id}`);
       }else {
         alert("로그인이 필요한 서비스 입니다.");
       }
