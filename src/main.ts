@@ -6,8 +6,7 @@ import Header from "./components/layout/Header.vue";
 import mitt from "mitt";
 import type { AppEvents } from "./types/events";
 
-import "bootstrap/dist/css/bootstrap.min.css"
-import "bootstrap"
+import './assets/styles/main.css'
 
 const emitter = mitt<AppEvents>();
 const vue = createApp(App);

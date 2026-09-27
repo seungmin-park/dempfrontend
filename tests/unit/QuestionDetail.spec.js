@@ -13,7 +13,7 @@ test('서버의 추천 수를 표시하고 미완성 반응은 저장 불가로 
     $router: { replace: vi.fn(), currentRoute: { value: { fullPath: '/questions/7' } } },
   } } });
   await flushPromises();
-  const buttons = wrapper.findAll('.qusetion-detail-info-reaction button');
+  const buttons = wrapper.findAll('.content-reactions button');
   expect(buttons[0].text()).toContain('3');
   expect(buttons[0].attributes('disabled')).toBeDefined();
   expect(buttons[1].attributes('disabled')).toBeDefined();

@@ -43,7 +43,7 @@ test('목록은 서버의 recommend 값을 추천 수로 표시한다', async ()
     $store: { state: { Login: { token: 'token' } } }, emitter: { on: vi.fn(), off: vi.fn() },
   } } });
   await flushPromises();
-  expect(wrapper.get('.question-list-count-recommend').text()).toContain('3');
+  expect(wrapper.get('[aria-label="추천 3"]').text()).toContain('3');
 });
 
 test('검색 조건이 바뀌면 첫 페이지부터 새 태그 조건으로 조회한다', async () => {

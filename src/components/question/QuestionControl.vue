@@ -1,10 +1,10 @@
 <template>
   <div class="question-control">
-    <button class="question-control-hastag" @click="visibleHashtags">
+    <button class="button button-secondary question-control-hastag" :aria-expanded="visible" @click="visibleHashtags">
       해시태그
     </button>
     <button
-      class="question-control-btn"
+      class="button button-primary question-control-btn"
       @click="directQuestionWritePage"
     >
       질문하기
@@ -24,7 +24,6 @@
     </div>
   </div>
 </template>
-
 <script lang="ts">
 
 import { defineComponent } from "vue";
@@ -64,22 +63,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style>
-.question-control {
-  align-items: center;
-}
-
-.question-control button {
-  display: block;
-  color: white;
-  background-color: #a9cbdd;
-  width: 100px;
-  height: 41px;
-  border: none;
-  border-radius: 5px;
-  margin: 10px 10px 10px 10px;
-  font-size: 15px;
-  font-weight: 600;
-}
-</style>

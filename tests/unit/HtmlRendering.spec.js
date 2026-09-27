@@ -9,8 +9,8 @@ vi.mock('axios');
 afterEach(() => { delete global.$; });
 
 const pages = [
-  ['질문', QuestionDetail, '.qusetion-detail-content'],
-  ['답변', QuestionAnswer, '.question-answer-info-content'],
+  ['질문', QuestionDetail, '.article-content'],
+  ['답변', QuestionAnswer, '.answer-content'],
   ['공고', AnnouncementDetail, '.detail-announce-content'],
 ];
 

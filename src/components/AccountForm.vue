@@ -1,8 +1,8 @@
 <template>
-  <div class="container">
+  <div class="auth-card">
     <ValidationForm as="form" @submit="registerAccount" enctype="multipart/form-data">
-      <div class="py-5 text-center">
-        <h2>회원 가입</h2>
+      <div class="auth-heading">
+        <span class="auth-brand">DEMP</span><h1>함께 시작해요</h1><p>개발자의 커리어와 배움이 연결되는 곳.</p>
       </div>
       <div class="add-form">
           <label for="username">아이디</label>
@@ -11,7 +11,7 @@
             id="username"
             name="username"
             v-model="username"
-            placeholder="username"
+            placeholder="사용할 아이디" autocomplete="username"
             rules="required"
             class="form-control"
         />
@@ -21,25 +21,25 @@
         <p v-if="checkedUsername" style="color: #0A7DC6">
           사용 가능한 아이디 입니다.
         </p>
-          <button type="button" @click="validUsername" class="w-100 btn btn-secondary btn-lg">아이디 중복 검사</button>
+          <button type="button" @click="validUsername" class="button button-secondary">아이디 중복 검사</button>
         <label for="password">비밀번호</label>
         <Field
           type="password"
           id="password"
           name="password"
           v-model="password"
-          placeholder="password"
+          placeholder="비밀번호" autocomplete="new-password"
           :rules="validateRegistrationPassword"
           class="form-control"
         />
         <ErrorMessage class="errorMessage" name="password" as="div" role="alert" />
-        <label for="password">비밀번호 재확인</label>
+        <label for="checkedPassword">비밀번호 재확인</label>
         <Field
             type="password"
             id="checkedPassword"
             name="checkedPassword"
             v-model="checkedPassword"
-            placeholder="password"
+            placeholder="비밀번호" autocomplete="new-password"
             rules="required|equal"
             class="form-control"
         />
@@ -47,19 +47,18 @@
           비밀번호가 일치하지 않습니다.
         </ErrorMessage>
       </div>
-      <hr class="my-4">
-      <div class="row">
+
+      <div class="auth-actions">
         <div class="col">
-          <button type="reset" class="w-100 btn btn-secondary btn-lg">취소</button>
+          <button type="reset" class="button button-secondary">취소</button>
         </div>
         <div class="col">
-          <button type="submit" class="w-100 btn btn-secondary btn-lg">회원가입</button>
+          <button type="submit" class="button button-primary">회원가입</button>
         </div>
       </div>
     </ValidationForm>
   </div>
 </template>
-
 <script lang="ts">
 import { validateRegistrationPassword } from '@/validation/registrationPassword';
 import { defineComponent } from "vue";
@@ -125,13 +124,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style>
-.container {
-  max-width: 560px;
-}
-.errorMessage {
-  display: flex;
-  color: red;
-}
-</style>

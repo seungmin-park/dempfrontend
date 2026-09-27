@@ -14,16 +14,6 @@ async function isolatedCommunity(page) {
     requests: [],
     expired: false,
   };
-  await page.addInitScript(() => {
-    // Summernote is loaded from a CDN in production. The editor boundary is
-    // replaced here so this suite never depends on the public network.
-    window.$ = selector => ({
-      summernote(option) {
-        if (option === 'code') return document.querySelector(selector).value;
-        return this;
-      },
-    });
-  });
   await page.route(/^https:\/\//, route => route.abort());
   await page.route('http://127.0.0.1:5050/api/**', async route => {
     const request = route.request();
@@ -119,13 +109,13 @@ test('회원가입부터 공고·질문·답변의 별도 재조회까지', asyn
   await page.locator('.notice-title').click();
   await expect(page).toHaveURL('/detail/71');
   await expect(page.getByRole('heading', { name: '개발자 채용' })).toBeVisible();
-  await expect(page.getByText('테스트 회사')).toBeVisible();
+  await expect(page.getByText('테스트 회사', { exact: true })).toBeVisible();
   await page.getByRole('link', { name: '면접 질문' }).click();
   await page.getByRole('button', { name: '질문하기' }).click();
   await page.locator('#question-title').fill('독립 조회 질문');
   await page.locator('#content').fill('질문 본문');
   await page.getByRole('button', { name: '작성하기' }).click();
-  await expect(page.locator('.question-list-title')).toHaveText('Q. 독립 조회 질문');
+  await expect(page.locator('.question-list-title')).toHaveText('독립 조회 질문');
   await page.locator('.question-list-title').click();
   await expect(page.getByText('질문 본문')).toBeVisible();
   await page.locator('#answer').fill('별도 조회 답변');
@@ -183,9 +173,9 @@ test('늦게 도착한 이전 검색 결과가 새 결과를 덮지 않는다', 
   await expect.poll(() => Boolean(releaseOld)).toBe(true);
   await page.getByPlaceholder('제목, 내용으로 검색하세요').fill('최신');
   await page.getByRole('button', { name: '검색' }).click();
-  await expect(page.locator('.question-list-title')).toHaveText('Q. 최신 질문');
+  await expect(page.locator('.question-list-title')).toHaveText('최신 질문');
   releaseOld();
-  await expect(page.locator('.question-list-title')).toHaveText('Q. 최신 질문');
+  await expect(page.locator('.question-list-title')).toHaveText('최신 질문');
 });
 
 function announcementFixture(id, title = `스크롤 공고 ${id}`) {

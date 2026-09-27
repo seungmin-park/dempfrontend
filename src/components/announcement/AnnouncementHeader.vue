@@ -1,15 +1,11 @@
 <template>
-  <link
-    rel="stylesheet"
-    href="https://use.fontawesome.com/releases/v6.0.0/css/all.css"
-  />
   <div>
     <div class="search-condition" @change="changeCondition">
       <div class="search-condition-selected">
         <span class="selected-condition-element element-init">
           전체 초기화
           <button class="delete-condition" @click="initCondition">
-            <i class="fa-solid fa-trash-can"></i>
+            <AppIcon name="close" :size="14" />
           </button>
         </span>
         <span
@@ -30,7 +26,7 @@
               }
             "
           >
-            <i class="fa-solid fa-trash-can"></i>
+            <AppIcon name="close" :size="14" />
           </button>
         </span>
         <span
@@ -40,7 +36,7 @@
         >
           {{ position }}
           <button class="delete-condition" @click="removePosition(position)">
-            <i class="fa-solid fa-trash-can"></i>
+            <AppIcon name="close" :size="14" />
           </button>
         </span>
         <span
@@ -57,7 +53,7 @@
               }
             "
           >
-            <i class="fa-solid fa-trash-can"></i>
+            <AppIcon name="close" :size="14" />
           </button>
         </span>
         <span
@@ -74,7 +70,7 @@
               }
             "
           >
-            <i class="fa-solid fa-trash-can"></i>
+            <AppIcon name="close" :size="14" />
           </button>
         </span>
       </div>
@@ -207,7 +203,7 @@
         <div class="search-condition-title">
           <input
             type="text"
-            placeholder="제목 검색"
+            placeholder="제목 검색" aria-label="공고 제목 검색"
             v-model="announcementSearchCondition.title"
           />
         </div>
@@ -218,9 +214,11 @@
 <script lang="ts">
 import type { AnnouncementFilters, JobPosition } from '@/types/api';
 import { defineComponent } from "vue";
+import AppIcon from '@/components/common/AppIcon.vue';
 import positions from "../../data/positions";
 
 export default defineComponent({
+  components: { AppIcon },
   data() {
     return {
       positionStatus: false,
@@ -299,129 +297,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style scoped>
-.search-condition {
-  padding: 25px;
-  margin-right: 10px;
-}
-
-.search-condition-second {
-  display: flex;
-}
-
-.condition-btn {
-  display: flex;
-  box-sizing: border-box;
-  align-items: center;
-  justify-content: space-between;
-  width: 350px;
-  height: 40px;
-  font-size: 15px;
-  font-weight: 600;
-  background-color: white;
-  border-radius: 5px;
-  border: 1px solid rgba(0, 0, 0, 0.5);
-}
-
-ul {
-  width: auto;
-  list-style: none;
-  padding-left: 0px;
-  margin: 0;
-}
-
-li {
-  display: block;
-}
-
-.search-condition-career {
-  margin: 0px 5px 0px 5px;
-}
-
-.search-condition-title {
-  display: flex;
-  align-items: flex-end;
-}
-
-.search-condition-title input {
-  border: none;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.5);
-  height: 20px;
-}
-
-.dropdown-menu {
-  position: absolute;
-  z-index: 1000;
-  box-sizing: border-box;
-  background-color: white;
-  border-radius: 0.25rem;
-  box-shadow: 0 0.25rem 0.5rem rgb(20 20 84 / 4%),
-    0 0.5rem 1.125rem rgb(20 20 84 / 8%),
-    0 1rem 2rem -0.125rem rgb(20 20 84 / 8%),
-    0 0 0 0.0625rem rgb(20 20 84 / 12%);
-  color: #354e66;
-  display: flex;
-  justify-content: center;
-  padding: 10px 12px 10px 12px;
-}
-
-.dropdown-item-wraper {
-  width: auto;
-  column-count: 2;
-}
-
-.career-btn,
-.payment-btn {
-  width: 200px;
-}
-
-.search-condition-selected {
-  display: flex;
-  align-items: center;
-  height: 45px;
-  margin-top: 10px;
-}
-
-.selected-condition-element {
-  border: none;
-  padding: 10px 5px 10px 5px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  margin-right: 15px;
-}
-
-.element-typeName,
-.element-typeName i {
-  background-color: #ffd3ae;
-  color: #ff6a00;
-}
-
-.element-position,
-.element-position i {
-  background-color: #e0d0f0;
-  color: #a585d4;
-}
-.element-career,
-.element-career i {
-  background-color: #faebd6;
-  color: #efb870;
-}
-.element-payment,
-.element-payment i {
-  background-color: #e0f2f1;
-  color: #00a2b4;
-}
-
-.delete-condition,
-.element-condition i {
-  background-color: inherit;
-  border: none;
-  padding: 0;
-}
-.element-init,
-.element-init i {
-  background-color: #cfc6ca;
-}
-</style>

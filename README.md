@@ -87,3 +87,10 @@ TypeScript **6.0.3**, vue-tsc **3.3.11**, typescript-eslint **8.70.1**을 고정
 질문 상세 보기 및 질문과 동일한 해시태그 게시물 검색 가능, 댓글 달기 기능 추가
 
 ![질문 상세 페이지](https://user-images.githubusercontent.com/78605779/169678835-7019af61-c14c-4fb7-9202-95cb7eefb5f7.PNG)
+
+## Phase 8 작성기·표시 규칙
+
+- 질문·답변·공고는 공통 MarkdownEditor를 사용한다. API에는 정화한 HTML을 저장한다. 기존 HTML 편집은 `markdownFromHtml`, 미리보기/저장은 `renderMarkdown`, 화면 출력은 SafeHtml을 사용한다.
+- 기술 배열은 `formatLanguages`로 `Java, Spring`, 모집 시각은 `formatRecruitDate`로 `2026.09.27 09:00` 형식으로 표시한다. 원본 API 값은 유지한다.
+- 공통 스타일은 `src/assets/styles/main.css`. Bootstrap/jQuery/Summernote CDN은 사용하지 않는다.
+- 검증 명령: `npm test`, `npm run typecheck`, `npm run lint`, `npm run build`. 로컬 E2E는 현재 cmux 보조 pane과 내장 브라우저에서 실행한다.

@@ -1,5 +1,5 @@
 <template>
-  <div class="comp_hashtag" @click="focusTagInput" ref="group">
+  <div class="comp_hashtag" @click="focusTagInput" ref="group" tabindex="0" @focus="focusTagInput">
     <p class="help" v-if="helpVisible">{{ defaultPlaceholder }}</p>
 
     <!-- Hashtags -->
@@ -32,7 +32,7 @@
         @keydown.enter.prevent="addTagFromInput"
         @keydown.backspace="initErrorMsg"
         @keydown.delete="initErrorMsg"
-        placeholder="태그입력"
+        placeholder="태그입력" aria-label="태그 입력"
       />
     </div>
 
@@ -168,8 +168,8 @@ export default defineComponent({
   width: 100%;
   padding: 5px 10px;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  min-height: 40px;
+  border-radius: 8px;
+  min-height: 48px;
   margin: 10px auto;
   text-align: left;
   box-sizing: border-box;
@@ -181,7 +181,7 @@ export default defineComponent({
     font-size: 12px;
     margin-top: 5px;
     padding: 0 5px;
-    border-radius: 4px;
+    border-radius: 8px;
     border: 1px solid #ea2136;
     color: #ea2136;
     text-align: left;
@@ -195,7 +195,7 @@ export default defineComponent({
     line-height: 30px;
     font-weight: 300;
     font-size: 14px;
-    color: #ccc;
+    color: #64748b;
     vertical-align: top;
   }
 

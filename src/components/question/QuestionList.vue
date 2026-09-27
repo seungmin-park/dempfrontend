@@ -1,35 +1,19 @@
 <template>
-  <main>
-    <div class="question-list" v-for="question in questions" :key="question.id">
-      <div class="question-list-count">
-        <p class="question-list-count-hits">조회 수 : {{ question.hits }}</p>
-        <p class="question-list-count-recommend">
-          추천 수 : {{ question.recommend }}
-        </p>
-      </div>
-      <span
-        class="question-list-title"
-        @click="openQuestionDetail(question.id)"
-      >
-        Q. {{ question.title }}
-      </span>
-    </div>
-    <div class="question-pages">
-      <button data-test="previous-page" :disabled="page === 0 || loading" @click="loadQuestionPage(page - 1)">이전</button>
-      <span>{{ page + 1 }} 페이지</span>
-      <button data-test="next-page" :disabled="last || loading" @click="loadQuestionPage(page + 1)">다음</button>
-    </div>
-    <p v-if="error" role="alert">{{ error }} <button data-test="retry" @click="loadQuestionPage(page)">재시도</button></p>
-  </main>
+  <section class="question-results" aria-label="질문 목록" :aria-busy="loading">
+    <article class="question-list" v-for="question in questions" :key="question.id"><button class="question-list-title" @click="openQuestionDetail(question.id)">{{ question.title }}</button><div class="question-list-count"><span class="meta-count" :aria-label="`조회수 ${question.hits}`"><AppIcon name="eye" :size="17" />{{ question.hits }}</span><span class="meta-count" :aria-label="`추천 ${question.recommend}`"><AppIcon name="thumbsUp" :size="17" />{{ question.recommend }}</span></div></article>
+    <div class="question-pages"><button class="button button-secondary" data-test="previous-page" :disabled="page === 0 || loading" @click="loadQuestionPage(page - 1)">이전</button><span>{{ page + 1 }} 페이지</span><button class="button button-secondary" data-test="next-page" :disabled="last || loading" @click="loadQuestionPage(page + 1)">다음</button></div>
+    <p v-if="error" role="alert" class="form-error">{{ error }} <button class="button button-secondary" data-test="retry" @click="loadQuestionPage(page)">재시도</button></p>
+  </section>
 </template>
-
 <script lang="ts">
 import type { QuestionSummary } from '@/types/api';
 import type { LocationQuery, RouteLocationNormalizedLoaded } from 'vue-router';
 import { queryText } from '@/router/query';
 import { defineComponent } from "vue";
+import AppIcon from '@/components/common/AppIcon.vue';
 import { fetchQuestionPage } from "@/api/questions";
 export default defineComponent({
+  components: { AppIcon },
   data() {
     return {
       orderBy: "",
@@ -113,24 +97,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style>
-main {
-  padding: 0px 25px 0px 25px;
-}
-
-.question-list {
-  display: flex;
-  border: 2px solid #a9cbdd;
-  border-left: none;
-  border-right: none;
-  border-bottom: none;
-  align-items: center;
-  padding: 15px 0px 15px 0px;
-}
-
-.question-list-count p {
-  margin: 0;
-  margin-right: 15px;
-}
-</style>

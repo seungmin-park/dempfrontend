@@ -1,7 +1,7 @@
 <template>
-  <div class="container">
-    <div class="py-5 text-center">
-      <h2>로그인</h2>
+  <div class="auth-card">
+    <div class="auth-heading">
+      <span class="auth-brand">DEMP</span><h1>다시 만나 반가워요</h1><p>로그인하고 다음 기회를 찾아보세요.</p>
     </div>
     <ValidationForm as="form" @submit="loginMethod" enctype="multipart/form-data">
         <label for="username">아이디</label>
@@ -10,7 +10,7 @@
           id="username"
           name="username"
           v-model="username"
-          placeholder="username"
+          placeholder="아이디를 입력하세요" autocomplete="username"
           rules="required"
           class="form-control"
         />
@@ -23,20 +23,20 @@
           id="password"
           name="password"
           v-model="password"
-          placeholder="password"
+          placeholder="비밀번호를 입력하세요" autocomplete="current-password"
           rules="required"
           class="form-control"
         />
         <ErrorMessage class="errorMessage" name="password" as="div">
           비밀번호를 입력해 주세요.
         </ErrorMessage>
-      <hr class="my-4">
-      <div class="row">
+
+      <div class="auth-actions">
         <div class="col">
-          <button type="submit" class="w-100 btn btn-secondary btn-lg">로그인</button>
+          <button type="submit" class="button button-primary">로그인</button>
         </div>
         <div class="col">
-          <router-link class="w-100 btn btn-secondary btn-lg" :to="{ path: '/account' }">
+          <router-link class="button button-secondary" :to="{ path: '/account' }">
             회원가입
           </router-link>
         </div>
@@ -44,7 +44,6 @@
     </ValidationForm>
   </div>
 </template>
-
 <script lang="ts">
 import { queryText } from '@/router/query';
 import { defineComponent } from "vue";
@@ -100,13 +99,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style>
-.container {
-  max-width: 560px;
-}
-.errorMessage {
-  display: flex;
-  color: red;
-}
-</style>
