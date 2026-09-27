@@ -53,3 +53,9 @@ it.each([
   await flushPromises();
   expect(wrapper.text()).toContain(label);
 });
+it('수동 마감 공고 카드는 미래 날짜 대신 모집 종료로 표시한다', async () => {
+  axios.get.mockResolvedValue({ data: { content: [{ id: 1, title: '조기 마감', recruitmentClosed: true, deadLineDate: '2027-12-31T18:00:00', language: [] }], last: true } });
+  const wrapper = mount(AnnouncementList, { global: { mocks: { emitter: { on: vi.fn(), off: vi.fn() } } } });
+  await flushPromises(); expect(wrapper.get('.job-card-facts').text()).toContain('모집 종료');
+  expect(wrapper.get('.job-card-facts').text()).not.toContain('2027.12.31 마감'); wrapper.unmount();
+});

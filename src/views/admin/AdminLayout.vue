@@ -3,7 +3,7 @@
     <div class="page-heading"><span class="eyebrow">DEMP ADMIN</span><h1>운영 관리</h1><p>공고와 커뮤니티 콘텐츠를 한곳에서 관리하세요.</p></div>
     <AsyncState :loading="loading" :error="error" @retry="verifyAccess" />
     <template v-if="identity">
-      <nav class="admin-nav" aria-label="관리자 메뉴"><router-link to="/admin" exact-active-class="is-active">운영 현황</router-link><router-link to="/admin/announcements">공고·부트캠프</router-link><router-link to="/admin/questions">질문</router-link><router-link to="/admin/answers">답변</router-link></nav>
+      <nav class="admin-nav" aria-label="관리자 메뉴"><router-link to="/admin" exact-active-class="is-active">운영 현황</router-link><router-link to="/admin/announcements">공고·부트캠프</router-link><router-link to="/admin/announcement-reports">오류 제보</router-link><router-link to="/admin/questions">질문</router-link><router-link to="/admin/answers">답변</router-link></nav>
       <router-view />
     </template>
   </section>

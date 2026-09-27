@@ -15,6 +15,7 @@ export function createAuthGuard(authStore: { state: RootState }): NavigationGuar
 const routes = [
   { path: "/admin", meta: { requiresAuth: true }, component: () => import("@/views/admin/AdminLayout.vue"), children: [
     { path: '', component: () => import('@/views/admin/AdminDashboard.vue') },
+    { path: 'announcement-reports', component: () => import('@/views/admin/AdminAnnouncementReports.vue') },
     { path: 'announcements', component: () => import('@/views/admin/AdminAnnouncements.vue') },
     { path: 'announcements/new', component: () => import('@/views/admin/AdminAnnouncementEditor.vue') },
     { path: 'announcements/:id', component: () => import('@/views/admin/AdminAnnouncementEditor.vue') },

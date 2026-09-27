@@ -4,6 +4,7 @@
     <div class="admin-section-heading"><div><h2>{{ editing ? '공고 내용·수정' : '새 공고 등록' }}</h2><p>채용 공고와 교육·부트캠프를 관리하세요.</p></div><router-link class="button button-secondary" to="/admin/announcements">목록</router-link></div>
     <form class="write-form" @submit.prevent="save">
       <div class="form-grid">
+        <div class="field"><label><input type="checkbox" v-model="form.recruitmentClosed" :disabled="saving" /> 모집 종료 (수동 마감)</label><p class="field-hint">공개 상태는 유지하고 모집 중 검색에서 제외합니다.</p></div>
         <div class="field"><label for="admin-publication">게시 상태</label><select id="admin-publication" aria-label="게시 상태" v-model="form.publicationStatus" :disabled="saving"><option v-for="(label, value) in publicationLabels" :key="value" :value="value">{{ label }}</option></select><p class="field-hint">공개 상태만 서비스에 표시됩니다. 모집 마감과 게시 상태는 별개입니다.</p></div>
         <div class="field"><label for="admin-source">출처 이름</label><input id="admin-source" aria-label="출처 이름" v-model="form.sourceName" maxlength="255" :disabled="saving" placeholder="예: 회사 채용 홈페이지" /></div>
         <div class="field"><label for="admin-source-id">원문 식별값 (선택)</label><input id="admin-source-id" v-model="form.sourceIdentifier" maxlength="255" :disabled="saving" placeholder="원문 사이트의 공고 번호" /></div>
@@ -47,7 +48,7 @@ import positions from '@/data/positions';
 import AnnouncementBodyEditor from '@/components/announcement/AnnouncementBodyEditor.vue';
 import AsyncState from '@/components/common/AsyncState.vue';
 import CompanyImage from '@/components/common/CompanyImage.vue';
-function blankForm(): AnnouncementForm { return { recruitmentAudience: null, cohort: '', stipendAmount: null, stipendNote: '', publicationStatus: 'DRAFT', sourceName: '', sourceIdentifier: '', applicationUrl: '', sourceVerified: false, title: '', company: '', type: 'EMP', position: '', minCareer: 0, maxCareer: 0, payment: null, salaryMax: null, accessUrl: '', startedDate: null, deadLineDate: null, content: '', language: [], image: null }; }
+function blankForm(): AnnouncementForm { return { recruitmentClosed: false, recruitmentAudience: null, cohort: '', stipendAmount: null, stipendNote: '', publicationStatus: 'DRAFT', sourceName: '', sourceIdentifier: '', applicationUrl: '', sourceVerified: false, title: '', company: '', type: 'EMP', position: '', minCareer: 0, maxCareer: 0, payment: null, salaryMax: null, accessUrl: '', startedDate: null, deadLineDate: null, content: '', language: [], image: null }; }
 export default defineComponent({
   components: { EducationFields, CompensationFields, AnnouncementBodyEditor, AsyncState, CompanyImage },
   data: () => ({ publicationLabels, history: [] as PublicationRevision[], historyError: '', historyLoaded: false, form: blankForm(), selectedLanguages: [] as Language[], bodyImages: [] as File[], imageUrl: '', loading: false, saving: false, loadError: '', error: '', errors: {} as Record<string,string>, generation: 0, positions,

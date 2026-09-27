@@ -13,10 +13,12 @@
     </div>
     <section v-if="announcement.type === 'EDU'" class="education-detail"><h2>교육과정 한눈에 보기</h2><dl><div><dt>기수</dt><dd>{{ announcement.cohort || '기수 미확인' }}</dd></div><div><dt>훈련 지원금</dt><dd>{{ announcement.stipendAmount == null ? '지원금 미확인' : `${announcement.stipendAmount.toLocaleString()}만원` }}<span v-if="announcement.stipendNote"> · {{ announcement.stipendNote }}</span></dd></div><div v-for="field in educationFields" :key="field.key"><dt>{{ field.label }}</dt><dd>{{ educationLabel(field.key, announcement.education?.[field.key]) }}</dd></div><div><dt>교육 일정</dt><dd>{{ announcement.education?.learningStartDate || '시작일 미확인' }} ~ {{ announcement.education?.learningEndDate || '종료일 미확인' }}<span v-if="announcement.education?.durationDays"> · {{ announcement.education.durationDays }}일</span></dd></div></dl><p class="field-hint">지원 조건과 정확한 수업 시간·본인 부담금은 원문에서 최종 확인하세요.</p></section>
     <section class="detail-announce-content"><h2>상세 내용</h2><SafeHtml images :content="announcement.content ?? ''" /></section>
-    <div class="apply-bar"><span v-if="applicationUrl" class="field-hint">원문 공고에서 상세 내용을 확인하고 지원하세요. 새 탭으로 열립니다.</span><a v-if="applicationUrl" :href="applicationUrl" class="button button-primary" target="_blank" rel="noopener noreferrer">지원하기</a><span v-else class="field-hint">지원 링크가 없습니다.</span></div>
+    <div class="apply-bar"><span v-if="applicationUrl" class="field-hint">{{ announcement.recruitmentClosed ? '모집이 종료되었습니다. 원문에서 최신 상태를 확인하세요.' : '원문 공고에서 상세 내용을 확인하고 지원하세요. 새 탭으로 열립니다.' }}</span><a v-if="applicationUrl" :href="applicationUrl" class="button button-primary" target="_blank" rel="noopener noreferrer">{{ announcement.recruitmentClosed ? '원문 확인' : '지원하기' }}</a><span v-else class="field-hint">지원 링크가 없습니다.</span></div>
+    <AnnouncementReportForm :key="String($route.params.itemId)" :id="String($route.params.itemId)" />
   </article>
 </template>
 <script lang="ts">
+import AnnouncementReportForm from './AnnouncementReportForm.vue';
 import { educationFields, educationLabel } from '@/data/education';
 import { formatSalary, formatTuition } from '@/presentation/compensation';
 import type { AnnouncementDetail } from '@/types/api';
@@ -32,7 +34,7 @@ import { getAnnouncementDetail } from "@/api/announcements";
 import { formatLanguages, formatRecruitDate } from '@/presentation/announcement';
 
 export default defineComponent({
-  components: { AnnouncementAudience, AsyncState, SafeHtml, CompanyImage },
+  components: { AnnouncementReportForm, AnnouncementAudience, AsyncState, SafeHtml, CompanyImage },
   created(){
     if (this.$store.state.Login.token == "") {
       this.$router.replace({
@@ -48,7 +50,7 @@ export default defineComponent({
   data() { return { educationFields, announcement: {} as Partial<AnnouncementDetail>, loading: true, error: '', requestGeneration: 0 }; },
   unmounted() { this.requestGeneration++; },
   computed: {
-    applicationUrl() { return safeApplicationUrl(this.announcement.applicationUrl || this.announcement.accessUrl); },
+    applicationUrl() { return safeApplicationUrl(this.announcement.recruitmentClosed ? this.announcement.accessUrl : this.announcement.applicationUrl || this.announcement.accessUrl); },
 
   },
   methods: {
