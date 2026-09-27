@@ -13,6 +13,7 @@ export function createAuthGuard(authStore: { state: RootState }): NavigationGuar
 }
 
 const routes = [
+  { path: "/admin", meta: { requiresAuth: true }, component: () => import("@/views/admin/AdminLayout.vue"), children: [] },
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('@/views/NotFound.vue') },
   {
     path: "/",
