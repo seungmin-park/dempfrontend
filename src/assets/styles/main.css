@@ -37,3 +37,7 @@
 .audience-years{font-size:12px;color:var(--muted);font-weight:600}
 .audience-education{background:#f3e8ff;color:#6b21a8}.audience-any{background:#f1f5f9;color:#475569}.audience-entry{background:#dcfce7;color:#166534}.audience-experienced{background:#dbeafe;color:#1e40af}.audience-neutral{background:#f1f5f9;color:#475569}
 .anncoucement-scroll-items-description .announcement-audience{gap:5px;margin-bottom:8px}.anncoucement-scroll-items-description .audience-badge{font-size:10px;min-height:22px;padding:3px 6px}.anncoucement-scroll-items-description .audience-years{font-size:10px}
+
+.list-status :is(.empty-state,.list-error){width:100%;padding:42px 24px;border:1px solid var(--line);border-radius:14px;background:white;overflow-wrap:anywhere}.list-status :is(.empty-state,.list-error)>svg{color:var(--meta);margin-bottom:14px}.list-status :is(.empty-state,.list-error) h2{font-size:18px;word-break:keep-all}.list-status :is(.empty-state,.list-error) p{line-height:1.8;word-break:keep-all}.list-status :is(.empty-state,.list-error) .button{margin-top:20px}.list-loading{font-size:13px;color:var(--muted);margin-bottom:12px}
+
+.list-error{text-align:center}.list-error p{color:var(--muted);margin-top:10px}

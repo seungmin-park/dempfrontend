@@ -79,7 +79,7 @@ test('요청 실패는 재시도할 수 있고 성공한 빈 페이지에서만 
   await wrapper.get('[data-test="retry"]').trigger('click');
   await flushPromises();
   expect(axios.get).toHaveBeenCalledTimes(2);
-  expect(wrapper.text()).toContain('조건에 맞는 공고가 없습니다');
+  expect(wrapper.text()).toContain('아직 등록된 공고가 없습니다');
   expect(wrapper.text()).not.toContain('불러오지 못했습니다');
 });
 

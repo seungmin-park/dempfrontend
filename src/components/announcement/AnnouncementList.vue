@@ -7,13 +7,30 @@
     </article>
   </div>
   <div ref="listEnd" data-test="list-end" aria-hidden="true" class="list-end"></div>
-  <div class="list-status"><button v-if="!last && !error" :disabled="loading" @click="loadNextPage" class="button button-secondary">{{ loading ? '불러오는 중…' : '더보기' }}</button><p v-if="error" role="alert" class="form-error">{{ error }} <button class="button button-secondary" data-test="retry" @click="loadNextPage">재시도</button></p><p v-if="last && notices.length" class="end-message">더 이상 채용/교육 공고 내용이 존재하지 않습니다.</p><div v-if="last && !notices.length" class="empty-state"><h2>조건에 맞는 공고가 없습니다.</h2><p>검색어를 바꾸거나 선택한 조건을 줄여보세요.</p></div></div>
+  <div class="list-status">
+    <p v-if="loading" role="status" aria-live="polite" class="list-loading">{{ notices.length ? '다음 공고를 불러오고 있습니다…' : '공고를 불러오고 있습니다…' }}</p>
+    <button v-if="!last && !error" :disabled="loading" data-test="load-more" @click="loadNextPage" class="button button-secondary">{{ loading ? '불러오는 중…' : '더보기' }}</button>
+    <div v-if="error" role="alert" class="list-error">
+      <AppIcon name="refresh" :size="30" /><h2>{{ error }}</h2>
+      <p>{{ notices.length ? '지금까지 불러온 공고는 그대로 볼 수 있습니다.' : '일시적인 서버 오류이거나 네트워크 연결이 원활하지 않을 수 있습니다.' }}<br />잠시 후 다시 시도해 주세요.</p>
+      <button class="button button-secondary" data-test="retry" @click="loadNextPage">재시도</button>
+    </div>
+    <p v-if="last && notices.length && !loading && !error" class="end-message" role="status">현재 조건의 공고를 모두 확인했습니다.</p>
+    <div v-if="last && !notices.length && !loading && !error" class="empty-state" role="status" aria-live="polite">
+      <AppIcon :name="emptyState.action === 'reset' ? 'search' : 'briefcase'" :size="32" />
+      <h2>{{ emptyState.title }}</h2><p>{{ emptyState.description }}</p>
+      <button v-if="emptyState.action === 'reset'" class="button button-secondary" data-test="empty-reset" @click="resetSearch">검색·필터 해제</button>
+      <button v-else-if="emptyState.action === 'browse'" class="button button-secondary" data-test="empty-browse" @click="$router.push({ path: '/', query: {} })">전체 공고 보기</button>
+    </div>
+  </div>
 </template>
 <script lang="ts">
 import type { AnnouncementSummary, AnnouncementFilters, JobPosition } from '@/types/api';
 import { defineComponent } from "vue";
 import { markRaw } from "vue";
 import { getAnnouncements } from "@/api/announcements";
+import { announcementEmptyState } from '@/presentation/announcementStates';
+import AppIcon from '@/components/common/AppIcon.vue';
 import { filtersFromQuery } from '@/router/announcementFilters';
 import { formatPosition } from '@/presentation/positions';
 import { formatRecruitDate } from '@/presentation/announcement';
@@ -22,7 +39,7 @@ import AnnouncementAudience from './AnnouncementAudience.vue';
 import CompanyImage from '@/components/common/CompanyImage.vue';
 export default defineComponent({
   name: "demp-announcement",
-  components: { AnnouncementAudience, CompanyImage },
+  components: { AppIcon, AnnouncementAudience, CompanyImage },
   mounted() {
     this.announcementSearchCondition = { ...filtersFromQuery(this.$route?.query), page: 0 };
     this.emitter.on("announcementSearchCondition", this.onSearchCondition);
@@ -50,7 +67,7 @@ export default defineComponent({
         payment: 0,
         title: "",
         page:0,
-      },
+      } as AnnouncementFilters & { page: number },
       last:false,
       loading:false,
       error:null as string | null,
@@ -59,7 +76,12 @@ export default defineComponent({
     };
   },
 
+  computed: { emptyState() { return announcementEmptyState(this.announcementSearchCondition); } },
   methods: {
+    resetSearch() {
+      const type = this.announcementSearchCondition.announcementType;
+      this.$router.push({ path: '/', query: type ? { type } : {} });
+    },
     formatLanguages, formatPosition, formatRecruitDate,
     onSearchCondition(condition: AnnouncementFilters) {
       this.announcementSearchCondition = { ...condition, page: 0 };
@@ -90,7 +112,7 @@ export default defineComponent({
         this.last = result.data.last || result.data.content.length === 0;
       }
       catch {
-        if (generation === this.requestGeneration) this.error = "공고를 불러오지 못했습니다.";
+        if (generation === this.requestGeneration) this.error = this.notices.length ? "다음 공고를 불러오지 못했습니다." : "공고를 불러오지 못했습니다.";
       } finally {
         if (generation === this.requestGeneration) {
           this.loading = false;

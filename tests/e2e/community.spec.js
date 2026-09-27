@@ -198,7 +198,7 @@ test('실제 스크롤은 다음 페이지를 한 번씩 요청하고 마지막�
   await expect(page.locator('.notice-title')).toHaveCount(16);
   await page.locator('[data-test="list-end"]').scrollIntoViewIfNeeded();
   await expect(page.locator('.notice-title')).toHaveCount(18);
-  await expect(page.getByText('더 이상 채용/교육 공고')).toBeVisible();
+  await expect(page.getByText('현재 조건의 공고를 모두 확인했습니다.')).toBeVisible();
   await page.mouse.wheel(0, 2000);
   expect(pages).toEqual([0, 1, 2]);
   expect(new Set(await page.locator('.notice-title').allTextContents()).size).toBe(18);
@@ -332,4 +332,24 @@ test('모집 구분은 모바일 카드와 상세·관련 공고에서 연차와
   await expect(page.locator('.job-detail-heading .announcement-audience')).toHaveText('경력3~5년');
   await page.setViewportSize({ width: 1280, height: 900 });
   await expect(page.locator('.anncoucement-scroll [aria-label="모집 구분"]')).toHaveText(['경력 무관', '신입·경력', '경력', '교육']);
+});
+
+test('교육 빈 검색은 상황을 설명하고 필터 해제로 교육 목록을 복구한다', async ({ page }) => {
+  await isolatedCommunity(page);
+  await page.route('**/api/announce?*', route => {
+    const query = new URL(route.request().url()).searchParams;
+    return route.fulfill({ json: { content: query.get('title') || query.get('tuition') ? [] : [{ id: 4, title: '복구된 교육과정', announcementType: 'EDU', language: [] }], last: true } });
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/?type=EDU&tuition=FREE');
+  await expect(page.locator('.empty-state h2')).toHaveText('선택한 조건에 맞는 부트캠프·교육과정이 없습니다.');
+  await expect(page.locator('[data-test="retry"]')).toHaveCount(0);
+  await page.getByRole('textbox', { name: '공고 검색어' }).fill('없는 과정');
+  await page.getByRole('button', { name: '검색', exact: true }).click();
+  await expect(page.locator('.empty-state h2')).toHaveText('“없는 과정”에 해당하는 부트캠프·교육과정이 없습니다.');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole('button', { name: '검색·필터 해제' }).click();
+  await expect(page).toHaveURL('/?type=EDU');
+  await expect(page.locator('.notice-title')).toHaveText('복구된 교육과정');
+  await expect(page.getByRole('textbox', { name: '공고 검색어' })).toHaveValue('');
 });
