@@ -8,6 +8,6 @@
 import { computed } from 'vue';
 import type { AnnouncementSummary } from '@/types/api';
 import { announcementAudience } from '@/presentation/announcement';
-const props = defineProps<{ announcement: Pick<AnnouncementSummary, 'announcementType' | 'minCareer' | 'maxCareer'> }>();
+const props = defineProps<{ announcement: Pick<AnnouncementSummary, 'announcementType' | 'minCareer' | 'maxCareer' | 'recruitmentAudience'> }>();
 const audience = computed(() => announcementAudience(props.announcement));
 </script>

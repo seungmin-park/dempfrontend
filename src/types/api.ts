@@ -6,7 +6,8 @@ export type JobPosition = typeof positions[number];
 export type Language = 'HTML' | 'CSS' | 'React' | 'JAVA' | 'JPA' | 'SPRING';
 export type SalaryStatus = 'UNDISCLOSED' | 'NEGOTIABLE' | 'DISCLOSED';
 export type PublicationStatus = 'DRAFT' | 'REVIEW' | 'PUBLISHED' | 'HIDDEN';
-export interface PublicationInfo { publicationStatus?: PublicationStatus; sourceName?: string | null; sourceIdentifier?: string | null; applicationUrl?: string | null; sourceVerifiedAt?: string | null; sourceVerified?: boolean }
+export type RecruitmentAudience = 'NEW' | 'EXPERIENCED' | 'ANY' | 'MIXED';
+export interface PublicationInfo { recruitmentAudience?: RecruitmentAudience | null; cohort?: string | null; stipendAmount?: number | null; stipendNote?: string | null; publicationStatus?: PublicationStatus; sourceName?: string | null; sourceIdentifier?: string | null; applicationUrl?: string | null; sourceVerifiedAt?: string | null; sourceVerified?: boolean }
 export interface PublicationRevision { actor: string; changedAt: string; status: PublicationStatus; title: string; sourceUrl: string }
 export type AnnouncementType = 'EMP' | 'EDU';
 export interface Slice<T> { content: T[]; last: boolean; number: number }
@@ -47,7 +48,7 @@ export interface AnnouncementDetailResponse extends PublicationInfo {
   announcementType: AnnouncementType | null;
 }
 export type AnnouncementDetail = Omit<AnnouncementDetailResponse, 'company'> & { company: string; type: AnnouncementType | null };
-export interface AnnouncementScroll extends Pick<AnnouncementSummary, 'announcementType' | 'minCareer' | 'maxCareer'> { id: number; title: string | null; company: Company | null; image: string }
+export interface AnnouncementScroll extends Pick<AnnouncementSummary, 'announcementType' | 'minCareer' | 'maxCareer' | 'recruitmentAudience'> { id: number; title: string | null; company: Company | null; image: string }
 export interface AnnouncementFilters extends EducationInfo {
   duration?: string;
   startAfter?: string;

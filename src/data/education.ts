@@ -8,6 +8,9 @@ export const educationFields = [
 ] as const;
 export type EducationKey = typeof educationFields[number]['key'];
 export interface EducationInfo extends Partial<Record<EducationKey, string | null>> {
+  cohort?: string | null;
+  stipendAmount?: number | null;
+  stipendNote?: string | null;
   learningStartDate?: string | null;
   learningEndDate?: string | null;
   durationDays?: number | null;
@@ -23,6 +26,7 @@ export function validDate(value: string): boolean {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0,10) === value;
 }
 export function educationError(info: EducationInfo): string {
+  if (info.stipendAmount != null && (!Number.isInteger(info.stipendAmount) || info.stipendAmount < 0)) return '지원금은 0 이상의 정수로 입력해 주세요.';
   if ((info.learningStartDate && !validDate(info.learningStartDate)) || (info.learningEndDate && !validDate(info.learningEndDate))) return '교육 날짜를 확인해 주세요.';
   if (info.learningEndDate && (!info.learningStartDate || info.learningEndDate < info.learningStartDate)) return '교육 종료일은 시작일 이후여야 합니다.';
   return '';

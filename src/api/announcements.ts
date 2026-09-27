@@ -6,13 +6,13 @@ export function toAnnouncementFormData(announcement: AnnouncementForm) {
   const form = new FormData();
   const fields = [
     'title', 'company', 'type', 'position', 'minCareer', 'maxCareer',
-    'publicationStatus', 'sourceName', 'sourceIdentifier', 'applicationUrl', 'sourceVerified',
+    'recruitmentAudience', 'publicationStatus', 'sourceName', 'sourceIdentifier', 'applicationUrl', 'sourceVerified',
     'startedDate', 'deadLineDate', 'content', 'accessUrl', 'payment', 'salaryStatus', 'salaryMax',
   ] as const;
   fields.forEach(field => { if (announcement[field] != null && announcement[field] !== '') form.append(field, String(announcement[field])); });
   if (announcement.type === 'EDU') {
-    for (const key of [...educationFields.map(field => field.key), 'learningStartDate', 'learningEndDate'] as const) {
-      if (announcement[key]) form.append(key, String(announcement[key]));
+    for (const key of [...educationFields.map(field => field.key), 'learningStartDate', 'learningEndDate', 'cohort', 'stipendAmount', 'stipendNote'] as const) {
+      if (announcement[key] != null && announcement[key] !== '') form.append(key, String(announcement[key]));
     }
   }
   const languages = Array.isArray(announcement.language)

@@ -13,6 +13,7 @@
         <div class="field"><label for="admin-type">공고 종류</label><select id="admin-type" v-model="form.type" @change="changeType" required :disabled="saving"><option value="EMP">채용</option><option value="EDU">교육·부트캠프</option></select></div>
         <div class="field"><label for="admin-position">분야</label><select id="admin-position" v-model="form.position" required :disabled="saving"><option value="">분야 선택</option><option v-for="position in positions" :key="position" :value="position">{{ formatPosition(position) }}</option></select><p v-if="errors.position" class="field-error">{{ errors.position }}</p></div>
         <div v-for="field in dateFields" :key="field.key" class="field"><label :for="`admin-${field.key}`">{{ field.label }}</label><input :id="`admin-${field.key}`" v-model="form[field.key]" type="datetime-local" step="1" required :disabled="saving" /><p v-if="errors[field.key]" class="field-error">{{ errors[field.key] }}</p></div>
+        <div v-if="form.type === 'EMP'" class="field"><label for="admin-audience">모집 대상</label><select id="admin-audience" aria-label="모집 대상" v-model="form.recruitmentAudience" :disabled="saving" @change="changeAudience"><option :value="null">미확인 (기존 경력 범위 사용)</option><option value="NEW">신입</option><option value="EXPERIENCED">경력</option><option value="ANY">경력 무관</option><option value="MIXED">신입·경력</option></select></div>
         <div v-for="field in numberFields" :key="field.key" class="field"><label :for="`admin-${field.key}`">{{ field.label }}</label><input :id="`admin-${field.key}`" v-model.number="form[field.key]" type="number" min="0" step="1" required :disabled="saving" /><p v-if="errors[field.key]" class="field-error">{{ errors[field.key] }}</p></div>
         <CompensationFields id="admin-payment" :type="form.type" v-model:payment="form.payment" v-model:salary-status="form.salaryStatus" v-model:salary-max="form.salaryMax" :disabled="saving" /><p v-if="errors.payment" class="field-error">{{ errors.payment }}</p>
         <fieldset class="field"><legend>기술 스택</legend><div class="radio-options"><label v-for="language in languages" :key="language"><input v-model="selectedLanguages" type="checkbox" :value="language" :disabled="saving" />{{ formatLanguages([language]) }}</label></div><p v-if="errors.language" class="field-error">{{ errors.language }}</p></fieldset>
@@ -46,7 +47,7 @@ import positions from '@/data/positions';
 import AnnouncementBodyEditor from '@/components/announcement/AnnouncementBodyEditor.vue';
 import AsyncState from '@/components/common/AsyncState.vue';
 import CompanyImage from '@/components/common/CompanyImage.vue';
-function blankForm(): AnnouncementForm { return { publicationStatus: 'DRAFT', sourceName: '', sourceIdentifier: '', applicationUrl: '', sourceVerified: false, title: '', company: '', type: 'EMP', position: '', minCareer: 0, maxCareer: 0, payment: null, salaryMax: null, accessUrl: '', startedDate: null, deadLineDate: null, content: '', language: [], image: null }; }
+function blankForm(): AnnouncementForm { return { recruitmentAudience: null, cohort: '', stipendAmount: null, stipendNote: '', publicationStatus: 'DRAFT', sourceName: '', sourceIdentifier: '', applicationUrl: '', sourceVerified: false, title: '', company: '', type: 'EMP', position: '', minCareer: 0, maxCareer: 0, payment: null, salaryMax: null, accessUrl: '', startedDate: null, deadLineDate: null, content: '', language: [], image: null }; }
 export default defineComponent({
   components: { EducationFields, CompensationFields, AnnouncementBodyEditor, AsyncState, CompanyImage },
   data: () => ({ publicationLabels, history: [] as PublicationRevision[], historyError: '', historyLoaded: false, form: blankForm(), selectedLanguages: [] as Language[], bodyImages: [] as File[], imageUrl: '', loading: false, saving: false, loadError: '', error: '', errors: {} as Record<string,string>, generation: 0, positions,
@@ -65,7 +66,8 @@ export default defineComponent({
       try { const history = await fetchPublicationHistory(String(this.$route.params.id)); if (current === this.generation) { this.history = history; this.historyLoaded = true; } }
       catch (reason) { if (current === this.generation) this.historyError = requestErrorMessage(reason); }
     },
-    changeType() { this.form.payment = null; this.form.salaryStatus = undefined; this.form.salaryMax = null; },
+    changeAudience() { if (this.form.recruitmentAudience === 'NEW' || this.form.recruitmentAudience === 'ANY') { this.form.minCareer = 0; this.form.maxCareer = 0; } },
+    changeType() { this.form.recruitmentAudience = null; this.form.cohort = ''; this.form.stipendAmount = null; this.form.stipendNote = '';  this.form.payment = null; this.form.salaryStatus = undefined; this.form.salaryMax = null; },
     async load() {
       const current = ++this.generation; this.form = blankForm(); this.history = []; this.historyLoaded = false; this.historyError = ''; this.errors = {}; this.error = ''; this.loadError = ''; this.selectedLanguages = []; this.bodyImages = []; this.imageUrl = '';
       if (!this.editing) { this.loading = false; return; }
