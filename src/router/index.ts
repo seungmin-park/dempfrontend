@@ -13,7 +13,16 @@ export function createAuthGuard(authStore: { state: RootState }): NavigationGuar
 }
 
 const routes = [
-  { path: "/admin", meta: { requiresAuth: true }, component: () => import("@/views/admin/AdminLayout.vue"), children: [] },
+  { path: "/admin", meta: { requiresAuth: true }, component: () => import("@/views/admin/AdminLayout.vue"), children: [
+    { path: '', component: () => import('@/views/admin/AdminDashboard.vue') },
+    { path: 'announcements', component: () => import('@/views/admin/AdminAnnouncements.vue') },
+    { path: 'announcements/new', component: () => import('@/views/admin/AdminAnnouncementEditor.vue') },
+    { path: 'announcements/:id', component: () => import('@/views/admin/AdminAnnouncementEditor.vue') },
+    { path: 'questions', component: () => import('@/views/admin/AdminPosts.vue'), props: { kind: 'questions' } },
+    { path: 'answers', component: () => import('@/views/admin/AdminPosts.vue'), props: { kind: 'answers' } },
+    { path: 'questions/:id', component: () => import('@/views/admin/AdminPostEditor.vue'), props: { kind: 'questions' } },
+    { path: 'answers/:id', component: () => import('@/views/admin/AdminPostEditor.vue'), props: { kind: 'answers' } },
+  ] },
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('@/views/NotFound.vue') },
   {
     path: "/",
