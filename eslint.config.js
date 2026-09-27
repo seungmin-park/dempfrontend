@@ -4,7 +4,7 @@ import globals from 'globals';
 import ts from 'typescript-eslint';
 
 export default [
-  { ignores: ['dist/**', 'node_modules/**', 'test-results/**', 'playwright-report/**'] },
+  { ignores: ['.worktrees/**', 'dist/**', 'node_modules/**', 'test-results/**', 'playwright-report/**'] },
   js.configs.recommended,
   ...ts.configs.recommended.map(config => ({ ...config, files: ['**/*.ts', '**/*.vue'] })),
   ...vue.configs['flat/essential'],
