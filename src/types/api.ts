@@ -82,9 +82,12 @@ export interface AnnouncementForm extends EducationInfo, PublicationInfo {
   bodyImages?: File[];
 }
 export interface QuestionSummary { id: number; title: string | null; hits: number; recommend: number }
-export interface QuestionDetail extends QuestionSummary { content: string | null; dislike: number; username: string; hashtags: string[] }
+export interface QuestionDetail extends QuestionSummary { myReaction?: ReactionType; content: string | null; dislike: number; username: string; hashtags: string[] }
 export interface QuestionForm { title: string; content: string; username: string; hashtags: string[] }
 export interface QuestionSearchCondition { orderBy: string; title: string; content: string; hashtags: string[]; page: number; size: number }
-export interface Answer { answerId: number; username: string; content: string | null; recommend: number; dislike: number }
+export interface Answer { myReaction?: ReactionType; answerId: number; username: string; content: string | null; recommend: number; dislike: number }
 export interface AnswerForm { username: string; questionId: EntityId; answerContent: string }
 export interface HashtagInput { value: string; select: boolean }
+
+export type ReactionType = 'NONE' | 'RECOMMEND' | 'DISLIKE';
+export interface ReactionState { recommend: number; dislike: number; myReaction: ReactionType }

@@ -26,16 +26,19 @@ test('답변 Markdown 저장 실패는 입력을 보존하고 재시도 성공 �
   expect(wrapper.get('.question-answer').text()).toContain('답변');
 });
 
-test('답변 추천 수를 서버 값으로 표시하고 반응 버튼을 비활성화한다', async () => {
+test('답변 비추천을 답변 전용 경로에 저장하고 내 선택을 표시한다', async () => {
   global.$ = () => ({ summernote: vi.fn() });
   axios.get.mockResolvedValue({ data: [{ answerId: 4, username: 'writer', content: '답변', recommend: 3, dislike: 0 }] });
   const wrapper = mount(QuestionAnswer, { global: { mocks: {
     $store: { state: { Login: { token: 'token' } } }, $route: { params: { questionId: 7 } },
   } } });
   await flushPromises();
+  axios.put.mockResolvedValue({ data: { recommend: 3, dislike: 1, myReaction: 'DISLIKE' } });
   const buttons = wrapper.findAll('.question-answer-reaction button');
   expect(buttons[0].text()).toContain('3');
-  expect(buttons.every(button => button.attributes('disabled') !== undefined)).toBe(true);
-  expect(wrapper.text()).toContain('반응 저장 기능 준비 중');
+  await buttons[1].trigger('click'); await flushPromises();
+  expect(axios.put).toHaveBeenCalledWith('/api/answer/4/reaction', { reaction: 'DISLIKE' });
+  expect(buttons[1].attributes('aria-pressed')).toBe('true');
+  expect(buttons[1].text()).toContain('1');
   delete global.$;
 });

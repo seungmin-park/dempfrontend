@@ -4,7 +4,7 @@
     <article class="question-answer" v-for="item in answers" :key="item.answerId">
       <MemberBadge :username="item.username" />
       <SafeHtml class="answer-content" :content="item.content ?? ''" />
-      <ContentReactions class="question-answer-reaction" :recommend="item.recommend" :dislike="item.dislike" />
+      <ContentReactionControl target="answer" :target-id="item.answerId" :my-reaction="item.myReaction" class="question-answer-reaction" :recommend="item.recommend" :dislike="item.dislike" />
     </article>
     <p v-if="!answers.length" class="empty-answer">알고 있는 내용을 첫 답변으로 남겨주세요.</p>
     <div class="answer-composer">
@@ -24,10 +24,10 @@ import { getAnswers, createAnswer } from '@/api/answers';
 import SafeHtml from '@/components/common/SafeHtml.vue';
 import MarkdownEditor from '@/components/common/MarkdownEditor.vue';
 import MemberBadge from '@/components/common/MemberBadge.vue';
-import ContentReactions from '@/components/common/ContentReactions.vue';
+import ContentReactionControl from '@/components/common/ContentReactionControl.vue';
 import { renderMarkdown } from '@/content/markdown';
 export default defineComponent({
-  components: { AsyncState, SafeHtml, MarkdownEditor, MemberBadge, ContentReactions },
+  components: { AsyncState, SafeHtml, MarkdownEditor, MemberBadge, ContentReactionControl },
   data() { return { answers: [] as Answer[], answer: '', saving: false, error: '', loading: true, loadError: '', requestGeneration: 0 }; },
   unmounted() { this.requestGeneration++; },
   watch: { '$route.params.questionId'() { this.answer = ''; this.saving = false; this.error = ''; this.loadAnswers(); } },
