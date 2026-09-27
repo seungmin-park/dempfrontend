@@ -77,3 +77,14 @@ test('공고 이미지는 필수 JPEG 또는 PNG로 선택을 제한한다', () 
   expect(imageInput.attributes('required')).toBeDefined();
   expect(imageInput.attributes('accept')).toBe('image/jpeg,image/png,.jpg,.jpeg,.png');
 });
+
+test('무료 교육 공고는 교육비 0원으로 입력 검증을 통과한다', async () => {
+  axios.post.mockResolvedValue({ data: 'ok' });
+  const wrapper = mount(AnnouncementWrite, { global: { mocks: {
+    $store: { state: { Login: { token: 'jwt' } } }, $router: { push: vi.fn() },
+  } } });
+  await wrapper.setData({ title: '무료 교육', company: '교육기관', type: 'EDU', position: 'BACKEND', minCareer: 0, maxCareer: 0, startedDate: '2026-09-01T00:00', deadLineDate: '2026-10-01T00:00', accessUrl: 'https://example.com', payment: 0, language: 'JAVA', content: '설명', image: new File(['png'], 'image.png', { type: 'image/png' }) });
+  await wrapper.get('form').trigger('submit');
+  await vi.waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1));
+  expect(axios.post.mock.calls[0][1].get('payment')).toBe('0');
+});

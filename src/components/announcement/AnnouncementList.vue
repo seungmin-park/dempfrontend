@@ -1,8 +1,9 @@
 <template>
+  <div class="results-heading"><h2>공고 목록 <span>{{ notices.length }}</span></h2><span>최신 등록순</span></div>
   <div class="job-grid" :aria-busy="loading">
     <article v-for="notice in notices" :key="notice.id" class="item job-card" tabindex="0" role="link" :aria-label="notice.title ?? '공고 상세'" @click="openAnnouncementDetail(notice.id)" @keydown.enter="openAnnouncementDetail(notice.id)">
       <div class="item-image-box"><CompanyImage :src="notice.image" /></div>
-      <div class="job-card-content"><span class="job-position">{{ notice.position }}</span><h2 class="notice-title">{{ notice.title }}</h2><p class="job-stack" aria-label="기술 스택">{{ formatLanguages(notice.language) }}</p></div>
+      <div class="job-card-content"><span class="job-position">{{ formatPosition(notice.position) }}</span><p v-if="notice.company" class="job-company">{{ notice.company }}</p><h2 class="notice-title">{{ notice.title }}</h2><p class="job-stack" aria-label="기술 스택">{{ formatLanguages(notice.language) }}</p><div class="job-card-facts"><span v-if="notice.announcementType === 'EDU' && notice.payment != null">{{ notice.payment === 0 ? '무료 교육' : '교육비 ' + notice.payment.toLocaleString('ko-KR') + '만원' }}</span><span v-else-if="notice.minCareer != null">{{ notice.minCareer === 0 ? '신입 가능' : notice.minCareer + '년 이상' }}</span><span v-if="notice.deadLineDate">{{ formatRecruitDate(notice.deadLineDate).slice(0,10) }} 마감</span></div></div>
     </article>
   </div>
   <div ref="listEnd" data-test="list-end" aria-hidden="true" class="list-end"></div>
@@ -13,12 +14,16 @@ import type { AnnouncementSummary, AnnouncementFilters, JobPosition } from '@/ty
 import { defineComponent } from "vue";
 import { markRaw } from "vue";
 import { getAnnouncements } from "@/api/announcements";
+import { filtersFromQuery } from '@/router/announcementFilters';
+import { formatPosition } from '@/presentation/positions';
+import { formatRecruitDate } from '@/presentation/announcement';
 import { formatLanguages } from '@/presentation/announcement';
 import CompanyImage from '@/components/common/CompanyImage.vue';
 export default defineComponent({
   name: "demp-announcement",
   components: { CompanyImage },
   mounted() {
+    this.announcementSearchCondition = { ...filtersFromQuery(this.$route?.query), page: 0 };
     this.emitter.on("announcementSearchCondition", this.onSearchCondition);
     if (typeof IntersectionObserver !== "undefined") {
       this.pageObserver = markRaw(new IntersectionObserver(entries => {
@@ -54,7 +59,7 @@ export default defineComponent({
   },
 
   methods: {
-    formatLanguages,
+    formatLanguages, formatPosition, formatRecruitDate,
     onSearchCondition(condition: AnnouncementFilters) {
       this.announcementSearchCondition = { ...condition, page: 0 };
       this.notices = [];
@@ -105,9 +110,7 @@ export default defineComponent({
     },
   },
   watch: {
-    typeName: function () {
-      this.loadNextPage();
-    },
+    '$route.query': { handler() { this.onSearchCondition(filtersFromQuery(this.$route.query)); } },
   },
 });
 </script>

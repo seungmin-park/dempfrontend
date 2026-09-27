@@ -6,12 +6,12 @@
       <div class="field"><label for="accessUrl">지원 페이지</label><Field id="accessUrl" name="accessUrl" type="url" v-model="accessUrl" rules="required|url" placeholder="https://" :disabled="saving" /><ErrorMessage name="accessUrl" class="field-error">지원 페이지을 확인해 주세요.</ErrorMessage></div>
       <div class="field"><label for="language">기술 스택</label><Field id="language" name="language" type="text" v-model="language" rules="required" placeholder="JAVA, SPRING" :disabled="saving" /><ErrorMessage name="language" class="field-error">기술 스택을 확인해 주세요.</ErrorMessage></div>
       <fieldset class="field"><legend>공고 종류</legend><div class="radio-options"><label><Field type="radio" name="type" v-model="type" value="EMP" rules="required" :disabled="saving" /> 채용</label><label><Field type="radio" name="type" v-model="type" value="EDU" :disabled="saving" /> 교육·부트캠프</label></div><ErrorMessage name="type" class="field-error">공고 종류를 선택해 주세요.</ErrorMessage></fieldset>
-      <div class="field"><label for="position">분야</label><Field as="select" id="position" name="position" v-model="position" rules="required" :disabled="saving"><option value="">분야 선택</option><option v-for="item in positions" :key="item" :value="item">{{ item }}</option></Field><ErrorMessage name="position" class="field-error">분야를 선택해 주세요.</ErrorMessage></div>
+      <div class="field"><label for="position">분야</label><Field as="select" id="position" name="position" v-model="position" rules="required" :disabled="saving"><option value="">분야 선택</option><option v-for="item in positions" :key="item" :value="item">{{ formatPosition(item) }}</option></Field><ErrorMessage name="position" class="field-error">분야를 선택해 주세요.</ErrorMessage></div>
       <div class="field"><label for="startedDate">모집 시작</label><Field id="startedDate" name="startedDate" type="datetime-local" v-model="startedDate" rules="required" :disabled="saving" /><ErrorMessage name="startedDate" class="field-error">모집 시작일을 입력해 주세요.</ErrorMessage></div>
       <div class="field"><label for="deadLineDate">모집 마감</label><Field id="deadLineDate" name="deadLineDate" type="datetime-local" v-model="deadLineDate" rules="required" :disabled="saving" /><ErrorMessage name="deadLineDate" class="field-error">모집 마감일을 입력해 주세요.</ErrorMessage></div>
       <div class="field"><label for="minCareer">최소 경력 (년)</label><Field id="minCareer" name="minCareer" type="number" min="0" v-model="minCareer" rules="required|min_value:0" :disabled="saving" /><ErrorMessage name="minCareer" class="field-error">0 이상의 경력을 입력해 주세요.</ErrorMessage></div>
       <div class="field"><label for="maxCareer">최대 경력 (년)</label><Field id="maxCareer" name="maxCareer" type="number" min="0" v-model="maxCareer" rules="required|min_value:0" :disabled="saving" /><ErrorMessage name="maxCareer" class="field-error">0 이상의 경력을 입력해 주세요.</ErrorMessage></div>
-      <div class="field"><label for="payment">연봉·교육비 (만원)</label><Field id="payment" name="payment" type="number" v-model="payment" rules="required|min_value:2400" :disabled="saving" /><ErrorMessage name="payment" class="field-error">금액을 확인해 주세요.</ErrorMessage></div>
+      <div class="field"><label for="payment">{{ type === 'EDU' ? '교육비' : '연봉' }} (만원)</label><Field id="payment" name="payment" type="number" min="0" v-model="payment" rules="required|min_value:0" :disabled="saving" /><ErrorMessage name="payment" class="field-error">0 이상의 금액을 입력해 주세요.</ErrorMessage></div>
       <div class="field"><label for="announce_img">공고 이미지</label><input id="announce_img" name="announce_img" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" required ref="announceImg" :disabled="saving" @change="uploadImg" /><p class="field-hint">JPEG 또는 PNG 파일을 선택하세요.</p></div>
     </div>
     <div class="field"><label for="content">상세 내용</label><MarkdownEditor id="content" v-model="content" :disabled="saving" /></div>
@@ -23,6 +23,7 @@
 import MarkdownEditor from '@/components/common/MarkdownEditor.vue';
 import { renderMarkdown } from '@/content/markdown';
 import type { AnnouncementForm } from '@/types/api';
+import { formatPosition } from '@/presentation/positions';
 import { defineComponent } from "vue";
 import positions from "../../data/positions";
 import { Form as ValidationForm, Field, ErrorMessage } from "vee-validate";
@@ -67,6 +68,7 @@ export default defineComponent({
     };
   },
   methods: {
+    formatPosition,
     isRequired(value: unknown) {
       if (typeof value === 'string' && value.trim()) {
         return true;

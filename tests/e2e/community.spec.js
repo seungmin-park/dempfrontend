@@ -260,3 +260,29 @@ test('스크롤 중 필터 변경은 첫 페이지부터 조회하고 늦은 이
   await expect(page.locator('.notice-title')).toHaveText('새 교육 공고');
   expect(requests).toEqual([['', 0], ['', 1], ['EDU', 0]]);
 });
+
+test('모바일 교육 필터는 URL·새로고침·뒤로 가기에서 복원된다', async ({ page }) => {
+  await isolatedCommunity(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  const requests = [];
+  await page.route('**/api/announce?*', route => {
+    const query = new URL(route.request().url()).searchParams;
+    requests.push(Object.fromEntries(query));
+    return route.fulfill({ json: { content: [{ ...announcementFixture(90, '무료 백엔드 교육'), company: '교육기관', announcementType: 'EDU', payment: 0, deadLineDate: '2026-12-31T18:00:00' }], last: true } });
+  });
+  await page.goto('/?type=EDU&positions=BACKEND&languages=JAVA,SPRING&status=OPEN&tuition=FREE&q=교육');
+  await expect(page.locator('.notice-title')).toHaveText('무료 백엔드 교육');
+  expect(requests[0]).toMatchObject({ announcementType: 'EDU', positions: 'BACKEND', languages: 'JAVA,SPRING', recruitmentStatus: 'OPEN', tuition: 'FREE', title: '교육', page: '0' });
+  await page.getByRole('button', { name: '필터 열기' }).click();
+  await expect(page.getByRole('combobox', { name: '교육비' })).toHaveValue('FREE');
+  await expect(page.getByRole('combobox', { name: '내 경력' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Java 조건 해제', exact: true }).click();
+  await expect(page).toHaveURL(/languages=SPRING/);
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Spring 조건 해제', exact: true })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('button', { name: 'Java 조건 해제', exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole('button', { name: '전체 조건 초기화' }).click();
+  await expect(page).toHaveURL('/?type=EDU');
+});

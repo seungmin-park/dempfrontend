@@ -6,7 +6,7 @@
       <p v-if="announcement.type === 'EDU'">교육비 : {{ announcement.payment === 0 ? '무료' : announcement.payment + ' 만원' }}</p>
       <p v-if="announcement.type === 'EMP'">연봉 : {{ announcement.payment }} 만원</p>
       <p>지원기간 : {{ formatRecruitDate(announcement.startedDate) }} ~ {{ formatRecruitDate(announcement.deadLineDate) }}</p>
-      <p>포지션 : {{ announcement.position }}</p>
+      <p>포지션 : {{ formatPosition(announcement.position) }}</p>
       <p>기술 스택 : <span aria-label="기술 스택">{{ formatLanguages(announcement.language) }}</span></p>
       <p>경력 : {{ careerText }}</p>
     </div>
@@ -18,6 +18,7 @@
 import type { AnnouncementDetail } from '@/types/api';
 import { routeId } from '@/router/query';
 import CompanyImage from '@/components/common/CompanyImage.vue';
+import { formatPosition } from '@/presentation/positions';
 import { defineComponent } from "vue";
 import SafeHtml from "@/components/common/SafeHtml.vue";
 import { getAnnouncementDetail } from "@/api/announcements";
@@ -55,6 +56,7 @@ export default defineComponent({
     },
   },
   methods: {
+    formatPosition,
     formatLanguages,
     formatRecruitDate,
     loadAnnouncementDetail() {

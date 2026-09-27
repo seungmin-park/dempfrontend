@@ -9,6 +9,13 @@ export interface MemberInfo { username: string; jwt: string }
 export interface Member { id: number; username: string }
 export interface Company { name: string | null }
 export interface AnnouncementSummary {
+  company?: string | null;
+  announcementType?: AnnouncementType | null;
+  minCareer?: number | null;
+  maxCareer?: number | null;
+  payment?: number | null;
+  startedDate?: string | null;
+  deadLineDate?: string | null;
   id: number;
   title: string | null;
   language: Language[];
@@ -33,6 +40,9 @@ export interface AnnouncementDetailResponse {
 export type AnnouncementDetail = Omit<AnnouncementDetailResponse, 'company'> & { company: string; type: AnnouncementType | null };
 export interface AnnouncementScroll { id: number; title: string | null; company: Company | null; image: string }
 export interface AnnouncementFilters {
+  languages?: Language[];
+  recruitmentStatus?: 'OPEN' | 'UPCOMING' | 'CLOSED' | '';
+  tuition?: 'FREE' | 'PAID' | '';
   announcementType: AnnouncementType | '';
   positions: JobPosition[];
   career: number;
