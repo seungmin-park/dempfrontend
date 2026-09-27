@@ -1,6 +1,6 @@
 import { login } from '@/api/members';
 import { toAnnouncementDetail } from '@/api/announcements';
-import type { AnnouncementDetailResponse } from '@/types/api';
+import type { AnnouncementDetailResponse, QuestionDetail, Answer } from '@/types/api';
 
 // DTOs permit the nulls produced by legacy rows, while new input remains explicit.
 const legacyAnnouncement = {
@@ -17,3 +17,7 @@ const invalidLogin: Awaited<ReturnType<typeof login>>['data'] = {
   jwt: 123,
 };
 void [company, invalidLogin];
+
+const legacyQuestion: QuestionDetail = { id: 1, title: null, content: null, hits: 0, recommend: 0, dislike: 0, username: 'member', hashtags: [] };
+const legacyAnswer: Answer = { answerId: 1, content: null, recommend: 0, dislike: 0, username: 'member' };
+void [legacyQuestion, legacyAnswer];

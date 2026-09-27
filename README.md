@@ -52,11 +52,13 @@ TypeScript **6.0.3**, vue-tsc **3.3.11**, typescript-eslint **8.70.1**을 고정
 
 제품 코드의 명시적 `any`, `@ts-ignore`, `@ts-nocheck`는 없다. `skipLibCheck`는 외부 라이브러리 선언끼리의 검사만 생략하며 앱의 strict 검사를 끄지 않는다. DOM ref는 해당 template의 input/Element 타입으로 좁힌다. 기존 CDN Summernote 경계는 실제 사용하는 두 오버로드만 선언했고 공통 Markdown 작성기 적용 때 함께 제거한다. 도구 설정, `server.cjs`, 기존 단위/E2E 테스트는 JavaScript로 남겼다. `tests/types/api-contracts.ts`는 잘못된 JWT 타입이 계속 거절되는지도 검사한다.
 
-2026-09-27: 단위 19 suites/54 tests, strict typecheck·lint·build 통과. cmux 검증 pane에서 Playwright 모의 API 흐름 7개와 실제 Spring/H2 요청 14개 assertion 통과. 내장 브라우저의 실제 로그인·새로고침·스크롤 검증은 모의 API 테스트와 구분한다. TypeScript 전환은 API/DB 저장 형식을 변경하지 않으며 롤백 시 기존 `vuex` 인증 저장을 그대로 읽을 수 있다.
+2026-09-27 최종 리뷰 수정 후: 단위 20 suites/57 tests, strict typecheck·lint·build 통과. cmux 검증 pane에서 Playwright 모의 API 흐름 7개와 실제 Spring/H2 요청 16개 assertion 통과. 내장 브라우저의 실제 로그인·새로고침·스크롤 검증은 모의 API 테스트와 구분한다. TypeScript 전환은 API/DB 저장 형식을 변경하지 않으며 롤백 시 기존 `vuex` 인증 저장을 그대로 읽을 수 있다.
 
 ### 공고 인피니티 스크롤
 
 목록 끝이 보이면 다음 페이지를 요청한다. 진행 중 요청·마지막 페이지·오류 상태에서는 자동 요청을 반복하지 않는다. 필터가 바뀌면 첫 페이지부터 다시 시작하고 이전 요청의 늦은 응답은 폐기한다. 겹치는 ID는 중복 표시하지 않는다. 자동 감지가 없는 환경에서도 더보기와 재시도를 사용할 수 있다.
+
+신규 가입 비밀번호는 서버 BCrypt와 같은 72 UTF-8바이트 제한을 확인하고 초과 입력을 전송하지 않는다. 영문·숫자 72자 또는 한글24자 경계는 허용하며 입력을 절단하지 않는다. 기존 계정 로그인에는 이 신규 가입 제한을 적용하지 않는다.
 
 ### 배포·롤백
 

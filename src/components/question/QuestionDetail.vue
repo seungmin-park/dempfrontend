@@ -19,7 +19,7 @@
       </div>
     </div>
     <div class="qusetion-detail-content">
-      <SafeHtml :content="question.content" />
+      <SafeHtml :content="question.content ?? ''" />
       <div>
         <router-link
           class="hashtags"
@@ -33,13 +33,14 @@
 </template>
 
 <script lang="ts">
+import type { QuestionDetail } from '@/types/api';
 import { routeId } from '@/router/query';
 import { defineComponent } from "vue";
 import { getQuestionDetail } from '@/api/questions';
 import SafeHtml from "@/components/common/SafeHtml.vue";
 export default defineComponent({
   components: { SafeHtml },
-  data() {
+  data(): { question: QuestionDetail } {
     return {
       question: {
         id: 0,

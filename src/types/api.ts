@@ -55,10 +55,10 @@ export interface AnnouncementForm {
   language: string | Language[];
   image: File | null;
 }
-export interface QuestionSummary { id: number; title: string; hits: number; recommend: number }
-export interface QuestionDetail extends QuestionSummary { content: string; dislike: number; username: string; hashtags: string[] }
+export interface QuestionSummary { id: number; title: string | null; hits: number; recommend: number }
+export interface QuestionDetail extends QuestionSummary { content: string | null; dislike: number; username: string; hashtags: string[] }
 export interface QuestionForm { title: string; content: string; username: string; hashtags: string[] }
 export interface QuestionSearchCondition { orderBy: string; title: string; content: string; hashtags: string[]; page: number; size: number }
-export interface Answer { answerId: number; username: string; content: string; recommend: number; dislike: number }
+export interface Answer { answerId: number; username: string; content: string | null; recommend: number; dislike: number }
 export interface AnswerForm { username: string; questionId: EntityId; answerContent: string }
 export interface HashtagInput { value: string; select: boolean }

@@ -29,12 +29,10 @@
           name="password"
           v-model="password"
           placeholder="password"
-          rules="required"
+          :rules="validateRegistrationPassword"
           class="form-control"
         />
-        <ErrorMessage class="errorMessage" name="password" as="div">
-          비밀번호를 입력해 주세요.
-        </ErrorMessage>
+        <ErrorMessage class="errorMessage" name="password" as="div" role="alert" />
         <label for="password">비밀번호 재확인</label>
         <Field
             type="password"
@@ -63,6 +61,7 @@
 </template>
 
 <script lang="ts">
+import { validateRegistrationPassword } from '@/validation/registrationPassword';
 import { defineComponent } from "vue";
 import { register, checkUsername } from '@/api/members';
 import { Form as ValidationForm, Field, ErrorMessage } from "vee-validate";
@@ -100,6 +99,7 @@ export default defineComponent({
       });
     }},
   methods: {
+    validateRegistrationPassword,
     registerAccount() {
       if (!this.checkedUsername){
         alert("아이디 중복 검사를 실시해 주시기 바랍니다.");

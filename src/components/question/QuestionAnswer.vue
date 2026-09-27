@@ -5,7 +5,7 @@
         🙋‍♂️ 작성자 : {{ answer.username }}
       </div>
       <div class="question-answer-info-content">
-        <SafeHtml :content="answer.content" />
+        <SafeHtml :content="answer.content ?? ''" />
       </div>
     </div>
     <div class="question-answer-reaction">
