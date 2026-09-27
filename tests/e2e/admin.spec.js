@@ -58,7 +58,7 @@ test('모바일 관리자는 공고 등록 수정 재조회 삭제 확인을 진
   await page.getByRole('link', { name: '공고 등록', exact: true }).click();
   await page.getByRole('textbox', { name: '제목', exact: true }).fill('새 관리자 공고');
   await page.getByLabel('회사·교육기관').fill('DEMP 교육');
-  await page.getByLabel('지원 페이지').fill('https://example.test/apply');
+  await page.getByLabel('원문 공고 URL').fill('https://example.test/apply');
   await page.getByLabel('공고 종류', { exact: true }).selectOption('EDU');
   await page.getByLabel('분야', { exact: true }).selectOption('BACKEND');
   await page.getByLabel('모집 시작').fill('2026-09-01T09:00');

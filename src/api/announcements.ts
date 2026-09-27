@@ -12,7 +12,7 @@ export function toAnnouncementFormData(announcement: AnnouncementForm) {
     ? announcement.language
     : String(announcement.language || '').split(',').map(value => value.trim()).filter(Boolean);
   languages.forEach(language => form.append('language', language));
-  form.append('image', announcement.image ?? 'null');
+  if (announcement.image) form.append('image', announcement.image);
   return form;
 }
 

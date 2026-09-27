@@ -41,4 +41,9 @@ test('공고 상세의 기간·금액·회사·본문을 평면 응답 계약으
   expect(wrapper.get('[aria-label="모집 구분"]').text()).toBe('신입·경력');
   expect(wrapper.get('.announcement-audience').text()).toContain('3년 이하');
   expect(wrapper.get('.detail-announce-content').text()).toContain('설명');
+  const apply = wrapper.get('.apply-bar a');
+  expect(apply.attributes('href')).toBe('https://example.com/jobs/1');
+  expect(apply.attributes('target')).toBe('_blank');
+  expect(apply.attributes('rel')).toContain('noopener');
+  expect(wrapper.get('.apply-bar').text()).toContain('원문');
 });

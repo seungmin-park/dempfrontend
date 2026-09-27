@@ -66,7 +66,7 @@ test('공고 등록은 서버의 평면 multipart 필드로 요청한다', async
   expect(push).toHaveBeenCalledWith('/');
 });
 
-test('공고 이미지는 필수 JPEG 또는 PNG로 선택을 제한한다', () => {
+test('대표 이미지 없이 공고를 작성할 수 있고 첨부 시 JPEG 또는 PNG로 제한한다', () => {
   global.$ = () => ({ summernote: vi.fn() });
   const wrapper = mount(AnnouncementWrite, { global: { mocks: {
     $store: { state: { Login: { token: 'token' } } },
@@ -74,7 +74,7 @@ test('공고 이미지는 필수 JPEG 또는 PNG로 선택을 제한한다', () 
   } } });
 
   const imageInput = wrapper.get('input[type="file"]');
-  expect(imageInput.attributes('required')).toBeDefined();
+  expect(imageInput.attributes('required')).toBeUndefined();
   expect(imageInput.attributes('accept')).toBe('image/jpeg,image/png,.jpg,.jpeg,.png');
 });
 

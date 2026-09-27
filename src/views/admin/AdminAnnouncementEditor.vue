@@ -10,7 +10,7 @@
         <div v-for="field in dateFields" :key="field.key" class="field"><label :for="`admin-${field.key}`">{{ field.label }}</label><input :id="`admin-${field.key}`" v-model="form[field.key]" type="datetime-local" step="1" required :disabled="saving" /><p v-if="errors[field.key]" class="field-error">{{ errors[field.key] }}</p></div>
         <div v-for="field in numberFields" :key="field.key" class="field"><label :for="`admin-${field.key}`">{{ field.key === 'payment' ? (form.type === 'EDU' ? '교육비 (만원, 무료는 0)' : '연봉 (만원)') : field.label }}</label><input :id="`admin-${field.key}`" v-model.number="form[field.key]" type="number" min="0" step="1" required :disabled="saving" /><p v-if="errors[field.key]" class="field-error">{{ errors[field.key] }}</p></div>
         <fieldset class="field"><legend>기술 스택</legend><div class="radio-options"><label v-for="language in languages" :key="language"><input v-model="selectedLanguages" type="checkbox" :value="language" :disabled="saving" />{{ formatLanguages([language]) }}</label></div><p v-if="errors.language" class="field-error">{{ errors.language }}</p></fieldset>
-        <div class="field"><label for="admin-image">공고 이미지{{ editing ? ' 교체 (선택)' : '' }}</label><CompanyImage v-if="imageUrl" :src="imageUrl" :alt="form.company" class="admin-image-preview" /><input id="admin-image" type="file" accept="image/jpeg,image/png" :required="!editing" :disabled="saving" @change="selectImage" /><p class="field-hint">{{ editing ? '선택하지 않으면 기존 이미지를 유지합니다.' : 'JPEG 또는 PNG 이미지를 선택하세요.' }}</p><p v-if="errors.image" class="field-error">{{ errors.image }}</p></div>
+        <div class="field"><label for="admin-image">공고 이미지 (선택)</label><CompanyImage v-if="imageUrl" :src="imageUrl" :alt="form.company" class="admin-image-preview" /><input id="admin-image" type="file" accept="image/jpeg,image/png" :disabled="saving" @change="selectImage" /><p class="field-hint">{{ editing ? '선택하지 않으면 기존 이미지를 유지합니다.' : 'JPEG 또는 PNG 이미지를 선택하세요.' }}</p><p v-if="errors.image" class="field-error">{{ errors.image }}</p></div>
       </div>
       <div class="field"><MarkdownEditor id="admin-content" label="상세 내용" v-model="form.content" :disabled="saving" /><p v-if="errors.content" class="field-error">{{ errors.content }}</p></div>
       <p v-if="error" role="alert" class="form-error">{{ error }}</p>
@@ -35,7 +35,7 @@ export default defineComponent({
   components: { MarkdownEditor, AsyncState, CompanyImage },
   data: () => ({ form: blankForm(), selectedLanguages: [] as Language[], imageUrl: '', loading: false, saving: false, loadError: '', error: '', errors: {} as Record<string,string>, generation: 0, positions,
     languages: ['JAVA','SPRING','JPA','HTML','CSS','React'] as Language[],
-    textFields: [{ key: 'title', label: '제목', type: 'text' }, { key: 'company', label: '회사·교육기관', type: 'text' }, { key: 'accessUrl', label: '지원 페이지', type: 'url' }] as const,
+    textFields: [{ key: 'title', label: '제목', type: 'text' }, { key: 'company', label: '회사·교육기관', type: 'text' }, { key: 'accessUrl', label: '원문 공고 URL', type: 'url' }] as const,
     dateFields: [{ key: 'startedDate', label: '모집 시작' }, { key: 'deadLineDate', label: '모집 마감' }] as const,
     numberFields: [{ key: 'minCareer', label: '최소 경력 (년)' }, { key: 'maxCareer', label: '최대 경력 (년, 무관은 0)' }, { key: 'payment', label: '금액 (만원)' }] as const,
   }),
@@ -67,7 +67,6 @@ export default defineComponent({
       if (!this.form.deadLineDate || (this.form.startedDate && this.form.deadLineDate < this.form.startedDate)) errors.deadLineDate = '마감은 모집 시작보다 빠를 수 없습니다.';
       for (const field of ['minCareer','maxCareer','payment'] as const) if (!Number.isInteger(this.form[field]) || this.form[field] < 0) errors[field] = '0 이상의 정수를 입력해 주세요.';
       if (this.form.maxCareer && this.form.minCareer > this.form.maxCareer) errors.maxCareer = '최대 경력은 최소 경력보다 작을 수 없습니다.';
-      if (!this.editing && !this.form.image) errors.image = '공고 이미지를 선택해 주세요.';
       this.errors = errors; return Object.keys(errors).length === 0;
     },
     async save() {
