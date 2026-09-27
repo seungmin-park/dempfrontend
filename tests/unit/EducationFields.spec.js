@@ -24,3 +24,11 @@ it('공고 종류를 바꾸면 연봉을 교육비로 재사용하지 않는다'
   expect(wrapper.vm.form.salaryMax).toBeNull();
   wrapper.unmount();
 });
+it('새 공고는 초안이며 게시 상태와 출처 확인 정보를 입력한다', async () => {
+  const wrapper = mount(AdminAnnouncementEditor, { global: { stubs: { RouterLink: true }, mocks: { $route: { params: {} }, $router: { push: vi.fn() } } } });
+  await flushPromises();
+  expect(wrapper.get('[aria-label="게시 상태"]').element.value).toBe('DRAFT');
+  expect(wrapper.find('[aria-label="출처 이름"]').exists()).toBe(true);
+  expect(wrapper.find('[aria-label="지원 URL (선택)"]').exists()).toBe(true);
+  wrapper.unmount();
+});

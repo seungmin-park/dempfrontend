@@ -31,3 +31,5 @@ export async function deleteAdminItem(kind: CollectionKind, id: number): Promise
   const response = await apiClient.delete<AdminMutationResult | undefined>(`/api/admin/${kind}/${id}`);
   return response.data || { cleanupPending: false };
 }
+
+export const fetchPublicationHistory = async (id: EntityId) => (await apiClient.get<import('@/types/api').PublicationRevision[]>(`/api/admin/announcements/${id}/history`)).data;

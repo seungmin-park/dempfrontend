@@ -48,7 +48,7 @@ export default defineComponent({
   data() { return { educationFields, announcement: {} as Partial<AnnouncementDetail>, loading: true, error: '', requestGeneration: 0 }; },
   unmounted() { this.requestGeneration++; },
   computed: {
-    applicationUrl() { return safeApplicationUrl(this.announcement.accessUrl); },
+    applicationUrl() { return safeApplicationUrl(this.announcement.applicationUrl || this.announcement.accessUrl); },
 
   },
   methods: {

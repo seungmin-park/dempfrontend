@@ -4,6 +4,11 @@
     <div class="admin-section-heading"><div><h2>{{ editing ? '공고 내용·수정' : '새 공고 등록' }}</h2><p>채용 공고와 교육·부트캠프를 관리하세요.</p></div><router-link class="button button-secondary" to="/admin/announcements">목록</router-link></div>
     <form class="write-form" @submit.prevent="save">
       <div class="form-grid">
+        <div class="field"><label for="admin-publication">게시 상태</label><select id="admin-publication" aria-label="게시 상태" v-model="form.publicationStatus" :disabled="saving"><option v-for="(label, value) in publicationLabels" :key="value" :value="value">{{ label }}</option></select><p class="field-hint">공개 상태만 서비스에 표시됩니다. 모집 마감과 게시 상태는 별개입니다.</p></div>
+        <div class="field"><label for="admin-source">출처 이름</label><input id="admin-source" aria-label="출처 이름" v-model="form.sourceName" maxlength="255" :disabled="saving" placeholder="예: 회사 채용 홈페이지" /></div>
+        <div class="field"><label for="admin-source-id">원문 식별값 (선택)</label><input id="admin-source-id" v-model="form.sourceIdentifier" maxlength="255" :disabled="saving" placeholder="원문 사이트의 공고 번호" /></div>
+        <div class="field"><label for="admin-apply-url">지원 URL (선택)</label><input id="admin-apply-url" aria-label="지원 URL (선택)" type="url" v-model="form.applicationUrl" :disabled="saving" /><p class="field-hint">비워 두면 원문 공고로 이동합니다.</p><p v-if="errors.applicationUrl" class="field-error">{{ errors.applicationUrl }}</p></div>
+        <div class="field"><label><input type="checkbox" v-model="form.sourceVerified" :disabled="saving" /> 원문 내용을 직접 확인했습니다</label><p class="field-hint">저장할 때 확인 시각을 기록합니다. 원문 주소를 바꾸면 다시 확인하세요.</p></div>
         <div v-for="field in textFields" :key="field.key" class="field"><label :for="`admin-${field.key}`">{{ field.label }}</label><input :id="`admin-${field.key}`" v-model="form[field.key]" :type="field.type" required :disabled="saving" :aria-invalid="Boolean(errors[field.key])" /><p v-if="errors[field.key]" class="field-error">{{ errors[field.key] }}</p></div>
         <div class="field"><label for="admin-type">공고 종류</label><select id="admin-type" v-model="form.type" @change="changeType" required :disabled="saving"><option value="EMP">채용</option><option value="EDU">교육·부트캠프</option></select></div>
         <div class="field"><label for="admin-position">분야</label><select id="admin-position" v-model="form.position" required :disabled="saving"><option value="">분야 선택</option><option v-for="position in positions" :key="position" :value="position">{{ formatPosition(position) }}</option></select><p v-if="errors.position" class="field-error">{{ errors.position }}</p></div>
@@ -18,9 +23,12 @@
       <p v-if="error" role="alert" class="form-error">{{ error }}</p>
       <div class="form-actions"><router-link class="button button-secondary" to="/admin/announcements">취소</router-link><button class="button button-primary" :disabled="saving">{{ saving ? '저장 중…' : editing ? '변경 저장' : '등록하기' }}</button></div>
     </form>
+    <section v-if="editing" class="state-panel"><h3>변경 이력</h3><button type="button" class="button button-secondary" @click="loadHistory">이력 보기</button><p v-if="historyError" role="alert">{{ historyError }}</p><ol v-if="history.length"><li v-for="(entry, index) in history" :key="index">{{ formatRecruitDate(entry.changedAt) }} · {{ entry.actor }} · {{ publicationLabels[entry.status] }} · {{ entry.title }}</li></ol><p v-if="historyLoaded && !history.length">기록된 변경 이력이 없습니다. 이전에 등록된 공고는 다음 저장부터 기록됩니다.</p></section>
   </template>
 </template>
 <script lang="ts">
+import { publicationLabels } from '@/presentation/publication';
+import type { PublicationRevision } from '@/types/api';
 import EducationFields from '@/components/announcement/EducationFields.vue';
 import { educationError } from '@/data/education';
 import CompensationFields from '@/components/announcement/CompensationFields.vue';
@@ -29,19 +37,19 @@ import { announcementAttachmentError } from '@/content/announcementAttachments';
 import { hasTextContent } from '@/content/sanitizeHtml';
 import { defineComponent } from 'vue';
 import type { AnnouncementForm, Language } from '@/types/api';
-import { fetchAdminAnnouncement, saveAdminAnnouncement } from '@/api/admin';
+import { fetchAdminAnnouncement, saveAdminAnnouncement, fetchPublicationHistory } from '@/api/admin';
 
 import { requestErrorMessage, mutationErrorMessage } from '@/presentation/requestError';
 import { formatPosition } from '@/presentation/positions';
-import { formatLanguages } from '@/presentation/announcement';
+import { formatLanguages, formatRecruitDate } from '@/presentation/announcement';
 import positions from '@/data/positions';
 import AnnouncementBodyEditor from '@/components/announcement/AnnouncementBodyEditor.vue';
 import AsyncState from '@/components/common/AsyncState.vue';
 import CompanyImage from '@/components/common/CompanyImage.vue';
-function blankForm(): AnnouncementForm { return { title: '', company: '', type: 'EMP', position: '', minCareer: 0, maxCareer: 0, payment: null, salaryMax: null, accessUrl: '', startedDate: null, deadLineDate: null, content: '', language: [], image: null }; }
+function blankForm(): AnnouncementForm { return { publicationStatus: 'DRAFT', sourceName: '', sourceIdentifier: '', applicationUrl: '', sourceVerified: false, title: '', company: '', type: 'EMP', position: '', minCareer: 0, maxCareer: 0, payment: null, salaryMax: null, accessUrl: '', startedDate: null, deadLineDate: null, content: '', language: [], image: null }; }
 export default defineComponent({
   components: { EducationFields, CompensationFields, AnnouncementBodyEditor, AsyncState, CompanyImage },
-  data: () => ({ form: blankForm(), selectedLanguages: [] as Language[], bodyImages: [] as File[], imageUrl: '', loading: false, saving: false, loadError: '', error: '', errors: {} as Record<string,string>, generation: 0, positions,
+  data: () => ({ publicationLabels, history: [] as PublicationRevision[], historyError: '', historyLoaded: false, form: blankForm(), selectedLanguages: [] as Language[], bodyImages: [] as File[], imageUrl: '', loading: false, saving: false, loadError: '', error: '', errors: {} as Record<string,string>, generation: 0, positions,
     languages: ['JAVA','SPRING','JPA','HTML','CSS','React'] as Language[],
     textFields: [{ key: 'title', label: '제목', type: 'text' }, { key: 'company', label: '회사·교육기관', type: 'text' }, { key: 'accessUrl', label: '원문 공고 URL', type: 'url' }] as const,
     dateFields: [{ key: 'startedDate', label: '모집 시작' }, { key: 'deadLineDate', label: '모집 마감' }] as const,
@@ -49,18 +57,24 @@ export default defineComponent({
   }),
   computed: { editing(): boolean { return Boolean(this.$route.params.id); } },
   mounted() { this.load(); }, beforeUnmount() { this.generation++; },
-  watch: { '$route.params.id': 'load' },
+  watch: { '$route.params.id': 'load', 'form.accessUrl'() { this.form.sourceVerified = false; } },
   methods: {
-    formatPosition, formatLanguages,
+    formatPosition, formatLanguages, formatRecruitDate,
+    async loadHistory() {
+      const current = this.generation; this.historyError = '';
+      try { const history = await fetchPublicationHistory(String(this.$route.params.id)); if (current === this.generation) { this.history = history; this.historyLoaded = true; } }
+      catch (reason) { if (current === this.generation) this.historyError = requestErrorMessage(reason); }
+    },
     changeType() { this.form.payment = null; this.form.salaryStatus = undefined; this.form.salaryMax = null; },
     async load() {
-      const current = ++this.generation; this.form = blankForm(); this.errors = {}; this.error = ''; this.loadError = ''; this.selectedLanguages = []; this.bodyImages = []; this.imageUrl = '';
+      const current = ++this.generation; this.form = blankForm(); this.history = []; this.historyLoaded = false; this.historyError = ''; this.errors = {}; this.error = ''; this.loadError = ''; this.selectedLanguages = []; this.bodyImages = []; this.imageUrl = '';
       if (!this.editing) { this.loading = false; return; }
       this.loading = true;
       try {
         const result = await fetchAdminAnnouncement(String(this.$route.params.id));
         if (current !== this.generation) return;
         this.form = { ...blankForm(), ...result, ...result.education, title: result.title || '', company: result.company?.name || '', type: result.announcementType || 'EMP', position: result.position || '', content: result.content || '', accessUrl: result.accessUrl || '', image: null };
+        await this.$nextTick(); if (current !== this.generation) return; this.form.sourceVerified = Boolean(result.sourceVerifiedAt);
         this.selectedLanguages = result.language || []; this.imageUrl = result.image;
       } catch (reason) { if (current === this.generation) this.loadError = requestErrorMessage(reason); }
       finally { if (current === this.generation) this.loading = false; }
@@ -70,6 +84,7 @@ export default defineComponent({
       const errors: Record<string,string> = {};
       for (const field of ['title','company','content'] as const) if (!this.form[field].trim()) errors[field] = '필수 항목을 입력해 주세요.';
       try { if (!['http:','https:'].includes(new URL(this.form.accessUrl).protocol)) throw new Error(); } catch { errors.accessUrl = 'http 또는 https 주소를 입력해 주세요.'; }
+      if (this.form.applicationUrl) { try { if (!['http:','https:'].includes(new URL(this.form.applicationUrl).protocol)) throw new Error(); } catch { errors.applicationUrl = 'http 또는 https 주소를 입력해 주세요.'; } }
       if (!hasTextContent(this.form.content)) errors.content = '본문 내용을 입력해 주세요.';
       if (!this.form.position) errors.position = '분야를 선택해 주세요.';
       if (!this.selectedLanguages.length) errors.language = '기술 스택을 하나 이상 선택해 주세요.';

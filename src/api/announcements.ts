@@ -6,6 +6,7 @@ export function toAnnouncementFormData(announcement: AnnouncementForm) {
   const form = new FormData();
   const fields = [
     'title', 'company', 'type', 'position', 'minCareer', 'maxCareer',
+    'publicationStatus', 'sourceName', 'sourceIdentifier', 'applicationUrl', 'sourceVerified',
     'startedDate', 'deadLineDate', 'content', 'accessUrl', 'payment', 'salaryStatus', 'salaryMax',
   ] as const;
   fields.forEach(field => { if (announcement[field] != null && announcement[field] !== '') form.append(field, String(announcement[field])); });

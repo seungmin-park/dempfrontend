@@ -14,6 +14,7 @@
   </div>
 </template>
 <script lang="ts">
+import { publicationLabels } from '@/presentation/publication';
 import { defineComponent, type PropType } from 'vue';
 import { fetchAdminAnnouncements, fetchAdminPosts, deleteAdminItem, type CollectionKind } from '@/api/admin';
 import { formatLanguages, formatRecruitDate } from '@/presentation/announcement';
@@ -40,7 +41,7 @@ export default defineComponent({
         if (this.kind === 'announcements') {
           const result = await fetchAdminAnnouncements(this.term, this.type, this.page);
           if (current !== this.generation) return;
-          this.rows = result.content.map(item => ({ id: item.id, title: item.title || '', subtitle: `${item.announcementType === 'EDU' ? '교육·부트캠프' : '채용'} · ${item.company || '기관 정보 없음'}`, meta: `${formatLanguages(item.language)} · 마감 ${formatRecruitDate(item.deadLineDate)}` }));
+          this.rows = result.content.map(item => ({ id: item.id, title: item.title || '', subtitle: `${publicationLabels[item.publicationStatus || 'PUBLISHED']} · ${item.announcementType === 'EDU' ? '교육·부트캠프' : '채용'} · ${item.company || '기관 정보 없음'}`, meta: `${formatLanguages(item.language)} · 마감 ${formatRecruitDate(item.deadLineDate)}` }));
           this.last = result.last; this.total = undefined;
         } else {
           const result = await fetchAdminPosts(this.kind, this.term, this.page);

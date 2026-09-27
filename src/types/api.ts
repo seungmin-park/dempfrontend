@@ -5,12 +5,15 @@ export type EntityId = number | string;
 export type JobPosition = typeof positions[number];
 export type Language = 'HTML' | 'CSS' | 'React' | 'JAVA' | 'JPA' | 'SPRING';
 export type SalaryStatus = 'UNDISCLOSED' | 'NEGOTIABLE' | 'DISCLOSED';
+export type PublicationStatus = 'DRAFT' | 'REVIEW' | 'PUBLISHED' | 'HIDDEN';
+export interface PublicationInfo { publicationStatus?: PublicationStatus; sourceName?: string | null; sourceIdentifier?: string | null; applicationUrl?: string | null; sourceVerifiedAt?: string | null; sourceVerified?: boolean }
+export interface PublicationRevision { actor: string; changedAt: string; status: PublicationStatus; title: string; sourceUrl: string }
 export type AnnouncementType = 'EMP' | 'EDU';
 export interface Slice<T> { content: T[]; last: boolean; number: number }
 export interface MemberInfo { username: string; jwt: string }
 export interface Member { id: number; username: string }
 export interface Company { name: string | null }
-export interface AnnouncementSummary {
+export interface AnnouncementSummary extends PublicationInfo {
   education?: EducationInfo | null;
   company?: string | null;
   announcementType?: AnnouncementType | null;
@@ -25,7 +28,7 @@ export interface AnnouncementSummary {
   position: JobPosition | null;
   image: string;
 }
-export interface AnnouncementDetailResponse {
+export interface AnnouncementDetailResponse extends PublicationInfo {
   education?: EducationInfo | null;
   image: string;
   company: Company | null;
@@ -59,7 +62,7 @@ export interface AnnouncementFilters extends EducationInfo {
   title: string;
 }
 export interface AnnouncementSearchCondition extends AnnouncementFilters { page: number }
-export interface AnnouncementForm extends EducationInfo {
+export interface AnnouncementForm extends EducationInfo, PublicationInfo {
   title: string;
   company: string;
   type: AnnouncementType | '';
