@@ -1,110 +1,106 @@
-# DEMP · Frontend
+# DEMP Frontend
 
-**개발자 채용·교육 공고 탐색과 질문·답변 커뮤니티의 Vue 3 + TypeScript 클라이언트.**
+### 조건을 비교하고, 원문으로 이동하고, 배운 것을 묻는 화면
 
-사용자가 채용 조건과 교육 과정을 비교하고, 원본 공고로 이동해 지원하도록 돕습니다. 운영자는 관리자 화면에서 출처·조건·게시 상태를 관리합니다. 앱 이름은 **DEMP**입니다.
+DEMP의 Vue 3·TypeScript 클라이언트입니다. 채용 공고와 교육 과정의 조건을 좁혀 살펴보고, **지원하기**에서 원본 페이지로 이동합니다. 질문·답변에서는 Markdown으로 글을 쓰고 회원별 추천·비추천을 남깁니다. 공고를 관리하는 운영 화면도 같은 앱에 있습니다.
 
-[백엔드·전체 설계](https://github.com/seungmin-park/demp) · [성능 개선 보고서](https://github.com/seungmin-park/demp/blob/main/docs/verification/measured-query-performance/README.md) · [전체 작업 기록](https://github.com/seungmin-park/demp/blob/main/tasks.md) · [운영·호환성](docs/operations.md)
+[서비스 전체 소개](https://github.com/seungmin-park/demp) · [화면 보기](#화면과-사용-흐름) · [UI 설계](#ui에서-해결한-문제) · [실행](#로컬-실행) · [검증](#검증)
 
-## 현재 화면
+## 화면과 사용 흐름
 
-![교육 과정 탐색](docs/screenshots/education-filters.png)
+| 영역 | 주요 행동 | 결과가 없거나 실패하면 |
+| --- | --- | --- |
+| 채용 | 신입·경력·무관, 직무·기술 조건으로 탐색하고 원본 지원 페이지로 이동 | 처음부터 공고가 없는 경우와 필터 결과가 없는 경우를 구분 |
+| 교육 | 방식·지역·기간·비용·지원 대상 등으로 좁히고 기수·마감 확인 | 조건에 맞는 교육 과정이 없음을 설명하고 필터 초기화 제공 |
+| 질문·답변 | 태그 검색·정렬, Markdown 작성·미리보기, 추천·비추천·취소 | 저장 실패 시 확정된 반응 수를 유지하고 재시도 안내 |
+| 관리자 | 공고 초안 작성, 검토 후 공개, 마감·비공개, 출처·변경 이력·제보 관리 | 서버 권한이 없는 사용자는 운영 화면에서 차단 |
 
-![질문·답변 반응](docs/screenshots/saved-reactions.png)
+<p align="center">
+  <img src="docs/screenshots/education-filters.png" alt="교육 과정 필터와 결과 목록" width="44%" />
+  <img src="docs/screenshots/saved-reactions.png" alt="질문과 답변의 추천·비추천 버튼" width="44%" />
+</p>
 
-화면은 로컬 예제 데이터로 촬영했습니다.
+화면은 로컬 예제 데이터로 촬영했습니다. 기술 배열은 `Java, Spring`, 날짜는 `2026.09.27 09:00`처럼 읽기 쉬운 형태로 표시합니다. API의 저장 형식은 화면 표시 때문에 바꾸지 않습니다.
 
-## 구현한 사용자 흐름
+## UI에서 해결한 문제
 
-| 화면 | 사용자가 할 수 있는 일 |
-|---|---|
-| 채용 | 신입·경력·무관 구분, 기술·직무 필터, 공고 상세 확인, 원본 지원 페이지 이동 |
-| 교육 | 교육 방식·지역·기간·비용·지원 조건 등 필터, 기수·지원금·마감 확인 |
-| 질문·답변 | 태그 탐색·정렬, Markdown 작성·미리보기, 추천·비추천·취소 |
-| 관리자 | 초안 작성·공개·마감/비공개, 출처·원문 확인일·변경 이력, 오류 제보 처리, 질문·답변 수정·삭제 |
-| 로그인 | 인증 상태 복원, 보호 경로 이동, 세션 만료 시 로그인 후 돌아갈 경로 보존 |
+### 필터와 무한 스크롤의 응답 순서
 
-지원하기는 외부 원문 또는 별도 지원 URL로 이동합니다. 이미지는 선택 업로드이며 기본 이미지로도 등록할 수 있습니다. 외부 URL에서 이미지를 자동 수집하거나 원문을 대량 복제하는 기능은 없습니다.
-
-## UI에서 중요하게 다룬 부분
-
-### 데이터 요청 상태를 화면 의미와 맞추기
+사용자가 필터를 바꾸는 동안 이전 페이지 요청이 늦게 도착하면, 새 검색 결과를 덮어쓸 수 있습니다. 목록은 **현재 조건과 페이지**를 한 흐름으로 관리하고, 조건이 바뀌면 첫 페이지부터 다시 읽으며 이전 응답을 버립니다.
 
 ```mermaid
 stateDiagram-v2
   [*] --> Loading
-  Loading --> Results: 데이터 있음
-  Loading --> Empty: 조건에 맞는 데이터 없음
+  Loading --> Results: 결과 도착
+  Loading --> Empty: 결과 없음
   Loading --> Error: 요청 실패
-  Results --> Loading: 필터 변경
+  Results --> Loading: 필터 변경·다음 페이지
   Empty --> Loading: 조건 초기화
   Error --> Loading: 재시도
 ```
 
-채용·부트캠프의 빈 결과 안내를 구분하고, 처음부터 없는 목록과 필터 결과 없음, 서버 오류를 같은 문구로 보여주지 않습니다. 필터가 바뀌면 이전 응답은 버리고 새 조건의 첫 페이지부터 시작합니다.
+스크롤 끝에서 다음 페이지를 한 번만 요청하고, 마지막 페이지나 실패 상태에서는 자동 요청을 반복하지 않습니다. 겹치는 ID도 한 번만 표시합니다. 자동 감지 외에 **더보기·재시도**를 제공해 사용자가 이어서 탐색할 수 있습니다. [스크롤·필터 E2E 사례](tests/e2e/community.spec.js)
 
-### 무한 스크롤과 비동기 경쟁
+### 저장 중인 반응과 확정된 반응
 
-- 목록 끝에서 다음 페이지를 읽고, 진행 중·마지막 페이지·오류 상태에서는 자동 요청을 반복하지 않습니다.
-- 겹치는 ID는 한 번만 표시합니다. 자동 감지 외에 더보기·재시도도 제공합니다.
-- 반응 저장은 응답이 확정될 때까지 연타를 막습니다. 실패하면 기존 값을 보존하고, 화면 이동 후 도착한 응답은 반영하지 않습니다.
-- 부모의 같은 글 데이터 갱신이 저장 중 상태를 풀던 문제를 회귀 테스트로 재현해 수정했습니다.
+버튼을 눌렀다는 사실과 서버가 저장했다는 사실은 다릅니다. `useContentReaction`은 저장 중 연타를 막고 실패하면 직전 확정값을 유지합니다. 다른 글로 이동한 뒤 늦게 도착한 응답도 현재 화면에 반영하지 않습니다. 새로고침 뒤에는 서버가 반환한 회원별 선택과 집계로 화면을 다시 그립니다. [반응 저장 검증](https://github.com/seungmin-park/demp/blob/main/docs/verification/persistent-content-reactions/t99-t101.md)
 
-### 작성기와 안전한 본문 표시
+### 작성기와 본문 표시
 
-질문·답변은 공통 Markdown 작성기와 미리보기를 사용합니다. 기존 HTML 편집은 `markdownFromHtml`, 변환은 `renderMarkdown`을 사용합니다. 공고는 Tiptap 본문 작성기에서 표·이미지·붙여넣기를 지원합니다. API에는 정화한 HTML을 저장하고, 출력은 `SafeHtml`의 DOMPurify 허용목록을 통과합니다. Bootstrap/jQuery/Summernote CDN 의존성은 제거했습니다.
+질문·답변은 공통 Markdown 작성기와 미리보기를 사용합니다. 기존 HTML을 다시 편집할 때는 Markdown으로 변환합니다. 공고는 Tiptap 작성기에서 표·이미지·붙여넣기를 지원합니다. 저장 전 서버가 본문을 정화하고, 화면 출력은 `SafeHtml`의 DOMPurify 허용목록을 거칩니다. Bootstrap·jQuery·Summernote CDN 의존성은 제거했습니다.
 
-기술 배열은 `Java, Spring`, 날짜는 `2026.09.27 09:00`처럼 표시합니다. API 저장 형식을 화면 표시 때문에 바꾸지 않습니다.
+이미지는 선택 업로드입니다. 외부 공고의 이미지를 자동 수집하거나 원문 전체를 대량 복제하지 않습니다. **지원하기**는 원본 또는 별도 지원 URL을 엽니다. [게시 정책](https://github.com/seungmin-park/demp/blob/main/docs/plans/curated-publication-policy.md)
 
-## 구조와 타입 경계
+## 구조와 상태 경계
 
 ```mermaid
 flowchart LR
-  View[View: 페이지·라우팅] --> Component[Component: props/event·표현]
-  Component --> State[Composable / Vuex: 상태·비동기]
-  State --> API[API 모듈: HTTP 계약]
-  API --> Client[Axios: 토큰·401 처리]
-  Client --> Spring[Spring API]
+  V[페이지·라우팅] --> C[표현 컴포넌트]
+  C --> S[Composable·Vuex]
+  S --> A[API 모듈]
+  A --> H[Axios·인증 처리]
+  H --> B[Spring API]
 ```
 
-제품 코드는 `src/**/*.ts`와 Vue SFC의 `<script lang="ts">`로 전환했습니다. `strict` 타입 검사는 DTO·nullable 값·이벤트·템플릿까지 적용합니다. Vue 컴포넌트는 표현·상태·API 경계로 검토하고, 독립 TypeScript 모듈은 책임과 작은 계약을 중심으로 나눴습니다.
+표현 컴포넌트는 props와 이벤트에 집중합니다. 비동기 요청·응답 경쟁·실패 상태는 composable이 관리하고, API 모듈은 HTTP 계약을 맡습니다. Vuex는 로그인 상태를 소유합니다. 모든 제품 `src/**/*.ts`와 Vue SFC의 `<script lang="ts">`에 strict 타입 검사를 적용하며 DTO·nullable 값·이벤트·템플릿까지 검사합니다.
 
-- `src/types/api.ts`: Slice·회원·공고·질문·답변·반응 계약.
-- `src/api/client.ts`: 요청 직전 `X-AUTH-TOKEN` 부착, 401 시 로그인 상태 정리.
-- 인증 저장은 기존 `vuex` localStorage 형식을 유지하며 손상된 JSON을 로그아웃 상태로 처리합니다.
-- 테스트·도구 설정 일부는 JavaScript입니다. 제품 strict 검사를 `any`나 `@ts-ignore`로 우회하지 않습니다.
+| 위치 | 책임 |
+| --- | --- |
+| `src/types/api.ts` | Slice·회원·공고·질문·답변·반응 응답 계약 |
+| `src/api/client.ts` | 요청 직전 인증 토큰 부착, 401 응답 시 로그인 상태 정리 |
+| `src/api/reactions.ts` | 질문·답변 반응 HTTP 요청 |
+| `src/composables/useContentReaction.ts` | 반응 저장 중 상태·실패·응답 순서 제어 |
 
-## 실행
+설정·테스트 도구의 일부 파일은 JavaScript입니다. [프런트 기능 지도](docs/engineering/feature-map.md) · [백엔드의 저장 책임](https://github.com/seungmin-park/demp/blob/main/docs/engineering/architecture.md)
 
-필요 조건: asdf Node 플러그인, Node **24.21.0**. 먼저 [백엔드 README](https://github.com/seungmin-park/demp#로컬-실행)에 따라 local 서버를 18080 포트로 실행합니다.
+## 기술 스택
+
+| 영역 | 저장소 고정 버전 |
+| --- | --- |
+| 런타임·화면 | Node 24.21.0, Vue 3.5.43, Router 5.3.1, Vuex 4.1.0 |
+| 언어·빌드 | TypeScript 6.0.3, vue-tsc 3.3.11, Vite 8.3.1 |
+| 작성·검증 | Tiptap Vue 3.31.3, Vitest 5.0.2, Playwright 1.63.0 |
+
+버전은 `package.json`·lockfile·`.tool-versions` 기준입니다. [버전별 공식 문서](docs/engineering/official-docs.md) · [업그레이드 호환성 기록](https://github.com/seungmin-park/demp/blob/main/docs/verification/runtime-framework-and-typescript-upgrade/README.md)
+
+## 로컬 실행
+
+asdf Node 플러그인과 Node 24.21.0이 필요합니다. 먼저 [백엔드 로컬 실행](https://github.com/seungmin-park/demp#로컬-실행)에 따라 Spring 서버를 18080 포트로 시작합니다. 아래 명령은 **이 저장소의 루트**에서 실행합니다.
 
 ```sh
 asdf install nodejs
-node --version
 npm ci
 DEV_API_TARGET=http://127.0.0.1:18080 npm run dev
 ```
 
-화면은 `http://localhost:5050`, 로컬 일반 회원은 **local-member / password**입니다. 관리자 화면은 서버가 `ROLE_ADMIN`을 부여한 계정으로 접근합니다. 일반 회원가입은 관리자 권한을 부여하지 않습니다. [관리자 계정 준비](https://github.com/seungmin-park/demp/blob/main/docs/verification/admin-console/account-setup.md)를 참고합니다.
+`http://localhost:5050`에 접속합니다. local 예제 회원은 `local-member / password`입니다. 관리자 기능은 서버가 `ROLE_ADMIN`을 부여한 별도 계정으로 확인합니다. [계정 준비 방법](https://github.com/seungmin-park/demp/blob/main/docs/verification/admin-console/account-setup.md)
 
-| 도구 | 고정 버전 |
-|---|---|
-| Vue / Router / Vuex | 3.5.43 / 5.3.1 / 4.1.0 |
-| TypeScript / vue-tsc | 6.0.3 / 3.3.11 |
-| Vite / Vitest | 8.3.1 / 5.0.2 |
-| Playwright | 1.63.0 |
-
-버전표는 저장소의 재현 환경입니다. TypeScript는 lint parser와의 공통 지원 범위를 기준으로 선택했고, 고정 LTS 채널이 없는 Vue는 업그레이드 당시 안정판을 사용했습니다.
-
-### API 주소
-
-기본 `/api` 요청은 Vite가 `http://localhost:8080`으로 proxy합니다. 위 예제는 `DEV_API_TARGET`으로 18080을 지정합니다. 배포 시 같은 출처 `/api` reverse proxy를 권장하며, 직접 호출이 필요하면 빌드 시 `VITE_API_BASE_URL`과 백엔드 CORS 허용목록을 맞춥니다.
-
-`npm start`의 Express 서버는 `dist`와 SPA 경로만 제공합니다. **API proxy는 제공하지 않으므로** 배포 환경에서 별도로 구성해야 합니다. 환경변수는 `.env.example`, 상세 내용은 [운영 문서](docs/operations.md)를 확인합니다.
+개발 서버의 `/api` 요청은 `DEV_API_TARGET`으로 proxy합니다. `npm start`는 빌드된 SPA 파일을 제공하며 API proxy는 제공하지 않습니다. 배포 시 같은 출처의 `/api` reverse proxy 또는 빌드 시 API 주소·서버 CORS 설정이 필요합니다. [환경변수와 배포 구성](docs/operations.md)
 
 ## 검증
 
 ```sh
+npm run check:agent-contracts
 npm test
 npm run typecheck
 npm run lint -- --no-fix
@@ -113,23 +109,6 @@ npx playwright install chromium
 npm run test:e2e -- --headed
 ```
 
-최종 확인: **단위·컴포넌트 156개, 타입 검사·lint·build 통과, headed Playwright 20개 통과**. 기능 변경 검증 기록은 [반응 기능 보고서](https://github.com/seungmin-park/demp/blob/main/docs/verification/persistent-content-reactions/t99-t101.md)에 있습니다.
+2026-09-29 기록에서 단위·컴포넌트 **156개**, headed Playwright **20개**가 통과했고 타입·lint·build도 성공했습니다. Playwright는 API fixture를 쓰는 화면 흐름 검증입니다. 실제 Spring/H2와 연결한 cmux 브라우저에서는 반응 저장·전환·취소 후 재조회까지 별도로 확인했습니다. [실행 명령·결과·화면 증거](https://github.com/seungmin-park/demp/blob/main/docs/verification/agent-verification-and-official-docs/README.md)
 
-| 검증 | 범위와 한계 |
-|---|---|
-| Vitest | 렌더링·입력·emits·store 상태·비동기 실패/응답 역전 |
-| vue-tsc / ESLint / Vite build | 제품 타입·코드 규칙·배포 산출물 생성 |
-| Playwright | API fixture를 사용한 브라우저 사용자 흐름. 실제 DB/S3 검증 아님 |
-| cmux 실제 브라우저 | 로컬 Spring/H2에 로그인·게시·필터·스크롤·반응 저장/재조회 |
-
-로컬 E2E는 현재 cmux 보조 pane에서 러너와 브라우저 과정을 볼 수 있게 진행합니다. CI는 headless입니다. 성공한 화면만 찍은 스크린샷을 자동 E2E 통과 근거로 대체하지 않습니다.
-
-## 성능 개선과 공개 범위
-
-프런트는 전체 질문 배열을 한 번에 받던 흐름에서 페이지 단위 응답으로 바뀌었고, 무한 스크롤은 필요한 페이지를 순서대로 읽습니다. **서버 측 대용량 측정 수치를 브라우저 렌더링 속도나 Lighthouse 점수로 부르지 않습니다.** 원시 표본·SQL 수·실패 사례와 환경 제약은 [백엔드 성능 보고서](https://github.com/seungmin-park/demp/blob/main/docs/verification/measured-query-performance/README.md)를 참고합니다.
-
-공개 운영 배포·실사용 트래픽 측정은 수행하지 않았습니다. 운영 반영 전 실제 MySQL·파일 저장·동시 사용자 부하 확인이 필요합니다. 초기 화면과 과거 테스트 건수는 `docs/`의 날짜별 기록에 보존하며, 이 문서는 현재 구현을 설명합니다.
-
-## 에이전트 작업과 공식 문서
-
-[기능 지도](docs/engineering/feature-map.md), [현재 버전의 공식 문서](docs/engineering/official-docs.md), [실행 검증 절차](.agents/skills/verify-dempfrontend/SKILL.md)를 확인한다. `npm run check:agent-contracts`가 `package.json`·lockfile·문서 버전과 반응 UI 소유권을 검사한다. 실제 브라우저 저장 흐름은 별도의 Spring/H2 서버와 cmux에서 확인한다.
+로컬 E2E는 호출한 cmux workspace의 보조 pane에서 러너와 브라우저 과정을 보이게 진행합니다. CI는 headless로 실행합니다. 운영 배포와 실사용 트래픽 측정은 아직 수행하지 않았습니다. 서버 측 H2 성능 수치를 브라우저 렌더링 속도로 해석하지 않습니다. [측정 원본과 제약](https://github.com/seungmin-park/demp/blob/main/docs/verification/measured-query-performance/README.md) · [검증 스킬](.agents/skills/verify-dempfrontend/SKILL.md)
