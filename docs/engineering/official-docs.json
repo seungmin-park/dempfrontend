@@ -1,0 +1,68 @@
+{
+  "checked_on": "2026-09-29",
+  "entries": [
+    {
+      "name": "Node.js",
+      "version": "24.21.0",
+      "manifest": ".tool-versions",
+      "url": "https://nodejs.org/docs/latest-v24.x/api/",
+      "scope": "24.x LTS, 2026-09-29 확인 당시 24.21.0"
+    },
+    {
+      "name": "Vue",
+      "version": "3.5.43",
+      "manifest": "package.json",
+      "url": "https://github.com/vuejs/core/releases/tag/v3.5.43",
+      "scope": "고정 릴리스; 사용법 https://vuejs.org/guide/"
+    },
+    {
+      "name": "Vue Router",
+      "version": "5.3.1",
+      "manifest": "package.json",
+      "url": "https://router.vuejs.org/guide/",
+      "scope": "5.x 가이드; 2026-09-29 설치 예제는 5.3.1"
+    },
+    {
+      "name": "Vuex",
+      "version": "4.1.0",
+      "manifest": "package.json",
+      "url": "https://vuex.vuejs.org/",
+      "scope": "4.x 가이드; Pinia가 신규 앱의 기본 권장임을 문서에 표시"
+    },
+    {
+      "name": "TypeScript",
+      "version": "6.0.3",
+      "manifest": "package.json",
+      "url": "https://www.typescriptlang.org/docs/handbook/release-notes/typescript-6-0.html",
+      "scope": "6.0 릴리스 노트; 패치 버전은 lockfile 기준"
+    },
+    {
+      "name": "Vite",
+      "version": "8.3.1",
+      "manifest": "package.json",
+      "url": "https://vite.dev/guide/",
+      "scope": "8.x 가이드, 최신 가이드일 수 있음"
+    },
+    {
+      "name": "Vitest",
+      "version": "5.0.2",
+      "manifest": "package.json",
+      "url": "https://vitest.dev/guide/migration/",
+      "scope": "5.0 마이그레이션 계약; Vite >=6.4/Node >=22.12"
+    },
+    {
+      "name": "Playwright",
+      "version": "1.63.0",
+      "manifest": "package.json",
+      "url": "https://playwright.dev/docs/intro",
+      "scope": "1.x 테스트 러너 가이드, 최신 문서일 수 있음"
+    },
+    {
+      "name": "Tiptap Vue",
+      "version": "3.31.3",
+      "manifest": "package.json",
+      "url": "https://tiptap.dev/docs/editor/getting-started/install/vue3",
+      "scope": "Vue 3 연동 가이드, 현재 페이지가 Vue CLI 예제를 보일 수 있어 프로젝트는 Vite 설정을 따른다"
+    }
+  ]
+}
