@@ -129,3 +129,7 @@ npm run test:e2e -- --headed
 프런트는 전체 질문 배열을 한 번에 받던 흐름에서 페이지 단위 응답으로 바뀌었고, 무한 스크롤은 필요한 페이지를 순서대로 읽습니다. **서버 측 대용량 측정 수치를 브라우저 렌더링 속도나 Lighthouse 점수로 부르지 않습니다.** 원시 표본·SQL 수·실패 사례와 환경 제약은 [백엔드 성능 보고서](https://github.com/seungmin-park/demp/blob/main/docs/verification/measured-query-performance/README.md)를 참고합니다.
 
 공개 운영 배포·실사용 트래픽 측정은 수행하지 않았습니다. 운영 반영 전 실제 MySQL·파일 저장·동시 사용자 부하 확인이 필요합니다. 초기 화면과 과거 테스트 건수는 `docs/`의 날짜별 기록에 보존하며, 이 문서는 현재 구현을 설명합니다.
+
+## 에이전트 작업과 공식 문서
+
+[기능 지도](docs/engineering/feature-map.md), [현재 버전의 공식 문서](docs/engineering/official-docs.md), [실행 검증 절차](.agents/skills/verify-dempfrontend/SKILL.md)를 확인한다. `npm run check:agent-contracts`가 `package.json`·lockfile·문서 버전과 반응 UI 소유권을 검사한다. 실제 브라우저 저장 흐름은 별도의 Spring/H2 서버와 cmux에서 확인한다.
