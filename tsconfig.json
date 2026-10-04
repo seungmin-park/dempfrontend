@@ -9,6 +9,12 @@
       "DOM.Iterable"
     ],
     "strict": true,
+    "allowJs": true,
+    "checkJs": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
     "noEmit": true,
     "skipLibCheck": true,
     "verbatimModuleSyntax": true,
@@ -24,8 +30,14 @@
       ]
     }
   },
+  "vueCompilerOptions": {
+    "strictTemplates": true,
+    "fallthroughAttributes": true,
+    "dataAttributes": ["data-*"]
+  },
   "include": [
     "src/**/*.ts",
+    "src/**/*.js",
     "src/**/*.vue",
     "tests/types/**/*.ts"
   ]
