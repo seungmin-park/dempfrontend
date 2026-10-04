@@ -13,7 +13,8 @@
     "lint": "eslint .",
     "test:e2e": "playwright test",
     "typecheck": "vue-tsc --noEmit",
-    "check:agent-contracts": "node scripts/check-agent-contracts.mjs"
+    "check:agent-contracts": "node scripts/check-agent-contracts.mjs",
+    "verify": "node scripts/verify.mjs"
   },
   "dependencies": {
     "@tiptap/extension-image": "3.31.3",

@@ -22,7 +22,7 @@ async function isolatedCommunity(page) {
       myReaction: state.reactions.get(`${prefix}${username}`) || 'NONE' };
   };
   await page.route(/^https:\/\//, route => route.abort());
-  await page.route('http://127.0.0.1:5050/api/**', async route => {
+  await page.route('/api/**', async route => {
     const request = route.request();
     const url = new URL(request.url());
     const path = url.pathname;

@@ -1,7 +1,8 @@
-import { readFileSync, readdirSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
-import { join, relative, dirname } from 'node:path';
+import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { inspectSourceBoundaries } from './source-boundaries.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const docsArgument = process.argv.indexOf('--docs-json');
 const docsPath = docsArgument >= 0 ? process.argv[docsArgument + 1] : join(root, 'docs/engineering/official-docs.json');
@@ -20,21 +21,10 @@ for (const entry of data.entries) {
   if (key !== 'nodejs' && lock.packages?.['node_modules/' + key]?.version !== version) throw new Error(`${entry.name}: package-lock does not match ${version}`);
   if (!entry.url.startsWith('https://')) throw new Error(`${entry.name}: missing official URL`);
 }
-function inspect(dir) {
-  const failures = [];
-  for (const item of readdirSync(dir, { withFileTypes: true })) {
-    const path = join(dir, item.name);
-    if (item.isDirectory()) { failures.push(...inspect(path)); continue; }
-    if (!/\.(vue|ts|js)$/.test(item.name) || !path.includes('/src/components/')) continue;
-    const content = readFileSync(path, 'utf8');
-    if (/import\s*\{[^}]*\bsetReaction\b[^}]*\}\s*from\s*['"][^'"]*\/api\/reactions['"]/.test(content)) failures.push(relative(root, path) + ': direct setReaction import');
-  }
-  return failures;
-}
 const scanArgument = process.argv.indexOf('--scan-root');
 const scanRoot = scanArgument >= 0 ? process.argv[scanArgument + 1] : root;
 if (!scanRoot) throw new Error('--scan-root requires a path');
-const failures = inspect(join(scanRoot, 'src'));
+const failures = inspectSourceBoundaries(scanRoot);
 if (failures.length) throw new Error(failures.join('\n'));
 if (process.argv.includes('--probe-violation')) {
   const temp = mkdtempSync(join(tmpdir(), 'demp-guard-'));
@@ -42,7 +32,7 @@ if (process.argv.includes('--probe-violation')) {
     const path = join(temp, 'src/components/RogueReaction.vue');
     mkdirSync(dirname(path), { recursive: true });
     writeFileSync(path, `<script>import { setReaction } from '@/api/reactions'; setReaction('question', 1, 'RECOMMEND');</script>`);
-    const detected = inspect(join(temp, 'src'));
+    const detected = inspectSourceBoundaries(temp);
     if (detected.length !== 1) throw new Error(`Guard failed to reject violation: ${detected}`);
     console.log('PASS: temporary direct API call rejected:', detected[0]);
   } finally { rmSync(temp, { recursive: true, force: true }); }
