@@ -21,7 +21,7 @@
         <div class="field"><label for="admin-image">공고 이미지 (선택)</label><CompanyImage v-if="imageUrl" :src="imageUrl" :alt="form.company" class="admin-image-preview" /><input id="admin-image" type="file" accept="image/jpeg,image/png" :disabled="saving" @change="selectImage" /><p class="field-hint">{{ editing ? '선택하지 않으면 기존 이미지를 유지합니다.' : 'JPEG 또는 PNG 이미지를 선택하세요.' }}</p><p v-if="errors.image" class="field-error">{{ errors.image }}</p></div>
       </div>
       <EducationFields v-if="form.type === 'EDU'" id="admin-education-" :model-value="form" @update:model-value="Object.assign(form, $event)" :disabled="saving" />
-      <div class="field"><AnnouncementBodyEditor :key="String($route.params.id || 'new')" id="admin-content" v-model="form.content" v-model:body-images="bodyImages" :type="form.type" :cover-bytes="form.image?.size || 0" :disabled="saving" /><p v-if="errors.content" class="field-error">{{ errors.content }}</p></div>
+      <div class="field"><AnnouncementBodyEditor :key="String($route.params.id || 'new')" id="admin-content" v-model="form.content" @update:body-images="bodyImages = $event" :type="form.type" :cover-bytes="form.image?.size || 0" :disabled="saving" /><p v-if="errors.content" class="field-error">{{ errors.content }}</p></div>
       <p v-if="error" role="alert" class="form-error">{{ error }}</p>
       <div class="form-actions"><router-link class="button button-secondary" to="/admin/announcements">취소</router-link><button class="button button-primary" :disabled="saving">{{ saving ? '저장 중…' : editing ? '변경 저장' : '등록하기' }}</button></div>
     </form>
@@ -68,7 +68,7 @@ export default defineComponent({
       catch (reason) { if (current === this.generation) this.historyError = requestErrorMessage(reason); }
     },
     changeAudience() { if (this.form.recruitmentAudience === 'NEW' || this.form.recruitmentAudience === 'ANY') { this.form.minCareer = 0; this.form.maxCareer = 0; } },
-    changeType() { this.form.recruitmentAudience = null; this.form.cohort = ''; this.form.stipendAmount = null; this.form.stipendNote = '';  this.form.payment = null; this.form.salaryStatus = undefined; this.form.salaryMax = null; },
+    changeType() { this.form.recruitmentAudience = null; this.form.cohort = ''; this.form.stipendAmount = null; this.form.stipendNote = '';  this.form.payment = null; delete this.form.salaryStatus; this.form.salaryMax = null; },
     async load() {
       const current = ++this.generation; this.form = blankForm(); this.history = []; this.historyLoaded = false; this.historyError = ''; this.errors = {}; this.error = ''; this.loadError = ''; this.selectedLanguages = []; this.bodyImages = []; this.imageUrl = '';
       if (!this.editing) { this.loading = false; return; }

@@ -1,6 +1,6 @@
-import { onBeforeUnmount, ref, watch } from 'vue';
+import { onBeforeUnmount, readonly, ref, watch } from 'vue';
 import { setReaction, type ReactionTarget } from '@/api/reactions';
-import type { EntityId, ReactionState, ReactionType } from '@/types/api';
+import type { EntityId, ReactionChoice, ReactionState, ReactionType } from '@/types/api';
 interface ReactionProps { target: ReactionTarget; targetId: EntityId; recommend: number; dislike: number; myReaction?: ReactionType }
 export function useContentReaction(props: ReactionProps) {
   const state = ref<ReactionState>({ recommend: props.recommend, dislike: props.dislike, myReaction: props.myReaction ?? 'NONE' });
@@ -16,7 +16,7 @@ export function useContentReaction(props: ReactionProps) {
     if (!saving.value) state.value = { recommend: props.recommend, dislike: props.dislike, myReaction: props.myReaction ?? 'NONE' };
   });
   onBeforeUnmount(() => { generation++; });
-  async function select(reaction: ReactionType) {
+  async function select(reaction: ReactionChoice) {
     if (saving.value) return;
     const request = generation;
     const next = state.value.myReaction === reaction ? 'NONE' : reaction;
@@ -28,5 +28,5 @@ export function useContentReaction(props: ReactionProps) {
       if (request === generation) error.value = '반응을 저장하지 못했습니다. 다시 눌러 재시도해 주세요.';
     } finally { if (request === generation) saving.value = false; }
   }
-  return { state, saving, error, select };
+  return { state: readonly(state), saving: readonly(saving), error: readonly(error), select };
 }

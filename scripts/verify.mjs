@@ -53,7 +53,8 @@ try {
   await run('build', 'npm', ['run', 'build']);
   summary.build = validateBuild(join(root, 'dist'));
   summary.browserPort = await freePort();
-  await run('browser', 'npm', ['run', 'test:e2e', '--', ...args], { DEMP_E2E_PORT: String(summary.browserPort) });
+  do { summary.devBrowserPort = await freePort(); } while (summary.devBrowserPort === summary.browserPort);
+  await run('browser', 'npm', ['run', 'test:e2e', '--', ...args], { DEMP_E2E_PORT: String(summary.browserPort), DEMP_DEV_E2E_PORT: String(summary.devBrowserPort) });
   summary.browser = validateBrowserReport(JSON.parse(readFileSync(join(reports, 'e2e.json'), 'utf8')), manifest);
   if (summary.build.sha256 !== validateBuild(join(root, 'dist')).sha256 || summary.sourceSha256 !== sourceDigest()) throw new Error('Source or build changed during verification');
   summary.success = true;

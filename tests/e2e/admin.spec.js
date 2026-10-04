@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 async function adminFixture(page, role = 'admin') {
   const state = { role, expired: false, items: [], nextId: 10, post: { id: 5, questionId: 5, title: '기존 질문', content: '<h2>기존 HTML</h2><p><u>보존할 밑줄</u></p>', username: 'author', hashtags: ['JAVA'] } };
@@ -8,6 +8,7 @@ async function adminFixture(page, role = 'admin') {
     const request = route.request(), url = new URL(request.url()), path = url.pathname, method = request.method();
     const reply = (status, data) => route.fulfill({ status, contentType: 'application/json', body: status === 204 ? '' : JSON.stringify(data) });
     if (path.startsWith('/api/announce/detail/')) { const item = state.items.find(item => item.id === Number(path.split('/').pop()) && item.publicationStatus === 'PUBLISHED'); return reply(item ? 200 : 404, item || {}); }
+    if (path === '/api/announce/scroll') return reply(200, []);
     if (!path.startsWith('/api/admin')) return reply(200, { content: [], number: 0, last: true });
     if (state.expired || state.role === 'guest') return reply(401, {});
     if (state.role !== 'admin') return reply(403, {});

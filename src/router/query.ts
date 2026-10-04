@@ -4,6 +4,6 @@ export function queryText(value: LocationQueryValue | LocationQueryValue[] | und
   return Array.isArray(value) ? value[0] ?? '' : value ?? '';
 }
 
-export function routeId(value: string | string[]): string {
-  return Array.isArray(value) ? value[0] ?? '' : value;
+export function routeId(value: string | string[] | undefined): string {
+  return Array.isArray(value) ? value[0] ?? '' : value ?? '';
 }

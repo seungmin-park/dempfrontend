@@ -16,6 +16,38 @@ test('필수 단위 assertion과 브라우저 계약의 실제 통과 보고서�
   expect(() => validateUnitReport(unit(), required, '/project')).not.toThrow();
   expect(() => validateBrowserReport(browser(), required)).not.toThrow();
 });
+test('필수 개발 모드의 브라우저 결과를 누락하면 거절한다', () => {
+  const report = browser();
+  const tests = report.suites[0].specs[0].tests;
+  tests[0].projectName = 'production';
+  tests.push({ ...structuredClone(tests[0]), projectName: 'development' });
+  report.stats.expected = 2;
+  const contract = { ...required, browserProjects: ['production', 'development'] };
+  expect(() => validateBrowserReport(report, contract)).not.toThrow();
+  tests.pop(); report.stats.expected = 1;
+  expect(() => validateBrowserReport(report, contract)).toThrow(/Missing required development/);
+});
+test('두 프로젝트의 같은 흐름은 허용하고 한 프로젝트의 중복 결과는 거절한다', () => {
+  const report = browser();
+  report.suites[0].specs[0].tests[0].projectName = 'production';
+  report.suites.push(structuredClone(report.suites[0]));
+  report.suites[1].specs[0].tests[0].projectName = 'development';
+  report.stats.expected = 2;
+  const contract = { ...required, browserProjects: ['production', 'development'] };
+  expect(() => validateBrowserReport(report, contract)).not.toThrow();
+  report.suites.push(structuredClone(report.suites[1])); report.stats.expected = 3;
+  expect(() => validateBrowserReport(report, contract)).toThrow(/Duplicate browser/);
+});
+test('브라우저 Vue 경고의 빈 수집 증거를 확인한다', () => {
+  const report = browser();
+  const contract = { ...required, browserWarningAttachment: 'vue-warnings' };
+  expect(() => validateBrowserReport(report, contract)).toThrow(/warning evidence/i);
+  const result = report.suites[0].specs[0].tests[0].results[0];
+  result.attachments = [{ name: 'vue-warnings', contentType: 'application/json', body: Buffer.from('[]').toString('base64') }];
+  expect(() => validateBrowserReport(report, contract)).not.toThrow();
+  result.attachments[0].body = Buffer.from(JSON.stringify([{ text: '[Vue warn] Invalid prop' }])).toString('base64');
+  expect(() => validateBrowserReport(report, contract)).toThrow(/warning evidence/i);
+});
 test.each([
   ['빈 실행', r => { r.testResults = []; r.numTotalTests = 0; }],
   ['필수 파일 누락', r => { r.testResults[0].name = '/project/tests/unit/Other.spec.js'; }],

@@ -9,7 +9,7 @@ export function formatSalary(item: { payment?: number | null; salaryMax?: number
   const minimum = item.payment.toLocaleString('ko-KR');
   return `연봉 ${minimum}${item.salaryMax != null && item.salaryMax !== item.payment ? '~' + item.salaryMax.toLocaleString('ko-KR') : ''}만원`;
 }
-export function compensationError(item: { type: string; payment: number | null; salaryMax?: number | null; salaryStatus?: SalaryStatus }): string {
+export function compensationError(item: { type: string; payment: number | null; salaryMax?: number | null; salaryStatus?: SalaryStatus | undefined }): string {
   if (item.payment != null && (!Number.isInteger(item.payment) || item.payment < 0)) return '금액은 0 이상의 정수로 입력해 주세요.';
   if (item.type !== 'EMP' || item.salaryStatus === 'UNDISCLOSED' || item.salaryStatus === 'NEGOTIABLE') return '';
   if (item.salaryStatus === 'DISCLOSED' && !item.payment) return '공개 연봉을 입력해 주세요.';

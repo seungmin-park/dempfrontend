@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 function multipartValue(body, name) {
   const match = body.match(new RegExp(`name="${name}"\\r?\\n\\r?\\n([^\\r\\n]+)`));

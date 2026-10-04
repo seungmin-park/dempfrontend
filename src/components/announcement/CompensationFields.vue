@@ -17,7 +17,7 @@
 </template>
 <script setup lang="ts">
 import type { SalaryStatus } from '@/types/api';
-defineProps<{ id: string; type: string; payment: number | null; salaryStatus?: SalaryStatus; salaryMax?: number | null; disabled?: boolean }>();
+defineProps<{ id: string; type: string; payment: number | null; salaryStatus?: SalaryStatus | undefined; salaryMax?: number | null | undefined; disabled?: boolean }>();
 const emit = defineEmits<{ 'update:payment': [number | null]; 'update:salaryStatus': [SalaryStatus]; 'update:salaryMax': [number | null] }>();
 function numberValue(event: Event) { const value = (event.target as HTMLInputElement).value; return value === '' ? null : Number(value); }
 function changeStatus(event: Event) {

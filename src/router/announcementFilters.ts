@@ -3,9 +3,9 @@ import type { LocationQuery, LocationQueryRaw } from 'vue-router';
 import type { AnnouncementFilters, Language } from '@/types/api';
 import positions from '@/data/positions';
 export const languages: Language[] = ['JAVA', 'SPRING', 'JPA', 'React', 'HTML', 'CSS'];
-const text = (value: LocationQuery[string]) => (Array.isArray(value) ? value[0] : value) ?? '';
-const values = (value: LocationQuery[string]) => (Array.isArray(value) ? value : [value]).flatMap(part => part?.split(',') ?? []);
-const positive = (value: LocationQuery[string]) => /^\d+$/.test(text(value)) && Number.isSafeInteger(Number(text(value))) && Number(text(value)) <= 2147483647 ? Number(text(value)) : 0;
+const text = (value: LocationQuery[string] | undefined) => (Array.isArray(value) ? value[0] : value) ?? '';
+const values = (value: LocationQuery[string] | undefined) => (Array.isArray(value) ? value : [value]).flatMap(part => part?.split(',') ?? []);
+const positive = (value: LocationQuery[string] | undefined) => /^\d+$/.test(text(value)) && Number.isSafeInteger(Number(text(value))) && Number(text(value)) <= 2147483647 ? Number(text(value)) : 0;
 export function filtersFromQuery(query: LocationQuery = {}): AnnouncementFilters {
   const type = text(query.type);
   const status = text(query.status);

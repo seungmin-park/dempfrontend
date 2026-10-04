@@ -4,7 +4,7 @@
     <header class="article-heading"><span class="section-label">면접 질문</span><h1>{{ question.title }}</h1><div class="article-meta"><MemberBadge :username="question.username" /><span class="meta-count" :aria-label="`조회수 ${question.hits}`"><AppIcon name="eye" :size="17" />{{ question.hits }}</span></div></header>
     <SafeHtml class="article-content" :content="question.content ?? ''" />
     <div class="tag-list"><router-link v-for="tag in question.hashtags" :key="tag" class="tag" :to="{ name: 'question', query: { hashtags: tag } }">#{{ tag }}</router-link></div>
-    <ContentReactionControl target="question" :target-id="question.id" :my-reaction="question.myReaction" :recommend="question.recommend" :dislike="question.dislike" />
+    <ContentReactionControl target="question" :target-id="question.id" :my-reaction="question.myReaction ?? 'NONE'" :recommend="question.recommend" :dislike="question.dislike" />
   </article>
 </template>
 <script lang="ts">

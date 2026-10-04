@@ -2,7 +2,6 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import { router } from "./router/index";
 import {store} from './store/index'
-import Header from "./components/layout/Header.vue";
 import mitt from "mitt";
 import type { AppEvents } from "./types/events";
 
@@ -10,7 +9,6 @@ import './assets/styles/main.css'
 
 const emitter = mitt<AppEvents>();
 const vue = createApp(App);
-vue.component("demp-header", Header);
 vue.use(router);
 vue.use(store);
 
