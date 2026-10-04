@@ -4,7 +4,7 @@ async function adminFixture(page, role = 'admin') {
   const state = { role, expired: false, items: [], nextId: 10, post: { id: 5, questionId: 5, title: '기존 질문', content: '<h2>기존 HTML</h2><p><u>보존할 밑줄</u></p>', username: 'author', hashtags: ['JAVA'] } };
   if (role !== 'guest') await page.addInitScript(() => localStorage.setItem('vuex', JSON.stringify({ Login: { username: 'fixture', token: 'fixture-token', roles: ['ROLE_ADMIN'] } })));
   await page.route(/^https:\/\//, route => route.abort());
-  await page.route('http://127.0.0.1:5050/api/**', async route => {
+  await page.route('/api/**', async route => {
     const request = route.request(), url = new URL(request.url()), path = url.pathname, method = request.method();
     const reply = (status, data) => route.fulfill({ status, contentType: 'application/json', body: status === 204 ? '' : JSON.stringify(data) });
     if (path.startsWith('/api/announce/detail/')) { const item = state.items.find(item => item.id === Number(path.split('/').pop()) && item.publicationStatus === 'PUBLISHED'); return reply(item ? 200 : 404, item || {}); }
@@ -141,7 +141,8 @@ test('본문 붙여넣기와 이미지 저장 후 재조회하고 지원하기�
   await page.getByLabel('제목', { exact: true }).fill('원문 연결 공고');
   await page.getByLabel('게시 상태', { exact: true }).selectOption('PUBLISHED');
   await page.getByLabel('회사·교육기관').fill('DEMP');
-  await page.getByLabel('원문 공고 URL').fill('http://127.0.0.1:5050/original-employer-job');
+  const employerURL = new URL('/original-employer-job', page.url()).href;
+  await page.getByLabel('원문 공고 URL').fill(employerURL);
   await page.getByLabel('분야', { exact: true }).selectOption('BACKEND');
   await page.getByLabel('모집 시작').fill('2026-09-01T09:00');
   await page.getByLabel('모집 마감').fill('2026-12-31T18:00');
@@ -173,7 +174,7 @@ test('본문 붙여넣기와 이미지 저장 후 재조회하고 지원하기�
   const opened = page.waitForEvent('popup');
   await page.getByRole('link', { name: '지원하기', exact: true }).click();
   const original = await opened;
-  await expect(original).toHaveURL('http://127.0.0.1:5050/original-employer-job');
+  await expect(original).toHaveURL(employerURL);
   await expect(original.getByRole('heading')).toHaveText('기업 원문 공고');
   await original.close();
 });

@@ -100,15 +100,13 @@ DEV_API_TARGET=http://127.0.0.1:18080 npm run dev
 ## 검증
 
 ```sh
-npm run check:agent-contracts
-npm test
-npm run typecheck
-npm run lint -- --no-fix
-npm run build
+npm ci
 npx playwright install chromium
-npm run test:e2e -- --headed
+npm run verify -- --headed
 ```
 
 2026-09-29 기록에서 단위·컴포넌트 **156개**, headed Playwright **20개**가 통과했고 타입·lint·build도 성공했습니다. Playwright는 API fixture를 쓰는 화면 흐름 검증입니다. 실제 Spring/H2와 연결한 cmux 브라우저에서는 반응 저장·전환·취소 후 재조회까지 별도로 확인했습니다. [실행 명령·결과·화면 증거](https://github.com/seungmin-park/demp/blob/main/docs/verification/agent-verification-and-official-docs/README.md)
 
-로컬 E2E는 호출한 cmux workspace의 보조 pane에서 러너와 브라우저 과정을 보이게 진행합니다. CI는 headless로 실행합니다. 운영 배포와 실사용 트래픽 측정은 아직 수행하지 않았습니다. 서버 측 H2 성능 수치를 브라우저 렌더링 속도로 해석하지 않습니다. [측정 원본과 제약](https://github.com/seungmin-park/demp/blob/main/docs/verification/measured-query-performance/README.md) · [검증 스킬](.agents/skills/verify-dempfrontend/SKILL.md)
+현재 전체 검증은 AST 책임 경계, Vue·TS 타입, 전체 단위 테스트, lint, build와 새 production preview의 E2E를 연결합니다. 필수 계약 누락·skip·실패와 소스/빌드 변경을 거절하고 `.verification/`에 결과를 남깁니다. 로컬은 사용자가 지정한 현재 세션에서 headed로, CI는 headless로 실행합니다. main은 `DEMP frontend verify`를 요구하며 승인된 PR 작업에서 native 자동 squash 머지를 사용합니다. [CI 운영·공식 조사 근거](docs/engineering/ci-and-delivery.md)
+
+운영 배포와 실사용 트래픽 측정은 아직 수행하지 않았습니다. 서버 측 H2 성능 수치를 브라우저 렌더링 속도로 해석하지 않습니다. [측정 원본과 제약](https://github.com/seungmin-park/demp/blob/main/docs/verification/measured-query-performance/README.md) · [검증 스킬](.agents/skills/verify-dempfrontend/SKILL.md)
