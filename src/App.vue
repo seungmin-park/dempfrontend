@@ -5,4 +5,5 @@
   <footer class="site-footer"><strong>DEMP</strong><span>개발자의 다음 기회를 함께.</span><router-link to="/admin">관리자</router-link></footer>
 </template>
 <script setup lang="ts">
+import DempHeader from './components/layout/Header.vue';
 </script>

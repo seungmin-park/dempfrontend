@@ -4,10 +4,10 @@ import axios from 'axios';
 import QuestionDetail from '@/components/question/QuestionDetail.vue';
 vi.mock('axios');
 afterEach(() => vi.clearAllMocks());
-const detail = { id: 7, title: '질문', content: '본문', recommend: 3, dislike: 1, myReaction: 'NONE', hashtags: [] };
+const detail = { id: 7, title: '질문', username: 'member', content: '본문', recommend: 3, dislike: 1, myReaction: 'NONE', hashtags: [] };
 async function page(data = detail) {
   axios.get.mockResolvedValue({ data });
-  const wrapper = mount(QuestionDetail, { global: { mocks: {
+  const wrapper = mount(QuestionDetail, { global: { stubs: { RouterLink: true }, mocks: {
     $store: { state: { Login: { token: 'token', username: 'member' } } },
     $route: { params: { questionId: 7 } },
     $router: { replace: vi.fn(), currentRoute: { value: { fullPath: '/questions/7' } } },

@@ -21,7 +21,7 @@
         <label :for="`${id}-link`">링크 주소</label><input :id="`${id}-link`" v-model="linkUrl" type="url" placeholder="https://" :disabled="disabled" @keydown.enter.prevent="setLink" />
         <button type="button" class="button button-secondary" :disabled="disabled" @click="setLink">적용</button>
       </div>
-      <EditorContent :editor="editor" />
+      <EditorContent v-if="editor" :editor="editor" />
       <input ref="imageInput" :id="`${id}-images`" class="body-image-input" type="file" multiple accept="image/jpeg,image/png" :disabled="disabled" aria-label="본문 이미지 파일" @change="selectFiles" />
       <p class="body-editor-help">텍스트를 붙여넣으면 서식을 정돈합니다. 이미지는 붙여넣기·드래그 또는 파일 선택으로 추가하세요. JPEG·PNG, 각 5MB, 최대 10개. 대표 이미지 포함 합계 9MB 이하.</p>
     </div>

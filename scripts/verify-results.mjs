@@ -41,19 +41,35 @@ export function validateUnitReport(report, manifest, root) {
 
 export function validateBrowserReport(report, manifest) {
   const required = requiredList(manifest.e2eTests, 'browser tests', assertionKey);
+  const projects = manifest.browserProjects ? requiredList(manifest.browserProjects, 'browser projects') : null;
+  const warningAttachment = manifest.browserWarningAttachment;
+  if (warningAttachment !== undefined) requireCondition(typeof warningAttachment === 'string' && warningAttachment.length > 0, 'Invalid browser warning evidence contract');
   requireCondition(Array.isArray(report.errors) && report.errors.length === 0, 'Browser run has errors');
   const seen = new Set();
+  const projectFlows = new Set();
   let count = 0;
   function visit(suites) {
     for (const suite of suites ?? []) {
       for (const spec of suite.specs ?? []) {
         requireCondition(spec.ok === true && spec.tests?.length > 0, `Empty or failed browser spec: ${spec.title}`);
         const key = assertionKey(spec);
-        requireCondition(!seen.has(key), `Duplicate browser spec: ${key}`); seen.add(key);
+        seen.add(key);
         for (const test of spec.tests) {
           requireCondition(test.expectedStatus === 'passed' && test.status === 'expected'
             && test.results?.length === 1 && test.results[0].status === 'passed'
             && test.results[0].retry === 0 && !(test.results[0].errors?.length), `Browser test skipped, failed or retried: ${key}`);
+          if (warningAttachment) {
+            const evidence = test.results[0].attachments?.filter(item => item.name === warningAttachment) ?? [];
+            requireCondition(evidence.length === 1 && evidence[0].contentType === 'application/json'
+              && typeof evidence[0].body === 'string', `Missing or invalid browser warning evidence: ${key}`);
+            let warnings;
+            try { warnings = JSON.parse(Buffer.from(evidence[0].body, 'base64').toString('utf8')); }
+            catch { throw new Error(`Invalid browser warning evidence: ${key}`); }
+            requireCondition(Array.isArray(warnings) && warnings.length === 0, `Non-empty browser warning evidence: ${key}`);
+          }
+          const projectKey = `${test.projectName ?? ''}::${key}`;
+          requireCondition(!projectFlows.has(projectKey), `Duplicate browser result: ${projectKey}`);
+          projectFlows.add(projectKey);
           count++;
         }
       }
@@ -63,6 +79,9 @@ export function validateBrowserReport(report, manifest) {
   visit(report.suites);
   requireCondition(count > 0, 'Empty browser run');
   for (const key of required) requireCondition(seen.has(key), `Missing required browser test: ${key}`);
+  for (const project of projects ?? []) for (const key of required) {
+    requireCondition(projectFlows.has(`${project}::${key}`), `Missing required ${project} browser test: ${key}`);
+  }
   requireCondition(report.stats?.expected === count && report.stats.unexpected === 0
     && report.stats.skipped === 0 && report.stats.flaky === 0, 'Browser totals do not match passing results');
   return { passed: count };

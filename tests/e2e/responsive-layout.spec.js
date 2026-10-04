@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 const widths = [320, 390, 640, 768, 1024, 1440];
 const longText = '공백없는긴이름' + 'VeryLongCompanyAndSearchIdentifier'.repeat(4);

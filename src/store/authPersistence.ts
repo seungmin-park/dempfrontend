@@ -14,6 +14,7 @@ function readLogin(): LoginState | undefined {
   } catch {
     // Invalid JSON or unavailable storage leaves the in-memory state logged out.
   }
+  return undefined;
 }
 
 export const persistAuthentication: Plugin<RootState> = store => {

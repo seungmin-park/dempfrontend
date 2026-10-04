@@ -13,5 +13,11 @@ export default [
   { files: ['**/*.ts', '**/*.vue'], rules: {
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
   } },
+  { files: ['src/**/*.ts', 'src/**/*.vue'], rules: {
+    '@typescript-eslint/no-explicit-any': 'error',
+    '@typescript-eslint/ban-ts-comment': ['error', {
+      'ts-expect-error': true, 'ts-ignore': true, 'ts-nocheck': true, 'ts-check': false,
+    }],
+  } },
   { files: ['tests/unit/**/*.js'], languageOptions: { globals: globals.vitest } },
 ];

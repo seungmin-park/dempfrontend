@@ -10,7 +10,8 @@
 <script lang="ts">
 import type { HashtagInput } from '@/types/api';
 import { defineComponent } from 'vue';
-import { Form as ValidationForm, Field, ErrorMessage, defineRule } from 'vee-validate';
+import { defineRule } from 'vee-validate';
+import { ValidationForm, Field, ErrorMessage } from '@/components/common/validationComponents';
 import { required } from '@vee-validate/rules';
 import Hashtags from '@/components/Hashtags.vue';
 import MarkdownEditor from '@/components/common/MarkdownEditor.vue';

@@ -63,7 +63,7 @@ export default defineComponent({
     reset() { this.filters = filtersFromQuery({ type: this.filters.announcementType }); this.commit(); },
     removeChip(key: string) {
       if (key.startsWith('position:')) this.filters.positions = this.filters.positions.filter(item => item !== key.slice(9));
-      else if (key.startsWith('language:')) this.filters.languages = this.filters.languages?.filter(item => item !== key.slice(9));
+      else if (key.startsWith('language:')) this.filters.languages = (this.filters.languages ?? []).filter(item => item !== key.slice(9));
       else if (key === 'status') this.filters.recruitmentStatus = '';
       else if (key === 'tuition') this.filters.tuition = '';
       else if (key === 'career') this.filters.career = 0;

@@ -15,7 +15,7 @@
       <div class="field"><label for="announce_img">대표 이미지 (선택)</label><input id="announce_img" name="announce_img" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" ref="announceImg" :disabled="saving" @change="uploadImg" /><p class="field-hint">JPEG 또는 PNG 파일을 선택하세요.</p></div>
     </div>
     <EducationFields v-if="type === 'EDU'" id="education-" v-model="education" :disabled="saving" />
-    <div class="field"><AnnouncementBodyEditor id="content" v-model="content" v-model:body-images="bodyImages" :type="type" :cover-bytes="image?.size || 0" :disabled="saving" /></div>
+    <div class="field"><AnnouncementBodyEditor id="content" v-model="content" @update:body-images="bodyImages = $event" :type="type" :cover-bytes="image?.size || 0" :disabled="saving" /></div>
     <p v-if="error" role="alert" class="form-error">{{ error }}</p>
     <div class="form-actions"><router-link class="button button-secondary" to="/">취소</router-link><button type="submit" class="button button-primary" :disabled="saving">{{ saving ? '저장 중…' : '등록하기' }}</button></div>
   </ValidationForm>
@@ -32,7 +32,7 @@ import type { AnnouncementForm } from '@/types/api';
 import { formatPosition } from '@/presentation/positions';
 import { defineComponent } from "vue";
 import positions from "../../data/positions";
-import { Form as ValidationForm, Field, ErrorMessage } from "vee-validate";
+import { ValidationForm, Field, ErrorMessage } from '@/components/common/validationComponents';
 import { defineRule } from "vee-validate";
 import { required, url, min_value, image } from "@vee-validate/rules";
 import { createAnnouncement } from "@/api/announcements";
@@ -111,7 +111,7 @@ export default defineComponent({
         maxCareer: this.maxCareer,
         language: this.language,
         payment: this.payment,
-        salaryStatus: this.type === 'EMP' ? this.salaryStatus : undefined, salaryMax: this.type === 'EMP' ? this.salaryMax : null,
+        ...(this.type === 'EMP' && this.salaryStatus ? { salaryStatus: this.salaryStatus } : {}), salaryMax: this.type === 'EMP' ? this.salaryMax : null,
         position: this.position,
         content: this.content,
         bodyImages: this.bodyImages,

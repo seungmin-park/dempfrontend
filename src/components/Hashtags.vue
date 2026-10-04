@@ -79,13 +79,15 @@ export default defineComponent({
       this.tags.forEach((tag) => (tag.select = false));
     },
     selectTag(idx: number) {
+      const tag = this.tags[idx];
+      if (!tag) return;
       if (this.tags.some((tag) => tag.select)) {
         this.unselectTag();
       }
 
-      this.tags[idx].select = !this.tags[idx].select;
+      tag.select = !tag.select;
 
-      if (!this.tags[idx].select) {
+      if (!tag.select) {
         this.initSelectIndex();
         return;
       }

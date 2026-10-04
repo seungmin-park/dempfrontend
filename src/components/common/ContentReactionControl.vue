@@ -9,6 +9,6 @@ import ContentReactions from './ContentReactions.vue';
 import { useContentReaction } from '@/composables/useContentReaction';
 import type { ReactionTarget } from '@/api/reactions';
 import type { EntityId, ReactionType } from '@/types/api';
-const props = defineProps<{ target: ReactionTarget; targetId: EntityId; recommend: number; dislike: number; myReaction?: ReactionType }>();
+const props = withDefaults(defineProps<{ target: ReactionTarget; targetId: EntityId; recommend: number; dislike: number; myReaction?: ReactionType }>(), { myReaction: 'NONE' });
 const { state, saving, error, select } = useContentReaction(props);
 </script>

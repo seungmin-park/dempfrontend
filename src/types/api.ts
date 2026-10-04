@@ -90,4 +90,5 @@ export interface AnswerForm { username: string; questionId: EntityId; answerCont
 export interface HashtagInput { value: string; select: boolean }
 
 export type ReactionType = 'NONE' | 'RECOMMEND' | 'DISLIKE';
+export type ReactionChoice = Exclude<ReactionType, 'NONE'>;
 export interface ReactionState { recommend: number; dislike: number; myReaction: ReactionType }

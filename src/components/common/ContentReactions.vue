@@ -7,9 +7,9 @@
 </template>
 <script setup lang="ts">
 import AppIcon from './AppIcon.vue';
-import type { ReactionType } from '@/types/api';
+import type { ReactionChoice, ReactionType } from '@/types/api';
 defineProps<{ recommend: number; dislike: number; myReaction?: ReactionType; saving?: boolean }>();
-defineEmits<{ select: [reaction: ReactionType] }>();
+defineEmits<{ select: [reaction: ReactionChoice] }>();
 </script>
 <style scoped>
 .content-reactions button[aria-pressed="true"] { color: var(--primary, #5145e9); border-color: currentColor; background: #eeedff; }

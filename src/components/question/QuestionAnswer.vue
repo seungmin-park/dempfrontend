@@ -4,7 +4,7 @@
     <article class="question-answer" v-for="item in answers" :key="item.answerId">
       <MemberBadge :username="item.username" />
       <SafeHtml class="answer-content" :content="item.content ?? ''" />
-      <ContentReactionControl target="answer" :target-id="item.answerId" :my-reaction="item.myReaction" class="question-answer-reaction" :recommend="item.recommend" :dislike="item.dislike" />
+      <ContentReactionControl target="answer" :target-id="item.answerId" :my-reaction="item.myReaction ?? 'NONE'" class="question-answer-reaction" :recommend="item.recommend" :dislike="item.dislike" />
     </article>
     <p v-if="!answers.length" class="empty-answer">알고 있는 내용을 첫 답변으로 남겨주세요.</p>
     <div class="answer-composer">

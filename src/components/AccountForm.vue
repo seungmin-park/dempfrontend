@@ -64,7 +64,7 @@
 import { validateRegistrationPassword } from '@/validation/registrationPassword';
 import { defineComponent } from "vue";
 import { register, checkUsername } from '@/api/members';
-import { Form as ValidationForm, Field, ErrorMessage } from "vee-validate";
+import { ValidationForm, Field, ErrorMessage } from '@/components/common/validationComponents';
 import { defineRule } from "vee-validate";
 import { required, url, min_value } from "@vee-validate/rules";
 

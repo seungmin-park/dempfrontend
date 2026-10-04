@@ -10,7 +10,7 @@ test('공고 본문 HTML을 전송하며 저장 중 중복 요청과 실패 시 
   vi.spyOn(window, 'alert').mockImplementation(() => {});
   let rejectRequest;
   axios.post.mockImplementation(() => new Promise((_resolve, reject) => { rejectRequest = reject; }));
-  const wrapper = mount(AnnouncementWrite, { global: { mocks: {
+  const wrapper = mount(AnnouncementWrite, { global: { stubs: { RouterLink: true }, mocks: {
     $store: { state: { Login: { token: 'jwt' } } }, $router: { push: vi.fn() },
   } } });
   await wrapper.setData({ content: '<h2>업무</h2><p><strong>개발</strong></p>' });
@@ -35,7 +35,7 @@ test('공고 등록은 서버의 평면 multipart 필드로 요청한다', async
   global.$ = () => ({ summernote });
   axios.post.mockResolvedValue({ data: 'ok' });
   const push = vi.fn();
-  const wrapper = mount(AnnouncementWrite, { global: { mocks: {
+  const wrapper = mount(AnnouncementWrite, { global: { stubs: { RouterLink: true }, mocks: {
     $store: { state: { Login: { token: 'token' } } },
     $router: { push },
   } } });
@@ -68,7 +68,7 @@ test('공고 등록은 서버의 평면 multipart 필드로 요청한다', async
 
 test('대표 이미지 없이 공고를 작성할 수 있고 첨부 시 JPEG 또는 PNG로 제한한다', () => {
   global.$ = () => ({ summernote: vi.fn() });
-  const wrapper = mount(AnnouncementWrite, { global: { mocks: {
+  const wrapper = mount(AnnouncementWrite, { global: { stubs: { RouterLink: true }, mocks: {
     $store: { state: { Login: { token: 'token' } } },
     $router: { push: vi.fn() },
   } } });
@@ -80,7 +80,7 @@ test('대표 이미지 없이 공고를 작성할 수 있고 첨부 시 JPEG 또
 
 test('무료 교육 공고는 교육비 0원으로 입력 검증을 통과한다', async () => {
   axios.post.mockResolvedValue({ data: 'ok' });
-  const wrapper = mount(AnnouncementWrite, { global: { mocks: {
+  const wrapper = mount(AnnouncementWrite, { global: { stubs: { RouterLink: true }, mocks: {
     $store: { state: { Login: { token: 'jwt' } } }, $router: { push: vi.fn() },
   } } });
   await wrapper.setData({ title: '무료 교육', company: '교육기관', type: 'EDU', position: 'BACKEND', minCareer: 0, maxCareer: 0, startedDate: '2026-09-01T00:00', deadLineDate: '2026-10-01T00:00', accessUrl: 'https://example.com', payment: 0, language: 'JAVA', content: '설명' });
