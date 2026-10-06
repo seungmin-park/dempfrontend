@@ -85,7 +85,8 @@ export interface QuestionSummary { id: number; title: string | null; hits: numbe
 export interface QuestionDetail extends QuestionSummary { myReaction?: ReactionType; content: string | null; dislike: number; username: string; hashtags: string[] }
 export interface QuestionForm { title: string; content: string; username: string; hashtags: string[] }
 export interface QuestionSearchCondition { orderBy: string; title: string; content: string; hashtags: string[]; page: number; size: number }
-export interface Answer { myReaction?: ReactionType; answerId: number; username: string; content: string | null; recommend: number; dislike: number }
+export interface Answer { myReaction?: ReactionType; answerId: string; username: string; content: string | null; recommend: number; dislike: number }
+export interface AnswerPage { content: Answer[]; nextCursor: string | null; hasNext: boolean }
 export interface AnswerForm { username: string; questionId: EntityId; answerContent: string }
 export interface HashtagInput { value: string; select: boolean }
 

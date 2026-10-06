@@ -19,5 +19,11 @@ const invalidLogin: Awaited<ReturnType<typeof login>>['data'] = {
 void [company, invalidLogin];
 
 const legacyQuestion: QuestionDetail = { id: 1, title: null, content: null, hits: 0, recommend: 0, dislike: 0, username: 'member', hashtags: [] };
-const legacyAnswer: Answer = { answerId: 1, content: null, recommend: 0, dislike: 0, username: 'member' };
+const legacyAnswer: Answer = { answerId: '1', content: null, recommend: 0, dislike: 0, username: 'member' };
+const numericAnswerId: Answer = {
+  ...legacyAnswer,
+  // @ts-expect-error Wire answer IDs must preserve Long precision as strings.
+  answerId: 1,
+};
+void numericAnswerId;
 void [legacyQuestion, legacyAnswer];

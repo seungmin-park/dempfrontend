@@ -83,12 +83,19 @@ async function isolatedCommunity(page) {
       return reply(question && question.username === username ? 200 : 403, {});
     }
     const answerList = path.match(/^\/api\/answer\/(\d+)$/);
-    if (answerList) return reply(200, state.answers.filter(a => a.questionId === Number(answerList[1])).map(answer => ({ ...answer, ...reactionState('answer', answer.answerId, username) })));
+    if (answerList) {
+      const before = url.searchParams.get('before');
+      const window = state.answers.filter(a => a.questionId === Number(answerList[1]) && (before === null || a.answerId < Number(before)))
+        .sort((a, b) => b.answerId - a.answerId).slice(0, 21);
+      const content = window.slice(0, 20).map(answer => ({ ...answer, answerId: String(answer.answerId), ...reactionState('answer', answer.answerId, username) }));
+      return reply(200, { content, hasNext: window.length > 20, nextCursor: window.length > 20 ? String(content.at(-1).answerId) : null });
+    }
     if (path === '/api/answer/save' && method === 'POST') {
       if (!username || state.expired) return reply(401, { message: 'expired' });
       const form = request.postDataJSON();
       state.answers.push({ answerId: state.answers.length + 1, questionId: Number(form.questionId), username, content: form.answerContent, recommend: 0, dislike: 0 });
-      return reply(200, state.answers.filter(a => a.questionId === Number(form.questionId)));
+      const created = state.answers.at(-1);
+      return reply(200, { ...created, answerId: String(created.answerId), myReaction: 'NONE' });
     }
     return reply(404, { message: 'fixture endpoint missing' });
   });
@@ -103,6 +110,65 @@ async function loginAs(page, state, name) {
   await page.locator('form').getByRole('button', { name: '로그인' }).click();
   await expect(page).toHaveURL('/');
 }
+
+async function answerPageFixture(page) {
+  const state = await isolatedCommunity(page);
+  state.questions.push({ id: 7, title: '페이지 질문', content: '<p>본문</p>', username: 'member', hashtags: [] });
+  state.answers = Array.from({ length: 26 }, (_, index) => ({ answerId: index + 1, questionId: 7, username: 'member',
+    content: `기존 답변 ${index + 1}`, recommend: 0, dislike: 0 }));
+  await loginAs(page, state, 'member');
+  await page.goto('/questions/7');
+  return state;
+}
+
+test('답변 20개 조회 후 더 보기와 단건 저장을 함께 진행한다', async ({ page }) => {
+  const state = await answerPageFixture(page);
+  await expect(page.locator('.question-answer')).toHaveCount(20);
+  let releaseMore;
+  const hold = new Promise(resolve => { releaseMore = resolve; });
+  let moreStarted = false;
+  await page.route('**/api/answer/7?before=*', async route => { moreStarted = true; await hold; await route.fallback(); });
+  await page.locator('[data-test="answer-load-more"]').click();
+  await expect.poll(() => moreStarted).toBe(true);
+  await page.locator('#answer').fill('추가 답변');
+  await page.getByRole('button', { name: '댓글 달기' }).click();
+  await expect(page.locator('.question-answer')).toHaveCount(21);
+  await expect(page.locator('#answer')).toHaveValue('');
+  releaseMore();
+  await expect(page.locator('.question-answer')).toHaveCount(27);
+  await expect(page.locator('[data-test="answer-load-more"]')).toHaveCount(0);
+  await expect(page.getByText('표시된 답변 27개')).toBeVisible();
+  const created = page.locator('.question-answer').first();
+  await expect(created).toContainText('추가 답변');
+  await created.getByRole('button', { name: /^비추천/ }).click();
+  await expect(created.getByRole('button', { name: /^비추천/ })).toHaveAttribute('aria-pressed', 'true');
+  expect(state.answers).toHaveLength(27);
+  await page.reload();
+  await expect(page.locator('.question-answer')).toHaveCount(20);
+  await expect(page.locator('.question-answer').first()).toContainText('추가 답변');
+  await expect(page.locator('.question-answer').first().getByRole('button', { name: /^비추천/ })).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('답변 더 보기 실패는 목록과 작성 입력을 보존한다', async ({ page }) => {
+  await answerPageFixture(page);
+  await expect(page.locator('.question-answer')).toHaveCount(20);
+  await page.locator('#answer').fill('작성 중인 답변');
+  const cursors = [];
+  await page.route('**/api/answer/7?before=*', async route => {
+    cursors.push(new URL(route.request().url()).searchParams.get('before'));
+    if (cursors.length === 1) await route.fulfill({ status: 500, contentType: 'application/json', body: '{}' });
+    else await route.fallback();
+  });
+  await page.locator('[data-test="answer-load-more"]').click();
+  await expect(page.locator('[data-test="answer-more-error"]')).toContainText('불러오지 못했습니다');
+  await expect(page.locator('.question-answer')).toHaveCount(20);
+  await expect(page.locator('#answer')).toHaveValue('작성 중인 답변');
+  await page.locator('[data-test="answer-load-more"]').click();
+  await expect(page.locator('.question-answer')).toHaveCount(26);
+  await expect(page.locator('#answer')).toHaveValue('작성 중인 답변');
+  expect(cursors).toEqual(['7', '7']);
+  await expect(page.locator('[data-test="answer-load-more"]')).toHaveCount(0);
+});
 
 test('회원가입부터 공고·질문·답변의 별도 재조회까지', async ({ page }) => {
   const state = await isolatedCommunity(page);
