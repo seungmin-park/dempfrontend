@@ -17,9 +17,9 @@ const pages = [
 test.each(pages)('%s의 기존 HTML에서 실행 가능한 요소와 속성을 제거하고 서식을 보존한다', async (name, component, selector) => {
   const content = '<p style="color:red" onclick="alert(1)"><strong>안전한 강조</strong><em>기울임</em></p><ul><li>목록</li></ul><script>alert(1)</script><img src=x onerror="alert(1)"><a href="javascript:alert(1)">위험 링크</a><a href="/question/1">내부 링크</a>';
   const record = { id: 1, username: 'member', recommend: 0, dislike: 0, hashtags: [], content, company: { name: '회사' } };
-  axios.get.mockResolvedValue({ data: name === '답변' ? [{ ...record, answerId: 1 }] : record });
+  axios.get.mockResolvedValue({ data: name === '답변' ? { content: [{ ...record, answerId: '1' }], nextCursor: null, hasNext: false } : record });
   global.$ = () => ({ summernote: vi.fn() });
-  const wrapper = mount(component, { global: {
+  const wrapper = mount(component, { ...(name === '답변' ? { props: { questionId: 1, username: 'member' } } : {}), global: {
     mocks: { $store: { state: { Login: { token: 'token' } } }, $route: { params: { questionId: 1, itemId: 1 } } },
     stubs: { RouterLink: true },
   } });

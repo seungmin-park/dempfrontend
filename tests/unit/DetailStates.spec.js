@@ -10,18 +10,19 @@ import { router } from '@/router';
 vi.mock('axios');
 beforeEach(() => axios.get.mockReset());
 afterEach(() => vi.clearAllMocks());
-const record = title => ({ id: 1, answerId: 1, title, content: title, username: 'member', hits: 1, recommend: 0, dislike: 0, hashtags: [], language: ['JAVA'], company: { name: '회사' }, minCareer: 0, maxCareer: 3 });
+const record = title => ({ id: 1, answerId: '1', title, content: title, username: 'member', hits: 1, recommend: 0, dislike: 0, hashtags: [], language: ['JAVA'], company: { name: '회사' }, minCareer: 0, maxCareer: 3 });
 function options(route = reactive({ params: { itemId: '1', questionId: '1' }, query: {} })) { return { global: { stubs: { RouterLink: true }, mocks: { $route: route, $store: { state: { Login: { token: 'jwt', username: 'member' } } }, $router: { push: vi.fn() }, emitter: { on: vi.fn(), off: vi.fn() } } } }; }
 it.each([[AnnouncementDetail, false], [QuestionDetail, false], [QuestionAnswer, true]])('상세와 답변은 이전 경로 응답을 버리고 새 경로를 표시한다', async (component, array) => {
   let finishOld;
-  axios.get.mockImplementationOnce(() => new Promise(resolve => { finishOld = resolve; })).mockResolvedValueOnce({ data: array ? [record('새 내용')] : record('새 내용') });
+  axios.get.mockImplementationOnce(() => new Promise(resolve => { finishOld = resolve; })).mockResolvedValueOnce({ data: array ? {content:[record('새 내용')],nextCursor:null,hasNext:false} : record('새 내용') });
   const route = reactive({ params: { itemId: '1', questionId: '1' }, query: {} });
-  const wrapper = mount(component, options(route));
+  const wrapper = mount(component, { ...options(route), ...(array ? { props: { questionId: 1, username: 'member' } } : {}) });
   expect(wrapper.get('[role="status"]').text()).toContain('불러오는 중');
   route.params = { itemId: '2', questionId: '2' };
+  if (array) await wrapper.setProps({ questionId: 2 });
   await flushPromises();
   expect(wrapper.text()).toContain('새 내용');
-  finishOld({ data: array ? [record('이전 내용')] : record('이전 내용') });
+  finishOld({ data: array ? {content:[record('이전 내용')],nextCursor:null,hasNext:false} : record('이전 내용') });
   await flushPromises();
   expect(wrapper.text()).not.toContain('이전 내용');
 });

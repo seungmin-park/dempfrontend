@@ -18,7 +18,7 @@ async function layoutFixture(page, authenticated = true) {
     else if (path === '/api/question/hashtags') body = ['JAVA', 'SPRING'];
     else if (path === '/api/question/detail/71') body = { id: 71, title: '반응형 질문 상세', username: longText, content: '<p>질문 본문</p>', hashtags: ['JAVA', 'SPRING'], hits: 999999, recommend: 12, dislike: 0 };
     else if (path === '/api/question') body = { content: [{ id: 71, title: longText, hits: 999999, recommend: 999999 }], number: 0, last: true };
-    else if (path === '/api/answer/71') body = [];
+    else if (path === '/api/answer/71') body = { content: [], nextCursor: null, hasNext: false };
     else return route.fulfill({ status: 404, json: {} });
     return route.fulfill({ json: body });
   });

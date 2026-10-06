@@ -3,7 +3,14 @@
 | 기능 | 사용자 경로 | UI 상태 소유자 | 검증 |
 |---|---|---|---|
 | 질문·답변 반응 | `/questions/-1` → 추천/비추천 → 새로고침 | `useContentReaction` (readonly 상태·선택 명령) | 타입 부정 계약/Vitest/개발·배포 Playwright + 현재 세션 실제 Spring 브라우저 |
+| 답변 페이지·단건 저장 | 질문 상세 → 첫 20건 → 더 보기·작성 → 저장 → 새로고침 | `useQuestionAnswers` (readonly 목록·커서·입력·요청 세대) | 공개 상태/컴포넌트 테스트 + 두 Playwright 프로젝트 + 실제 Spring 화면 |
 | 반응형 간격·텍스트 표시 | 공고 목록·상세, 질문 목록·상세·작성, 인증, 관리자 목록·등록 | 공통 CSS + MarkdownEditor 내부 CSS | `responsive-layout.spec.js` + Codex 실제 로컬 화면 |
+
+## 답변 페이지·저장
+
+부모 `views/question/QuestionDetail.vue`는 route의 질문 ID와 인증 store의 username을 props로 전달한다. `QuestionAnswer.vue`는 렌더링과 입력/클릭을 맡고, `useQuestionAnswers`가 초기 조회·더 보기·저장·오류·질문 이동을 조정한다. `answers.ts`는 페이지 GET과 객체 1건 POST를 담당한다.
+
+더 보기와 저장은 각각 연타를 막으면서 동시에 실행할 수 있다. 응답 도착 시 현재 목록에 ID 기준으로 병합해 저장한 답변·이미 표시한 반응을 보존한다. 저장 성공에만 해당 입력을 비우며, 더 보기 실패에는 목록·입력·커서를 유지해 같은 커서로 재시도한다. 질문 이동/unmount는 이전 세대의 응답을 버린다. 화면 개수는 전체 건수가 아닌 ‘표시된 답변’이다. `data-test="answer-load-more"`와 `answer-more-error`가 더 보기의 안정적인 selector다.
 
 ## 질문·답변 반응
 

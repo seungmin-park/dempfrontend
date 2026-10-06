@@ -30,6 +30,7 @@
     "tests/unit/PlaywrightExecution.spec.js",
     "tests/unit/PublicationErrors.spec.js",
     "tests/unit/QuestionAnswer.spec.js",
+    "tests/unit/useQuestionAnswers.spec.js",
     "tests/unit/QuestionDetail.spec.js",
     "tests/unit/QuestionList.spec.js",
     "tests/unit/QuestionMenu.spec.js",
@@ -48,6 +49,34 @@
     "tests/unit/TypeSafetyLint.spec.js"
   ],
   "unitAssertions": [
+    {
+      "file": "tests/unit/QuestionAnswer.spec.js",
+      "title": "단건 저장은 기존 20개 답변을 보존하고 새 답변만 앞에 추가한다"
+    },
+    {
+      "file": "tests/unit/QuestionAnswer.spec.js",
+      "title": "더 보기 실패는 목록과 입력을 보존하고 같은 커서로 재시도한다"
+    },
+    {
+      "file": "tests/unit/QuestionAnswer.spec.js",
+      "title": "추가 페이지의 중복 ID와 오래된 반응이 확정된 화면 반응을 덮지 않는다"
+    },
+    {
+      "file": "tests/unit/QuestionAnswer.spec.js",
+      "title": "질문 이동 뒤 도착한 이전 추가 조회와 저장 응답을 폐기한다"
+    },
+    {
+      "file": "tests/unit/useQuestionAnswers.spec.js",
+      "title": "상태 소유자는 more가 늦게 끝나도 새 답변과 기존 페이지를 보존한다"
+    },
+    {
+      "file": "tests/unit/useQuestionAnswers.spec.js",
+      "title": "상태 소유자는 save가 늦게 끝나도 새 답변과 기존 페이지를 보존한다"
+    },
+    {
+      "file": "tests/unit/useQuestionAnswers.spec.js",
+      "title": "unmount 뒤 조회와 저장 응답은 공개 상태를 변경하지 않는다"
+    },
     {
       "file": "tests/unit/VerificationSource.spec.js",
       "title": "설치 중 바뀐 입력은 verifier 시작 시 새 기준으로 받아들이지 않는다"
@@ -107,9 +136,21 @@
     {
       "file": "tests/unit/LoginForm.spec.js",
       "title": "429 로그인 제한이면 남은 대기 시간을 안내하고 입력을 보존한다"
+    },
+    {
+      "file": "tests/unit/QuestionAnswer.spec.js",
+      "title": "Long 범위 문자열 ID의 조회·단건 저장·반응은 서로 다른 답변을 누락하지 않는다"
     }
   ],
   "e2eTests": [
+    {
+      "file": "community.spec.js",
+      "title": "답변 20개 조회 후 더 보기와 단건 저장을 함께 진행한다"
+    },
+    {
+      "file": "community.spec.js",
+      "title": "답변 더 보기 실패는 목록과 작성 입력을 보존한다"
+    },
     {
       "file": "admin.spec.js",
       "title": "관리자 직접 URL은 비로그인 사용자를 로그인으로 보낸다"

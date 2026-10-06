@@ -1,5 +1,14 @@
 # 반응 UI의 책임 경계
 
+답변 페이지의 협력은 아래와 같다. 목록·커서의 변경 이유와 HTTP의 변경 이유를 분리하되 단순 위임 객체는 추가하지 않는다.
+
+```text
+QuestionDetail view → QuestionAnswer → useQuestionAnswers → answers API → AnswerService/DB
+ route·인증 props       렌더링·이벤트       목록·입력·응답 경쟁      HTTP           영속 상태
+```
+
+`useQuestionAnswers`는 읽기 전용 상태와 입력/조회/저장 명령을 노출한다. 현재 목록을 기준으로 단건 prepend·페이지 append를 수행하고 이미 있는 ID를 우선한다. 실제 반응 확정 상태는 기존 keyed `ContentReactionControl`/`useContentReaction`에 남는다. props의 질문이 바뀌거나 unmount되면 요청 세대를 무효화한다. `getAnswers`의 before는 문자열이며 페이지 경계를 바이트 손실 없이 서버에 전달한다.
+
 ```text
 QuestionDetail/Answer → ContentReactionControl → useContentReaction → reactions API → Spring
         props                     화면 상태·응답 경쟁       HTTP          영속 상태
