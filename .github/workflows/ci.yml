@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 concurrency:
   group: frontend-ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -27,9 +31,27 @@ jobs:
         with:
           node-version: '24.21.0'
           cache: npm
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npm run verify
+      - name: Capture Git input before dependency install
+        run: |
+          snapshot="$RUNNER_TEMP/demp-source-before-install.json"
+          git --no-replace-objects show '${{ github.sha }}:scripts/verification-source.mjs' | node --input-type=module - capture "$GITHUB_WORKSPACE" "$snapshot" '${{ github.sha }}'
+          echo "DEMP_VERIFY_SOURCE_SNAPSHOT=$snapshot" >> "$GITHUB_ENV"
+      - name: Install dependencies with input checks
+        run: |
+          git --no-replace-objects show '${{ github.sha }}:scripts/verification-source.mjs' | node --input-type=module - check "$GITHUB_WORKSPACE" "$DEMP_VERIFY_SOURCE_SNAPSHOT" '${{ github.sha }}'
+          npm ci
+          git --no-replace-objects show '${{ github.sha }}:scripts/verification-source.mjs' | node --input-type=module - check "$GITHUB_WORKSPACE" "$DEMP_VERIFY_SOURCE_SNAPSHOT" '${{ github.sha }}'
+      - name: Install browser with input checks
+        run: |
+          git --no-replace-objects show '${{ github.sha }}:scripts/verification-source.mjs' | node --input-type=module - check "$GITHUB_WORKSPACE" "$DEMP_VERIFY_SOURCE_SNAPSHOT" '${{ github.sha }}'
+          npx playwright install --with-deps chromium
+          git --no-replace-objects show '${{ github.sha }}:scripts/verification-source.mjs' | node --input-type=module - check "$GITHUB_WORKSPACE" "$DEMP_VERIFY_SOURCE_SNAPSHOT" '${{ github.sha }}'
+      - name: Verify and check input before evidence upload
+        run: |
+          git --no-replace-objects show '${{ github.sha }}:scripts/verification-source.mjs' | node --input-type=module - check "$GITHUB_WORKSPACE" "$DEMP_VERIFY_SOURCE_SNAPSHOT" '${{ github.sha }}'
+          npm run verify
+          git --no-replace-objects show '${{ github.sha }}:scripts/verification-source.mjs' | node --input-type=module - check "$GITHUB_WORKSPACE" "$DEMP_VERIFY_SOURCE_SNAPSHOT" '${{ github.sha }}'
+          cp "$DEMP_VERIFY_SOURCE_SNAPSHOT" .verification/source-before-install.json
       - name: Retain verification evidence
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6

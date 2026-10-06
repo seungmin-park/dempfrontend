@@ -16,6 +16,7 @@
     "tests/unit/AnnouncementScroll.spec.js",
     "tests/unit/AnnouncementWrite.spec.js",
     "tests/unit/CiVerification.spec.js",
+    "tests/unit/VerificationSource.spec.js",
     "tests/unit/CompensationFields.spec.js",
     "tests/unit/ContentPresentation.spec.js",
     "tests/unit/ContentReactionControl.spec.js",
@@ -47,6 +48,14 @@
     "tests/unit/TypeSafetyLint.spec.js"
   ],
   "unitAssertions": [
+    {
+      "file": "tests/unit/VerificationSource.spec.js",
+      "title": "설치 중 바뀐 입력은 verifier 시작 시 새 기준으로 받아들이지 않는다"
+    },
+    {
+      "file": "tests/unit/VerificationSource.spec.js",
+      "title": "입력 변조 뒤에는 후속 빌드 명령을 실행하지 않는다"
+    },
     {
       "file": "tests/unit/ContentReactionControl.spec.js",
       "title": "같은 답변의 새 집계 props가 저장 중 요청을 해제하거나 성공 응답을 버리지 않는다"
@@ -94,6 +103,10 @@
     {
       "file": "tests/unit/TypeSafetyLint.spec.js",
       "title": "앱 소스의 ts-expect-error 타입 검사 우회를 거절한다"
+    },
+    {
+      "file": "tests/unit/LoginForm.spec.js",
+      "title": "429 로그인 제한이면 남은 대기 시간을 안내하고 입력을 보존한다"
     }
   ],
   "e2eTests": [
@@ -416,6 +429,10 @@
     {
       "file": "responsive-layout.spec.js",
       "title": "1440px: 로그인과 회원가입의 입력 및 동작 버튼은 화면 안에 있다"
+    },
+    {
+      "file": "community.spec.js",
+      "title": "로그인 제한은 대기 시간을 표시하고 입력을 보존해 재시도한다"
     }
   ],
   "browserWarningAttachment": "vue-warnings",
