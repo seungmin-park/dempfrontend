@@ -421,3 +421,27 @@ test('질문·답변 반응 저장과 취소는 새로고침 후에도 유지된
   await page.reload();
   await expect(question.getByRole('button', { name: '비추천 0', exact: true })).toHaveAttribute('aria-pressed', 'false');
 });
+
+
+test('로그인 제한은 대기 시간을 표시하고 입력을 보존해 재시도한다', async ({ page }) => {
+  await isolatedCommunity(page);
+  let attempt = 0;
+  await page.route('/api/member/login', route => {
+    attempt++;
+    return route.fulfill({ status: attempt === 1 ? 429 : 200,
+      contentType: 'application/json', headers: attempt === 1 ? { 'Retry-After': '125' } : {},
+      body: JSON.stringify(attempt === 1 ? { errorCode: 429, errorMessage: 'Too many requests' }
+        : { jwt: 'retry-token', username: 'retry-member' }) });
+  });
+  await page.goto('/login');
+  await page.locator('#username').fill('retry-member');
+  await page.locator('#password').fill('password');
+  await page.locator('form').getByRole('button', { name: '로그인' }).click();
+  await expect(page.getByRole('alert')).toContainText('2분 5초 후');
+  await expect(page).toHaveURL('/login');
+  await expect(page.locator('#username')).toHaveValue('retry-member');
+  await expect(page.locator('#password')).toHaveValue('password');
+  await page.locator('form').getByRole('button', { name: '로그인' }).click();
+  await expect(page).toHaveURL('/');
+  expect(attempt).toBe(2);
+});

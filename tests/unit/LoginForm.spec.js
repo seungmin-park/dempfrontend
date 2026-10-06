@@ -51,3 +51,15 @@ test('로그인 실패 시 오류를 알리고 인증 상태와 경로를 바꾸
   expect(commit).not.toHaveBeenCalled();
   expect(push).not.toHaveBeenCalled();
 });
+
+test('429 로그인 제한이면 남은 대기 시간을 안내하고 입력을 보존한다', async () => {
+  axios.post.mockRejectedValue({ response: { status: 429, headers: { 'retry-after': '125' } } });
+  const { wrapper, commit, push } = mountLogin();
+  await submit(wrapper);
+  expect(wrapper.get('[role="alert"]').text()).toContain('2분 5초 후');
+  expect(wrapper.get('[role="alert"]').text()).toContain('로그인 시도가 너무 많습니다');
+  expect(wrapper.get('#username').element.value).toBe('tester');
+  expect(wrapper.get('#password').element.value).toBe('private-password');
+  expect(commit).not.toHaveBeenCalled();
+  expect(push).not.toHaveBeenCalled();
+});

@@ -48,7 +48,7 @@
 <script lang="ts">
 import { queryText } from '@/router/query';
 import { defineComponent } from "vue";
-import { login } from '@/api/members';
+import { login, getLoginRateLimit } from '@/api/members';
 import { ValidationForm, Field, ErrorMessage } from '@/components/common/validationComponents';
 import { defineRule } from "vee-validate";
 import { required, url, min_value } from "@vee-validate/rules";
@@ -96,8 +96,15 @@ export default defineComponent({
           } else {
             this.$router.push({path: this.redirect});
           }
-        }).catch(() => {
-          this.error = "로그인하지 못했습니다. 아이디와 비밀번호를 확인하고 다시 시도해 주세요.";
+        }).catch((error: unknown) => {
+          const limit = getLoginRateLimit(error);
+          if (limit) {
+            const seconds = limit.retryAfterSeconds;
+            const wait = seconds === null ? '잠시 후' : `${Math.floor(seconds / 60)}분 ${seconds % 60}초 후`;
+            this.error = `로그인 시도가 너무 많습니다. ${wait}에 다시 시도해 주세요.`;
+          } else {
+            this.error = "로그인하지 못했습니다. 아이디와 비밀번호를 확인하고 다시 시도해 주세요.";
+          }
       }).finally(() => { this.saving = false; });
     },
   },

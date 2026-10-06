@@ -41,6 +41,16 @@ Vue 경고는 주로 개발 모드에서 발생하므로 production 통과만으
 
 `verify-results.mjs`는 dist HTML의 JS/CSS 참조·존재, 개발 진입점·경로 이탈, 알려진 `fixture-token` 혼입을 확인하고 파일 digest를 기록한다. 범용 비밀 탐지기는 아니다. 실행 전후 source/build digest가 다르면 성공을 거절한다. preview는 검증용이고 운영 웹 서버가 아니다.
 
+입력 무결성은 `verification-source.mjs`가 소유한다. 모든 tracked 파일과 생성 디렉터리를 제외한 추가 파일을 해시에 포함하므로 `index.html`, `public/`, `server.cjs`, ignored 환경 파일도 빠지지 않는다. 추가 파일 중 `node_modules/`, `dist/`, `.verification/`, `test-results/`, `playwright-report/`, `.worktrees/`는 생성 경로로 제외한다. 로컬 미커밋 입력은 현재 작업 트리 기준으로 검증하고 `sourceBaseline: local-working-tree`를 기록한다. 이것을 HEAD commit의 산출물이라고 간주하지 않는다.
+
+CI는 `npm ci` 전에 실제 파일 목록·내용·실행 비트를 Git HEAD의 tree·blob과 대조하고 추가 입력·`.env.local`·`.env.*.local`을 거부한 후 `$RUNNER_TEMP`에 입력 기준을 기록한다. Git index의 `assume-unchanged`·`skip-worktree`나 변경된 기준 파일로 commit과 다른 입력을 허용하지 않는다. 생성 경로를 제외한 실제 파일 목록을 직접 읽고, 일반 파일 이외의 입력은 지원하지 않는다. 설치·브라우저 준비·검증 전후에 `${{ github.sha }}`의 Git 객체에서 검사 코드를 직접 읽어 실행한다. 변경 가능한 외부 검사 파일을 다시 실행하지 않는다. `verify.mjs`도 설치 전 기준을 반드시 받아 각 단계 전후에 입력을 검사하며, 실패하면 다음 단계와 성공 증거 생성을 중단한다. 성공 시 `.verification/source-before-install.json`도 증거에 포함한다.
+
+workflow의 `defaults.run.shell: bash`는 Git 조회가 실패한 파이프를 성공으로 처리하지 않도록 `pipefail`을 적용한다. 회귀 테스트는 실제 YAML의 shell 선택에 맞춰 run 블록을 실행한다. [GitHub의 shell 실행 규칙](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idstepsshell)을 확인했다.
+
+검사 코드·HEAD·tree·blob을 읽는 Git 명령은 `--no-replace-objects`를 지정한다. 로컬 replacement ref로 고정한 SHA의 객체 내용을 대신 보여주는 우회도 허용하지 않는다.
+
+이 검사는 체크포인트에서 유지되는 입력 변경을 잡는다. 한 단계 안에서 입력을 변경해 이용한 뒤 원복하는 행위, 임의 프로세스의 완전한 격리, 빌드 재현성을 증명하지 않는다. workflow·검사 코드·필수 manifest의 변경은 보호된 PR에서 리뷰해야 하며 성공 artifact가 자동 배포 권한을 부여하지 않는다. 실제 변조와 CI 설치 블록의 실행 검증은 [입력 무결성 개선 기록](../verification-source-integrity.md)에 남긴다.
+
 ## 브라우저 검증 범위
 
 기존 Playwright는 API fixture를 사용하는 development/production 화면·입력·이동·권한 오류·재조회 계약이다. 실제 Spring DB 영속성과 구분한다. 실제 저장 검증은 별도 backend worktree/버전, 격리 H2, preview의 `DEV_API_TARGET`, 브라우저 origin과 Spring CORS 설정을 확인한 뒤 로그인 → 질문/답변 반응 → 전환/취소 → 새로고침 → 별도 HTTP 조회를 수행한다.

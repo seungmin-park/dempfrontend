@@ -16,3 +16,7 @@
 ## 반응형 간격 검증
 
 320·390·640·768·1024·1440px에서 가로 넘침, 입력 폭, 버튼 간격, 긴 텍스트의 줄바꿈, 짧은 본문의 높이를 확인한다. `npm run verify -- --headed`로 build와 전체 화면 검사를 실행한다. API fixture에 기반한 화면 검증이며 서버 저장 검증이 아니다. 실행 근거와 실제 화면 확인은 [화면 간격 작업 기록](../responsive-spacing-verification.md)에 있다.
+
+## 계정별 로그인 제한
+
+`/login` → 기존 계정의 15분 내 실패 5회 → 429·Retry-After → 입력 보존·대기 안내. 최종 제한 상태는 Member DB, 인증/commit은 MemberService, 표시 상태는 LoginForm이 소유한다. 정상 로그인·시간 경계·DB 재조회·동시 요청·두 독립 컨텍스트·HTTP/CORS·단위/개발·배포 브라우저와 실제 Spring 화면을 함께 검증한다.
