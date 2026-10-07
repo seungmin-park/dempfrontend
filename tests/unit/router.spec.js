@@ -3,6 +3,7 @@ import { flushPromises } from '@vue/test-utils';
 import { createAuthGuard, router } from '@/router';
 import { apiClient } from '@/api/client';
 import { store } from '@/store';
+import { AxiosError } from 'axios';
 
 vi.unmock('axios');
 
@@ -25,7 +26,7 @@ test('401 처리 뒤 토큰과 사용자 이름이 모두 비워지고 원래 �
   await router.push('/questions/7?tab=answers');
   await router.isReady();
   await expect(apiClient.get('/api/question/detail/7', {
-    adapter: async config => { throw { response: { status: 401 }, config }; },
+    adapter: async config => { throw new AxiosError('unauthorized', undefined, config, undefined, { status: 401, statusText: 'Unauthorized', data: {}, headers: {}, config }); },
   })).rejects.toMatchObject({ response: { status: 401 } });
   await flushPromises();
   expect(store.state.Login).toMatchObject({ token: '', username: '' });

@@ -85,3 +85,45 @@
 .compensation-fields select,.compensation-fields input { margin-bottom:8px; }
 @media(max-width:640px) { .education-filter-grid,.education-detail dl { grid-template-columns:1fr; } .education-fields { padding:16px; } }
 .education-filter-grid select,.education-fields select,.compensation-fields select { appearance:none; min-height:44px; padding:10px 36px 10px 12px; background-image:linear-gradient(45deg,transparent 50%,var(--meta) 50%),linear-gradient(135deg,var(--meta) 50%,transparent 50%); background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%; background-size:5px 5px; background-repeat:no-repeat; }
+.technology-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 8px;
+}
+.technology-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  cursor: pointer;
+}
+.technology-choice input { margin: 0; flex-shrink: 0; }
+.technology-choice.is-selected { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); }
+.technology-choice:focus-within { outline: 2px solid var(--primary); outline-offset: 2px; }
+.technology-choice.is-disabled { opacity: .6; cursor: default; }
+.publication-history {
+  margin-top: 28px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  text-align: left;
+}
+.publication-history-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.publication-history-list { list-style: none; padding: 0; margin: 8px 0 0; }
+.publication-history-list li { padding: 16px 0; border-bottom: 1px solid var(--line); min-width: 0; }
+.publication-history-list li:last-child { padding-bottom: 0; border-bottom: 0; }
+.history-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; color: var(--meta); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.history-meta time { font-variant-numeric: tabular-nums; }
+.history-status { padding: 2px 8px; border-radius: 5px; color: var(--muted); background: var(--canvas); font-weight: 600; }
+.history-title { margin-top: 8px; color: var(--ink); font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+.publication-history > .field-hint { margin-top: 16px; }
+@media (max-width: 480px) { .publication-history { padding: 20px 16px; } }

@@ -15,6 +15,24 @@ const cases = [
   ['EMP', 3, 3, '경력', '3년'],
   ['EMP', null, null, '채용', '경력 정보 없음'],
 ];
+
+it.each([
+  ['REGULAR', '정규직'], ['CONTRACT', '계약직'], ['CONVERSION_INTERNSHIP', '전환형 인턴'],
+  ['EXPERIENTIAL_INTERNSHIP', '체험형 인턴'], [null, '고용 형태 미확인'],
+])('고용 형태 %s를 모집 대상과 별개로 목록·상세·관련 공고에 표시한다', async (employmentType, label) => {
+  const item = { id: 1, title: '대상 공고', company: null, language: [], image: '', announcementType: 'EMP', recruitmentAudience: 'NEW', minCareer: 0, maxCareer: 0, employmentType };
+  axios.get.mockResolvedValueOnce({ data: { content: [item], last: true } });
+  const list = mount(AnnouncementList, { global: { mocks: { emitter: { on: vi.fn(), off: vi.fn() } } } }); await flushPromises();
+  axios.get.mockResolvedValueOnce({ data: item });
+  const detail = mount(AnnouncementDetail, { global: { mocks: { $store: { state: { Login: { token: 'jwt' } } }, $route: { params: { itemId: '1' } } } } }); await flushPromises();
+  axios.get.mockResolvedValueOnce({ data: [item] });
+  const scroll = mount(AnnouncementScroll); await flushPromises();
+  for (const wrapper of [list, detail, scroll]) {
+    expect(wrapper.get('[aria-label="고용 형태"]').text()).toBe(label);
+    expect(wrapper.get('[aria-label="모집 구분"]').text()).toBe('신입');
+    wrapper.unmount();
+  }
+});
 for (const [announcementType, minCareer, maxCareer, label, years] of cases) {
   it(`${announcementType} ${minCareer}~${maxCareer}의 모집 구분을 목록·상세·관련 공고에서 동일하게 표시한다`, async () => {
     const item = { id: 1, title: '대상 공고', company: null, language: [], image: '', announcementType, minCareer, maxCareer };

@@ -4,6 +4,11 @@
 |---|---|---|---|
 | 질문·답변 반응 | `/questions/-1` → 추천/비추천 → 새로고침 | `useContentReaction` (readonly 상태·선택 명령) | 타입 부정 계약/Vitest/개발·배포 Playwright + 현재 세션 실제 Spring 브라우저 |
 | 답변 페이지·단건 저장 | 질문 상세 → 첫 20건 → 더 보기·작성 → 저장 → 새로고침 | `useQuestionAnswers` (readonly 목록·커서·입력·요청 세대) | 공개 상태/컴포넌트 테스트 + 두 Playwright 프로젝트 + 실제 Spring 화면 |
+| 태그 입력·선택 필터 | 질문 작성/편집 → 태그 추가·삭제, 상세 태그 → 목록 → 조건 해제 | `Hashtags` 입력 상태, 목록 필터의 원본은 route query | Vitest·CI 반응형 회귀 + 현재 cmux의 실제 클릭·간격 assertion |
+| 본인 질문 편집 | `/questions/:questionId` → 편집 → `/questions/:questionId/edit` → 저장·재조회 | `QuestionWrite` 조회/입력/저장 및 요청 세대, 서버가 작성자 권한 소유 | Vitest·CI development/production fixture + 실제 Spring/H2 저장·반응 보존 |
+| 관리자 footer | 비회원·일반회원 숨김 → 서버 `/api/admin/me` 성공 후 표시 → 로그아웃 숨김 | `useAdminAccess` readonly 판정, 서버가 최종 관리자 권한 소유 | `AppAdminAccess.spec.js` 지연 응답 포함 + 실제 cmux 세 역할 |
+| 채용 고용 형태 | 관리자 등록/수정 → 미확인·정규직·계약직·두 인턴 선택 → 목록·상세 재조회 | `AdminAnnouncementEditor` 입력, 서버 Announcement 상태 규칙, `AnnouncementAudience` 공통 표현 | 단위·CI fixture + 실제 cmux 저장/조회; backend 실제 MySQL 25 assertions |
+| 기술 스택·변경 이력 | 전체 선택 칩 클릭 → 저장/재조회, 이력 보기 → 날짜/작성자/상태·제목 | 기존 native checkbox와 관리자 editor; history는 서버 순서 그대로 표현 | 단위·CI 반응형 회귀 + cmux 320/390/1440px 치수/화면 |
 | 반응형 간격·텍스트 표시 | 공고 목록·상세, 질문 목록·상세·작성, 인증, 관리자 목록·등록 | 공통 CSS + MarkdownEditor 내부 CSS | `responsive-layout.spec.js` + Codex 실제 로컬 화면 |
 
 ## 답변 페이지·저장

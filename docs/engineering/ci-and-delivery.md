@@ -55,7 +55,7 @@ workflow의 `defaults.run.shell: bash`는 Git 조회가 실패한 파이프를 �
 
 기존 Playwright는 API fixture를 사용하는 development/production 화면·입력·이동·권한 오류·재조회 계약이다. 실제 Spring DB 영속성과 구분한다. 실제 저장 검증은 별도 backend worktree/버전, 격리 H2, preview의 `DEV_API_TARGET`, 브라우저 origin과 Spring CORS 설정을 확인한 뒤 로그인 → 질문/답변 반응 → 전환/취소 → 새로고침 → 별도 HTTP 조회를 수행한다.
 
-로컬에서는 사용자가 지정한 현재 세션에서 headed 러너와 실제 브라우저 과정을 보여준다. 현재 Codex 세션을 지정했다면 cmux를 요구하지 않는다. 자신이 만든 서버만 종료하며 사용자 서버·미커밋 변경은 보존한다.
+로컬에서는 `AGENTS.md`에 따라 현재 cmux의 보조 터미널과 브라우저에서 실행 과정을 보여준다. 사용자가 Chrome for Testing을 제외하면 로컬 비브라우저 검사와 실제 cmux/Spring 흐름을 실행하고 Playwright fixture는 CI에서 별도로 확인한다. cmux 실제 서버 검증을 fixture 러너 통과로 취급하지 않는다. 자신이 만든 서버만 종료하며 사용자 서버·미커밋 변경은 보존한다.
 
 ## CI와 PR
 

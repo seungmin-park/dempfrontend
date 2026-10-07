@@ -11,7 +11,7 @@
 <script lang="ts">
 import type { QuestionSummary } from '@/types/api';
 import type { LocationQuery, RouteLocationNormalizedLoaded } from 'vue-router';
-import { queryText } from '@/router/query';
+import { queryText, queryTags } from '@/router/query';
 import { defineComponent } from "vue";
 import AsyncState from '@/components/common/AsyncState.vue';
 import AppIcon from '@/components/common/AppIcon.vue';
@@ -53,9 +53,7 @@ export default defineComponent({
       this.orderBy = queryText(query.orderBy);
       this.title = queryText(query.title);
       this.content = queryText(query.content);
-      this.hashtags = Array.isArray(query.hashtags)
-        ? query.hashtags.filter((tag): tag is string => typeof tag === 'string' && tag.length > 0)
-        : String(query.hashtags || "").split(",").filter(Boolean);
+      this.hashtags = queryTags(query.hashtags);
     },
     async loadQuestionPage(page: number) {
       if (this.loading || page < 0) return;

@@ -28,6 +28,7 @@
 
 import { defineComponent } from "vue";
 import { getQuestionHashtags } from '@/api/questions';
+import { queryTags } from '@/router/query';
 export default defineComponent({
   data() {
     return {
@@ -39,6 +40,7 @@ export default defineComponent({
   mounted() {
     this.getHashtags();
   },
+  watch: { '$route.query.hashtags': { immediate: true, handler(value) { this.searchTags = queryTags(value); } } },
   methods: {
     visibleHashtags() {
       this.visible = this.visible ? false : true;
@@ -49,9 +51,7 @@ export default defineComponent({
       });
     },
     getByHashtags() {
-      this.$router.push({path: '/question',
-        query:{orderBy:this.$route.query.orderBy,
-        hashtags:this.searchTags}});
+      this.$router.push({ path: '/question', query: { ...this.$route.query, hashtags: this.searchTags.length ? this.searchTags : undefined } });
     },
     directQuestionWritePage(){
       if (this.$store.state.Login.token != "") {
