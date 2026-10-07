@@ -1,4 +1,4 @@
-import type { EntityId, QuestionDetail, QuestionForm, QuestionSearchCondition, QuestionSummary, Slice } from '@/types/api';
+import type { EntityId, QuestionDetail, QuestionForm, QuestionUpdateForm, QuestionSearchCondition, QuestionSummary, Slice } from '@/types/api';
 import { apiClient } from './client';
 
 export function fetchQuestionPage(condition: QuestionSearchCondition) {
@@ -22,4 +22,8 @@ export function getQuestionHashtags() {
 
 export function createQuestion(payload: QuestionForm) {
   return apiClient.post<string>('/api/question/add', payload);
+}
+
+export function updateQuestion(payload: QuestionUpdateForm) {
+  return apiClient.patch<void>('/api/question/update', payload);
 }

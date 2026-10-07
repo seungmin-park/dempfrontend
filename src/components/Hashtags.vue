@@ -1,300 +1,70 @@
 <template>
-  <div class="comp_hashtag" @click="focusTagInput" ref="group" tabindex="0" @focus="focusTagInput">
-    <p class="help" v-if="helpVisible">{{ defaultPlaceholder }}</p>
-
-    <!-- Hashtags -->
-    <div class="tags" v-if="!helpVisible">
-      <input
-        type="text"
-        class="fake"
-        ref="fake"
-        @keydown.backspace.prevent="deleteTag(focusIndex)"
-        @keydown.delete.prevent="deleteTag(focusIndex)"
-      />
-      <span
-        class="tag"
-        v-for="(row, index) in tags"
-        :key="index"
-        :class="{ active: row.select }"
-        @click="selectTag(index)"
-        >{{ row.value }}</span
-      >
+  <div class="hashtag-field">
+    <div class="comp_hashtag" :class="{ 'is-disabled': disabled }" @click="focusTagInput">
+      <span v-for="tag in tags" :key="tag.value" class="tag-chip">
+        <span class="tag">#{{ tag.value }}</span>
+        <button type="button" :aria-label="`${tag.value} 태그 삭제`" :disabled="disabled" @click.stop="removeTag(tag.value)"><span aria-hidden="true">×</span></button>
+      </span>
+      <div class="inp">
+        <input ref="input" v-model.trim="value" type="text" :placeholder="tags.length ? '태그 추가' : placeholder" aria-label="태그 입력"
+          :disabled="disabled" :aria-invalid="Boolean(errorMsg)" :aria-describedby="errorMsg ? errorId : undefined"
+          @input="errorMsg = ''" @keydown.space.prevent="addTagFromInput" @keydown.enter.prevent="addTagFromInput" />
+      </div>
     </div>
-    <!--// Hashtags -->
-
-    <div class="inp" v-show="!helpVisible">
-      <input
-        type="text"
-        ref="input"
-        v-model.trim="value"
-        @focus="initSelect"
-        @keydown.space.prevent="addTagFromInput"
-        @keydown.enter.prevent="addTagFromInput"
-        @keydown.backspace="initErrorMsg"
-        @keydown.delete="initErrorMsg"
-        placeholder="태그입력" aria-label="태그 입력"
-      />
-    </div>
-
-    <transition
-      enter-active-class="animate__animated animate__fadeInDown animate__faster"
-      leave-active-class="animate__animated animate__fadeOut"
-    >
-      <p class="noti" v-if="errorMsg">{{ errorMsg }}</p>
-    </transition>
+    <p v-if="errorMsg" :id="errorId" role="alert" class="noti">{{ errorMsg }}</p>
   </div>
 </template>
 
 <script lang="ts">
+import { defineComponent, useId } from 'vue';
+import type { PropType } from 'vue';
 import type { HashtagInput } from '@/types/api';
-import { defineComponent } from "vue";
 export default defineComponent({
   // eslint-disable-next-line
-  name: "Hashtags",
-  props: { placeholder: { type: String, default: '#추천태그 #특수문자제외' } },
-  emits: { addHashtags: (_tags: HashtagInput[]) => true },
-  data() {
-    return {
-      defaultPlaceholder: this.placeholder
-        ? this.placeholder
-        : "#추천태그 #특수문자제외",
-      errorMsg: null as string | null,
-      focusIndex: null as number | null,
-      helpVisible: true,
-      tags: [] as HashtagInput[],
-      value: "",
-    };
+  name: 'Hashtags',
+  props: {
+    placeholder: { type: String, default: '태그를 입력하세요' },
+    initialTags: { type: Array as PropType<string[]>, default: () => [] },
+    disabled: { type: Boolean, default: false },
   },
+  emits: { addHashtags: (_tags: HashtagInput[]) => true },
+  setup() { return { errorId: `${useId()}-tag-error` }; },
+  data() { return { value: '', errorMsg: '', tags: this.initialTags.map(value => ({ value, select: false })) }; },
+  watch: { initialTags(values: string[]) { this.tags = values.map(value => ({ value, select: false })); this.value = ''; this.errorMsg = ''; } },
   methods: {
-    focusTagInput() {
-      if (this.tags.length > 0) return;
-      this.helpVisible = false;
-      this.$nextTick(() => (this.$refs.input as HTMLInputElement).focus());
-    },
-
-    addTag() {
-      this.tags.push({ value: this.value, select: false });
-    },
-    unselectTag() {
-      this.tags.forEach((tag) => (tag.select = false));
-    },
-    selectTag(idx: number) {
-      const tag = this.tags[idx];
-      if (!tag) return;
-      if (this.tags.some((tag) => tag.select)) {
-        this.unselectTag();
-      }
-
-      tag.select = !tag.select;
-
-      if (!tag.select) {
-        this.initSelectIndex();
-        return;
-      }
-
-      (this.$refs.fake as HTMLInputElement).focus();
-      this.focusIndex = idx;
-    },
-    deleteTag(idx: number | null) {
-      if (idx === null) {
-        return;
-      }
-
-      this.initSelectIndex();
-      this.tags.splice(idx, 1);
-    },
-
-    initSelect() {
-      if (!this.tags.some((tag) => tag.select)) {
-        return;
-      }
-
-      this.unselectTag();
-      this.initSelectIndex();
-    },
-    initSelectIndex() {
-      this.focusIndex = null;
-    },
-    initErrorMsg() {
-      this.errorMsg = null;
-    },
-    tagValidationError() {
-      if (this.tags.some((tag) => tag.value === this.value)) {
-        return "중복된 단어를 입력하셨습니다.";
-      }
-
-      const regex = /[~!@#$%^&*()+|<>?:{},.="':;/-]/;
-      if (regex.test(this.value)) {
-        return "특수문자는 태그로 등록할 수 없습니다.";
-      }
-
-      return false;
+    focusTagInput() { if (!this.disabled) (this.$refs.input as HTMLInputElement).focus(); },
+    emitTags() { this.$emit('addHashtags', this.tags.map(tag => ({ ...tag }))); },
+    removeTag(value: string) {
+      if (this.disabled) return;
+      this.tags = this.tags.filter(tag => tag.value !== value);
+      this.errorMsg = '';
+      this.emitTags();
     },
     addTagFromInput(event: KeyboardEvent) {
-      // CASE 공백
-      if ((event.target as HTMLInputElement).value === "") {
-        this.initErrorMsg();
-        (event.target as HTMLInputElement).focus();
-        return;
-      }
-      // CASE 유효성(중복,특문)
-      const resultMsg = this.tagValidationError();
-      if (resultMsg) {
-        this.errorMsg = resultMsg;
-        (this.$refs.input as HTMLInputElement).focus();
-        return;
-      }
-
-      this.addTag();
-
-      this.errorMsg = null;
-      this.value = "";
-      (this.$refs.input as HTMLInputElement).focus();
-    },
-  },
-  mounted() {},
-  watch: {
-    tags: {
-      handler(newValue) {
-        this.$emit("addHashtags", newValue);
-      },
-      deep: true,
+      if (this.disabled || event.isComposing) return;
+      if (!this.value) { this.errorMsg = ''; return; }
+      if (this.tags.some(tag => tag.value === this.value)) { this.errorMsg = '중복된 단어를 입력하셨습니다.'; return; }
+      if (/[~!@#$%^&*()+|<>?:{},.="':;/-]/.test(this.value)) { this.errorMsg = '특수문자는 태그로 등록할 수 없습니다.'; return; }
+      this.tags.push({ value: this.value, select: false });
+      this.value = '';
+      this.errorMsg = '';
+      this.emitTags();
     },
   },
 });
 </script>
 
-<style lang="scss" scoped>
-.comp_hashtag {
-  position: relative;
-  width: 100%;
-  padding: 5px 10px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  min-height: 48px;
-  margin: 10px auto;
-  text-align: left;
-  box-sizing: border-box;
-
-  .noti {
-    position: absolute;
-    left: 0;
-    top: 100%;
-    font-size: 12px;
-    margin-top: 5px;
-    padding: 0 5px;
-    border-radius: 8px;
-    border: 1px solid #ea2136;
-    color: #ea2136;
-    text-align: left;
-    line-height: 2;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-  }
-
-  .help {
-    padding: 0;
-    margin: 0;
-    line-height: 30px;
-    font-weight: 300;
-    font-size: 14px;
-    color: #64748b;
-    vertical-align: top;
-  }
-
-  .tags {
-    position: relative;
-    overflow: hidden;
-    display: inline-block;
-    vertical-align: top;
-    margin-bottom: -6px;
-
-    .fake {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      left: -1px;
-      right: -1px;
-      padding: 0;
-      border: 0;
-      outline: none;
-      -webkit-appearance: none;
-      -webkit-text-size-adjust: none;
-    }
-    .tag {
-      display: inline-block;
-      position: relative;
-      margin: 0 5px 6px 0;
-      padding: 0 5px;
-      line-height: 30px;
-      border-radius: 5px;
-      background-color: #eee;
-      vertical-align: top;
-      word-wrap: break-word;
-      word-break: break-all;
-      font-size: 13px;
-      text-align: left;
-      &:hover:after {
-        display: block;
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        box-sizing: border-box;
-        border: 1px solid #aaa;
-        content: "";
-        border-radius: 5px;
-      }
-
-      &:before {
-        display: inline;
-        content: "#";
-      }
-
-      &.active {
-        background-color: #656565;
-        color: #fff;
-        &:hover:after {
-          display: none;
-        }
-      }
-    }
-  }
-
-  .inp {
-    display: inline-block;
-    overflow: hidden;
-    height: 30px;
-    width: 150px;
-    vertical-align: top;
-    font-family: "Noto Sans KR", "Malgun Gothic", "굴림", Gulim, "돋움", Dotum,
-      Sans-serif;
-
-    &:before {
-      display: inline;
-      position: relative;
-      top: -1px;
-      content: "#";
-      color: #3e3e3e;
-      margin-right: 2px;
-      vertical-align: top;
-      line-height: 30px;
-    }
-
-    input {
-      width: 135px;
-      height: 28px;
-      vertical-align: top;
-      color: #3e3e3e;
-      -webkit-appearance: none;
-      -webkit-text-size-adjust: none;
-      padding: 0;
-      border: 0;
-      outline: none;
-      vertical-align: top;
-      font-family: "Noto Sans KR", "Malgun Gothic", "굴림", Gulim, "돋움", Dotum,
-        Sans-serif;
-    }
-  }
-}
+<style scoped>
+.hashtag-field { min-width: 0; }
+.comp_hashtag { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 48px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 9px; background: white; }
+.comp_hashtag:focus-within { border-color: var(--primary); box-shadow: 0 0 0 2px #818cf833; }
+.tag-chip { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; min-height: 30px; border-radius: 6px; background: var(--primary-soft); color: var(--primary); padding: 3px 6px 3px 9px; }
+.tag { padding: 0; overflow-wrap: anywhere; background: transparent; }
+.tag-chip button { display: grid; place-items: center; flex-shrink: 0; border: 0; border-radius: 4px; background: transparent; color: inherit; width: 24px; height: 24px; padding: 0; font-size: 18px; }
+.tag-chip button:hover:not(:disabled) { background: #c7d2fe; }
+.inp { flex: 1 1 160px; min-width: 0; }
+.inp input { border: 0; padding: 3px 0; min-height: 30px; line-height: 24px; border-radius: 0; background: transparent; font-size: 14px; }
+.inp input:focus-visible { outline: 0; }
+.noti { margin-top: 8px; color: var(--danger); font-size: 13px; line-height: 1.5; }
+.is-disabled { background: var(--canvas); }
 </style>

@@ -7,7 +7,8 @@ export type Language = 'HTML' | 'CSS' | 'React' | 'JAVA' | 'JPA' | 'SPRING';
 export type SalaryStatus = 'UNDISCLOSED' | 'NEGOTIABLE' | 'DISCLOSED';
 export type PublicationStatus = 'DRAFT' | 'REVIEW' | 'PUBLISHED' | 'HIDDEN';
 export type RecruitmentAudience = 'NEW' | 'EXPERIENCED' | 'ANY' | 'MIXED';
-export interface PublicationInfo { recruitmentClosed?: boolean; recruitmentAudience?: RecruitmentAudience | null; cohort?: string | null; stipendAmount?: number | null; stipendNote?: string | null; publicationStatus?: PublicationStatus; sourceName?: string | null; sourceIdentifier?: string | null; applicationUrl?: string | null; sourceVerifiedAt?: string | null; sourceVerified?: boolean }
+export type EmploymentType = 'REGULAR' | 'CONTRACT' | 'CONVERSION_INTERNSHIP' | 'EXPERIENTIAL_INTERNSHIP';
+export interface PublicationInfo { employmentType?: EmploymentType | null; recruitmentClosed?: boolean; recruitmentAudience?: RecruitmentAudience | null; cohort?: string | null; stipendAmount?: number | null; stipendNote?: string | null; publicationStatus?: PublicationStatus; sourceName?: string | null; sourceIdentifier?: string | null; applicationUrl?: string | null; sourceVerifiedAt?: string | null; sourceVerified?: boolean }
 export interface PublicationRevision { actor: string; changedAt: string; status: PublicationStatus; title: string; sourceUrl: string }
 export type AnnouncementType = 'EMP' | 'EDU';
 export interface Slice<T> { content: T[]; last: boolean; number: number }
@@ -48,7 +49,7 @@ export interface AnnouncementDetailResponse extends PublicationInfo {
   announcementType: AnnouncementType | null;
 }
 export type AnnouncementDetail = Omit<AnnouncementDetailResponse, 'company'> & { company: string; type: AnnouncementType | null };
-export interface AnnouncementScroll extends Pick<AnnouncementSummary, 'announcementType' | 'minCareer' | 'maxCareer' | 'recruitmentAudience'> { id: number; title: string | null; company: Company | null; image: string }
+export interface AnnouncementScroll extends Pick<AnnouncementSummary, 'announcementType' | 'minCareer' | 'maxCareer' | 'recruitmentAudience' | 'employmentType'> { id: number; title: string | null; company: Company | null; image: string }
 export interface AnnouncementFilters extends EducationInfo {
   duration?: string;
   startAfter?: string;
@@ -84,6 +85,7 @@ export interface AnnouncementForm extends EducationInfo, PublicationInfo {
 export interface QuestionSummary { id: number; title: string | null; hits: number; recommend: number }
 export interface QuestionDetail extends QuestionSummary { myReaction?: ReactionType; content: string | null; dislike: number; username: string; hashtags: string[] }
 export interface QuestionForm { title: string; content: string; username: string; hashtags: string[] }
+export interface QuestionUpdateForm extends Omit<QuestionForm, 'username'> { questionId: EntityId }
 export interface QuestionSearchCondition { orderBy: string; title: string; content: string; hashtags: string[]; page: number; size: number }
 export interface Answer { myReaction?: ReactionType; answerId: string; username: string; content: string | null; recommend: number; dislike: number }
 export interface AnswerPage { content: Answer[]; nextCursor: string | null; hasNext: boolean }

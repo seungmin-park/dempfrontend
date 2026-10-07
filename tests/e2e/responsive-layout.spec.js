@@ -99,6 +99,26 @@ for (const width of widths) {
       await expectContained(page); await capture(page, testInfo);
     });
 
+    test(`${width}px: 태그 입력은 행 안에서 정렬되고 줄바꿈과 중복 오류에 간격이 있다`, async ({ page }, testInfo) => {
+      await layoutFixture(page); await page.goto('/questions/new');
+      await page.locator('.comp_hashtag').click();
+      const input = page.getByLabel('태그 입력', { exact: true });
+      await input.fill('Docker'); await input.press('Enter');
+      await input.fill('Docker'); await input.press('Enter');
+      await expect(page.locator('.noti')).toContainText('중복');
+      await expectGap(page.locator('.noti'), page.locator('.write-form .field-hint'), 8, 'y');
+      await expectGap(page.locator('.comp_hashtag'), page.locator('.noti'), 8, 'y');
+      const control = await page.locator('.comp_hashtag').boundingBox(), field = await page.locator('.inp').boundingBox(), chip = await page.locator('.tag-chip').boundingBox();
+      expect(field.x, '입력 왼쪽은 태그 영역 안에 있다').toBeGreaterThanOrEqual(control.x);
+      expect(field.x + field.width, '입력 오른쪽은 태그 영역 안에 있다').toBeLessThanOrEqual(control.x + control.width);
+      expect(field.y + field.height, '입력 아래쪽은 태그 영역 안에 있다').toBeLessThanOrEqual(control.y + control.height);
+      const sameRow = field.y < chip.y + chip.height && chip.y < field.y + field.height;
+      expect(sameRow, '320px은 줄바꿈, 더 넓은 화면은 한 행').toBe(width !== 320);
+      if (sameRow) expect(Math.abs((field.y + field.height / 2) - (chip.y + chip.height / 2)), '같은 행의 세로 중앙').toBeLessThanOrEqual(2);
+      else expect(field.y - chip.y - chip.height, '줄바꿈한 입력과 태그의 간격').toBeGreaterThanOrEqual(8);
+      await expectContained(page); await capture(page, testInfo);
+    });
+
     test(`${width}px: 공고 상세의 안내와 지원 버튼은 서로 붙지 않는다`, async ({ page }, testInfo) => {
       await layoutFixture(page); await page.goto('/detail/71');
       const apply = page.getByRole('link', { name: '지원하기', exact: true });
@@ -138,6 +158,10 @@ for (const width of widths) {
       await expectContained(page);
       await page.getByRole('link', { name: '공고 등록', exact: true }).click();
       await expect(page.getByLabel('모집 시작', { exact: true })).toBeVisible();
+      const chips = page.locator('.technology-choice');
+      await expect(chips).toHaveCount(6);
+      for (const chip of await chips.all()) expect((await chip.boundingBox()).height, '기술 칩 클릭 영역').toBeGreaterThanOrEqual(40);
+      expect(await page.locator('.technology-options').evaluate(element => getComputedStyle(element).gap)).toBe('8px');
       await expectContained(page); await capture(page, testInfo);
     });
 

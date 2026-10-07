@@ -1,7 +1,7 @@
 import { test, expect } from './fixtures';
 
 async function adminFixture(page, role = 'admin') {
-  const state = { role, expired: false, items: [], nextId: 10, post: { id: 5, questionId: 5, title: '기존 질문', content: '<h2>기존 HTML</h2><p><u>보존할 밑줄</u></p>', username: 'author', hashtags: ['JAVA'] } };
+  const state = { role, expired: false, items: [], histories: {}, nextId: 10, post: { id: 5, questionId: 5, title: '기존 질문', content: '<h2>기존 HTML</h2><p><u>보존할 밑줄</u></p>', username: 'author', hashtags: ['JAVA'] } };
   if (role !== 'guest') await page.addInitScript(() => localStorage.setItem('vuex', JSON.stringify({ Login: { username: 'fixture', token: 'fixture-token', roles: ['ROLE_ADMIN'] } })));
   await page.route(/^https:\/\//, route => route.abort());
   await page.route('/api/**', async route => {
@@ -15,6 +15,8 @@ async function adminFixture(page, role = 'admin') {
     if (path === '/api/admin/me') return reply(200, { id: 1, username: 'fixture' });
     if (path === '/api/admin/overview') return reply(200, { announcements: state.items.length, bootcamps: 0, questions: 1, answers: 0, members: 2 });
     if (path === '/api/admin/announcements' && method === 'GET') return reply(200, { content: state.items.map(item => ({ ...item, company: item.company.name })), last: true, number: 0 });
+    const history = path.match(/\/announcements\/(\d+)\/history$/);
+    if (history) return reply(200, state.histories[Number(history[1])] || []);
     if (path.includes('/announcements') && ['POST','PATCH'].includes(method)) {
       const body = request.postData() || '';
       const value = name => [...body.matchAll(new RegExp(`name="${name}"\\r?\\n\\r?\\n([\\s\\S]*?)\\r?\\n--`, 'g'))].map(match => match[1]);
@@ -22,6 +24,7 @@ async function adminFixture(page, role = 'admin') {
       for (const key of ['minCareer','maxCareer']) fields[key] = Number(fields[key]);
       fields.payment = value('payment').length ? Number(value('payment')[0]) : null;
       fields.recruitmentClosed = value('recruitmentClosed')[0] === 'true';
+      fields.employmentType = value('type')[0] === 'EMP' ? value('employmentType')[0] || null : null;
       fields.sourceVerifiedAt = value('sourceVerified')[0] === 'true' ? '2026-09-27T12:00:00' : null;
       fields.stipendAmount = value('stipendAmount').length ? Number(value('stipendAmount')[0]) : null;
       fields.salaryStatus = value('salaryStatus')[0];
@@ -31,6 +34,7 @@ async function adminFixture(page, role = 'admin') {
       fields.content = fields.content.replaceAll('attachment:0', '/fixture-body.png');
       const item = { ...fields, id, company: { name: value('company')[0] }, announcementType: value('type')[0], language: value('language'), image: '' };
       state.items = [...state.items.filter(row => row.id !== id), item];
+      state.histories[id] = [...(state.histories[id] || []), { changedAt: '2026-10-07T18:03:00', actor: 'fixture', status: item.publicationStatus, title: item.title, sourceUrl: item.accessUrl }];
       return reply(method === 'POST' ? 201 : 200, { cleanupPending: false });
     }
     const announcement = path.match(/\/announcements\/(\d+)$/);
@@ -54,17 +58,20 @@ test('관리자 직접 URL은 비로그인 사용자를 로그인으로 보낸�
   await adminFixture(page, 'guest'); await page.goto('/admin/announcements/new');
   await expect(page).toHaveURL(/\/login\?redirect=/);
   await expect(page.getByLabel('아이디')).toBeVisible();
+  await expect(page.locator('.site-footer a[href="/admin"]')).toHaveCount(0);
 });
 
 test('localStorage 관리자 역할을 넣어도 일반 회원은 운영 화면을 볼 수 없다', async ({ page }) => {
   await adminFixture(page, 'member'); await page.goto('/admin');
   await expect(page.getByRole('alert')).toContainText('관리자 권한');
   await expect(page.locator('.admin-stats')).toHaveCount(0);
+  await expect(page.locator('.site-footer a[href="/admin"]')).toHaveCount(0);
 });
 
 test('모바일 관리자는 공고 등록 수정 재조회 삭제 확인을 진행한다', async ({ page }) => {
   const state = await adminFixture(page); await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/admin/announcements');
+  await expect(page.locator('.site-footer a[href="/admin"]')).toBeVisible();
   await page.getByRole('link', { name: '공고 등록', exact: true }).click();
   await page.getByRole('textbox', { name: '제목', exact: true }).fill('새 관리자 공고');
   await page.getByLabel('회사·교육기관').fill('DEMP 교육');
@@ -119,6 +126,35 @@ test('관리자가 기존 HTML 질문을 수정해도 제목 서식과 밑줄은
   await expect(page.locator('.admin-original u')).toHaveText('보존할 밑줄');
   expect(state.post.username).toBe('author');
 });
+
+for (const width of [320, 390, 1440]) {
+  test(`변경 이력은 ${width}px에서 순서와 값을 보존하고 제목을 다음 줄에 정렬한다`, async ({ page }) => {
+    const state = await adminFixture(page);
+    await page.setViewportSize({ width, height: 900 });
+    state.items = [{ id: 10, title: '긴 공고 제목', company: { name: 'DEMP' }, announcementType: 'EMP', publicationStatus: 'PUBLISHED', language: ['JAVA'], content: '<p>본문</p>', startedDate: '2026-10-01T09:00:00', deadLineDate: '2026-10-31T18:00:00' }];
+    state.histories[10] = [
+      { changedAt: '2026-10-07T18:00:00', actor: 'fixture', status: 'REVIEW', title: '전환형 인턴 모집 공고의 아주 긴 제목입니다', sourceUrl: 'https://example.test/job' },
+      { changedAt: '2026-10-07T18:03:00', actor: 'fixture', status: 'PUBLISHED', title: '수정 후 게시한 공고 제목입니다', sourceUrl: 'https://example.test/job' },
+    ];
+    await page.goto('/admin/announcements/10');
+    await page.getByRole('button', { name: '이력 보기', exact: true }).click();
+    const rows = page.getByRole('list', { name: '공고 변경 이력' }).getByRole('listitem');
+    await expect(rows).toHaveCount(2);
+    for (const [index, entry] of state.histories[10].entries()) {
+      await expect(rows.nth(index).locator('time')).toHaveAttribute('datetime', entry.changedAt);
+      await expect(rows.nth(index).locator('.history-actor')).toHaveText(entry.actor);
+      await expect(rows.nth(index).locator('.history-title')).toHaveText(entry.title);
+    }
+    await expect(rows.nth(0).locator('.history-status')).toHaveText('검토 중');
+    await expect(rows.nth(1).locator('.history-status')).toHaveText('공개');
+    expect(await rows.evaluateAll(items => items.every(item => {
+      const meta = item.querySelector('.history-meta').getBoundingClientRect();
+      const title = item.querySelector('.history-title').getBoundingClientRect();
+      return title.top - meta.bottom >= 8 && Math.abs(title.left - meta.left) < 1 && getComputedStyle(item).textAlign === 'left';
+    }))).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  });
+}
 
 test('운영 중 권한 회수와 토큰 만료는 다음 서버 요청에서 반영된다', async ({ page }) => {
   const state = await adminFixture(page); await page.goto('/admin');
@@ -189,6 +225,7 @@ test('초안은 공개 상세에서 숨기고 검토 후 게시하며 수동 마
   await page.getByLabel('출처 이름', { exact: true }).fill('회사 채용');
   await page.getByLabel('분야', { exact: true }).selectOption('BACKEND');
   await page.getByLabel('모집 대상', { exact: true }).selectOption('NEW');
+  await page.getByLabel('고용 형태', { exact: true }).selectOption('CONVERSION_INTERNSHIP');
   await page.getByLabel('모집 시작').fill('2026-09-01T09:00');
   await page.getByLabel('모집 마감').fill('2026-12-31T18:00');
   await page.getByLabel('Java', { exact: true }).check();
@@ -199,12 +236,14 @@ test('초안은 공개 상세에서 숨기고 검토 후 게시하며 수동 마
   await page.goto(`/detail/${id}`); await expect(page.getByRole('alert')).toContainText('찾을 수 없습니다');
   for (const status of ['REVIEW', 'PUBLISHED']) {
     await page.goto(`/admin/announcements/${id}`);
+    await expect(page.getByLabel('고용 형태', { exact: true })).toHaveValue('CONVERSION_INTERNSHIP');
     await page.getByLabel('게시 상태', { exact: true }).selectOption(status);
     await page.getByRole('button', { name: '변경 저장', exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/announcements$/);
     expect(state.items[0].publicationStatus).toBe(status);
   }
   await page.goto(`/detail/${id}`); await expect(page.locator('.job-detail').getByLabel('모집 구분')).toHaveText('신입');
+  await expect(page.locator('.job-detail').getByLabel('고용 형태')).toHaveText('전환형 인턴');
   await page.goto(`/admin/announcements/${id}`); await page.getByLabel('모집 종료 (수동 마감)').check();
   await page.getByRole('button', { name: '변경 저장', exact: true }).click(); await expect(page).toHaveURL(/\/admin\/announcements$/);
   await page.goto(`/detail/${id}`); await expect(page.getByRole('link', { name: '원문 확인', exact: true })).toBeVisible();
