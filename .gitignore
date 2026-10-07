@@ -4,6 +4,9 @@ node_modules
 /test-results/
 /playwright-report/
 /.verification/
+/.cd/
+__pycache__/
+gha-creds-*.json
 
 
 # local env files
