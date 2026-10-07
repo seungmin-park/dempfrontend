@@ -1,0 +1,87 @@
+name: DEMP frontend CD
+
+on:
+  workflow_run:
+    workflows: [DEMP frontend CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      ci_run_id:
+        description: Successful main-push CI run ID of the current main commit
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+
+concurrency:
+  group: demp-frontend-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      vars.DEMP_CD_ENABLED == 'true' && github.ref == 'refs/heads/main' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'))
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Prepare the exact successful CI artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_RUN: ${{ github.event.workflow_run.id || inputs.ci_run_id }}
+        run: python3 scripts/prepare_frontend_cd.py --run-id "$REQUESTED_RUN"
+      - name: Authenticate to GCP through restricted Workload Identity Federation
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ vars.DEMP_WIF_PROVIDER }}
+          service_account: ${{ vars.DEMP_CD_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3
+      - name: Deploy frontend through IAP and the restricted SSH command
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CD_PROJECT: ${{ vars.DEMP_GCP_PROJECT }}
+          CD_ZONE: ${{ vars.DEMP_GCP_ZONE }}
+          CD_INSTANCE: ${{ vars.DEMP_GCP_INSTANCE }}
+          CD_SSH_KEY: ${{ secrets.DEMP_CD_SSH_PRIVATE_KEY }}
+          CD_HOST_KEY: ${{ vars.DEMP_SSH_HOST_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          test -n "$CD_PROJECT" && test -n "$CD_ZONE" && test -n "$CD_INSTANCE"
+          test -n "$CD_SSH_KEY" && test -n "$CD_HOST_KEY"
+          test "$(gh api repos/seungmin-park/dempfrontend/git/ref/heads/main --jq .object.sha)" = "$CD_HEAD_SHA"
+          printf '%s\n' "$CD_SSH_KEY" > "$RUNNER_TEMP/demp-cd-key"
+          printf 'deploy-vm-cd %s\n' "$CD_HOST_KEY" > "$RUNNER_TEMP/demp-known-hosts"
+          gcloud compute start-iap-tunnel "$CD_INSTANCE" 22 \
+            --project "$CD_PROJECT" --zone "$CD_ZONE" --local-host-port=127.0.0.1:2222 \
+            > "$RUNNER_TEMP/demp-iap.log" 2>&1 &
+          tunnel_pid=$!
+          trap 'kill "$tunnel_pid" 2>/dev/null || true; rm -f "$RUNNER_TEMP/demp-cd-key"' EXIT
+          for attempt in $(seq 1 30); do
+            if (echo > /dev/tcp/127.0.0.1/2222) 2>/dev/null; then break; fi
+            kill -0 "$tunnel_pid" || { cat "$RUNNER_TEMP/demp-iap.log"; exit 1; }
+            sleep 1
+          done
+          ssh -T -p 2222 -i "$RUNNER_TEMP/demp-cd-key" \
+            -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=15 \
+            -o StrictHostKeyChecking=yes -o HostKeyAlias=deploy-vm-cd \
+            -o UserKnownHostsFile="$RUNNER_TEMP/demp-known-hosts" \
+            demp-cd@127.0.0.1 \
+            "deploy-front $CD_RUN_ID $CD_HEAD_SHA $CD_ARCHIVE_DIGEST" < .cd/payload.zip
+          {
+            echo 'Frontend deployment and public byte/API assertions passed.'
+            echo "Verified CI: $CD_RUN_ID; source: $CD_HEAD_SHA"
+            echo 'Backend container, DB, uploads and env were preserved.'
+          } >> "$GITHUB_STEP_SUMMARY"
