@@ -52,6 +52,18 @@ jobs:
           npm run verify
           git --no-replace-objects show '${{ github.sha }}:scripts/verification-source.mjs' | node --input-type=module - check "$GITHUB_WORKSPACE" "$DEMP_VERIFY_SOURCE_SNAPSHOT" '${{ github.sha }}'
           cp "$DEMP_VERIFY_SOURCE_SNAPSHOT" .verification/source-before-install.json
+      - name: Package the verified production frontend
+        env:
+          DEPLOY_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: python3 scripts/ci_component.py dempfrontend --output .verification/deployment
+      - name: Preserve deployment payload
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: deployment-dempfrontend-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .verification/deployment/
+          include-hidden-files: true
+          retention-days: 7
+          if-no-files-found: error
       - name: Retain verification evidence
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
