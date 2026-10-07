@@ -9,6 +9,7 @@
 | 관리자 footer | 비회원·일반회원 숨김 → 서버 `/api/admin/me` 성공 후 표시 → 로그아웃 숨김 | `useAdminAccess` readonly 판정, 서버가 최종 관리자 권한 소유 | `AppAdminAccess.spec.js` 지연 응답 포함 + 실제 cmux 세 역할 |
 | 채용 고용 형태 | 관리자 등록/수정 → 미확인·정규직·계약직·두 인턴 선택 → 목록·상세 재조회 | `AdminAnnouncementEditor` 입력, 서버 Announcement 상태 규칙, `AnnouncementAudience` 공통 표현 | 단위·CI fixture + 실제 cmux 저장/조회; backend 실제 MySQL 25 assertions |
 | 기술 스택·변경 이력 | 전체 선택 칩 클릭 → 저장/재조회, 이력 보기 → 날짜/작성자/상태·제목 | 기존 native checkbox와 관리자 editor; history는 서버 순서 그대로 표현 | 단위·CI 반응형 회귀 + cmux 320/390/1440px 치수/화면 |
+| 공고 검색 필터 | `/` → 직무/기술 검색·선택 → 모집 상태/정확한 경력 → 조건 해제·뒤로 이동 | route query가 적용 조건의 원본, Header가 검색/연차 초안·단일 패널을 소유 | `AnnouncementFilters`/`AnnouncementFilterPanels` + development/production CI + 실제 cmux/Spring 결과·6개 폭 |
 | 반응형 간격·텍스트 표시 | 공고 목록·상세, 질문 목록·상세·작성, 인증, 관리자 목록·등록 | 공통 CSS + MarkdownEditor 내부 CSS | `responsive-layout.spec.js` + Codex 실제 로컬 화면 |
 
 ## 답변 페이지·저장

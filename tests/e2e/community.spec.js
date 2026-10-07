@@ -391,7 +391,7 @@ test('모바일 교육 필터는 URL·새로고침·뒤로 가기에서 복원�
   expect(requests[0]).toMatchObject({ announcementType: 'EDU', positions: 'BACKEND', languages: 'JAVA,SPRING', recruitmentStatus: 'OPEN', tuition: 'FREE', title: '교육', page: '0' });
   await page.getByRole('button', { name: '필터 열기' }).click();
   await expect(page.getByRole('combobox', { name: '교육비' })).toHaveValue('FREE');
-  await expect(page.getByRole('combobox', { name: '내 경력' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '내 경력', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Java 조건 해제', exact: true }).click();
   await expect(page).toHaveURL(/languages=SPRING/);
   await page.reload();

@@ -62,8 +62,23 @@ for (const width of widths) {
         await expectGap(page.getByRole('button', { name: '검색', exact: true }), page.getByRole('button', { name: '필터 열기' }), 8);
       }
       expect.soft((await page.getByLabel('모집 상태').boundingBox()).width, '필터의 선택 값이 읽히는 폭').toBeGreaterThanOrEqual(150);
+      const controls = page.locator('.filter-trigger');
+      await expect(controls).toHaveCount(4);
+      for (const control of await controls.all()) {
+        expect((await control.boundingBox()).height, '같은 높이의 필터 버튼').toBeCloseTo(44, 0);
+        expect(await control.evaluate(element => getComputedStyle(element).textAlign)).toBe('left');
+      }
       await page.getByText('직무·분야', { exact: true }).click();
       await expect(page.getByRole('checkbox', { name: '백엔드', exact: true })).toBeVisible();
+      for (const name of ['기술 스택', '모집 상태', '내 경력']) {
+        await page.getByRole('button', { name, exact: true }).click();
+        await expect(page.locator('.filter-popover')).toHaveCount(1);
+        const box = await page.locator('.filter-popover').boundingBox();
+        expect(box.x, '패널 왼쪽이 화면 안에 있음').toBeGreaterThanOrEqual(0);
+        expect(box.x + box.width, '패널 오른쪽이 화면 안에 있음').toBeLessThanOrEqual(width);
+        if (width <= 640) expect(await page.locator('.filter-popover').evaluate(element => getComputedStyle(element).position)).toBe('static');
+        await expectContained(page);
+      }
       await expectContained(page); await capture(page, testInfo);
       await page.locator('.discovery-search').screenshot({ path: testInfo.outputPath('search.png') });
     });
