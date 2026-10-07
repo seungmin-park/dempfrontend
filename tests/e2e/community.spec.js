@@ -252,6 +252,8 @@ test('본인 질문은 태그와 서식을 편집해 재조회하고 타인 편�
   await expect(page.locator('.article-content del')).toHaveText('철회한 내용');
   await expect(page.locator('.tag-list a')).toHaveText(['#Docker', '#JAVA']);
   expect(state.questions[0].username).toBe('writer');
+  await page.getByRole('button', { name: '로그아웃', exact: true }).click();
+  await expect(page.locator('header').getByRole('button', { name: '로그인', exact: true })).toBeVisible();
   await loginAs(page, state, 'reader'); await page.goto('/questions/1');
   await expect(page.getByRole('link', { name: '질문 편집', exact: true })).toHaveCount(0);
   await page.goto('/questions/1/edit');
@@ -443,7 +445,9 @@ test('모집 구분은 모바일 카드와 상세·관련 공고에서 연차와
   await expect(page.locator('.job-card').nth(1)).toContainText('3년 이하');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole('link', { name: '경력 개발자 채용', exact: true }).click();
-  await expect(page.locator('.job-detail-heading .announcement-audience')).toHaveText('경력3~5년');
+  await expect(page.locator('.job-detail-heading [aria-label="모집 구분"]')).toHaveText('경력');
+  await expect(page.locator('.job-detail-heading .audience-years')).toHaveText('3~5년');
+  await expect(page.locator('.job-detail-heading [aria-label="고용 형태"]')).toHaveText('고용 형태 미확인');
   await page.setViewportSize({ width: 1280, height: 900 });
   await expect(page.locator('.anncoucement-scroll [aria-label="모집 구분"]')).toHaveText(['경력 무관', '신입·경력', '경력', '교육']);
 });

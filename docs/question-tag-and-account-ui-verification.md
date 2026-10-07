@@ -35,7 +35,7 @@ Playwright development/production fixture와 반응형 회귀를 유지·추가�
 
 ## 남은 순차 작업
 
-현재 Phase의 PR·정확한 head CI·보호된 merge·main CI가 남는다. 그 뒤 시장조사/필터→카드→조회수를 순차 진행한다. 운영 DB SQL과 새 UI 배포는 아직 실행하지 않았다. 기존 파비콘의 승인된 배포는 SSH 인증 대기다.
+Backend [PR #7](https://github.com/seungmin-park/demp/pull/7)은 head `3204d17`의 [필수 CI](https://github.com/seungmin-park/demp/actions/runs/37604415112) 성공 후 보호된 squash merge `13fcb24`로 전달됐다. [main CI](https://github.com/seungmin-park/demp/actions/runs/37604774466)도 390 assertions·실제 API·패키지/서빙 문서를 통과했다. 현재 frontend [PR #9](https://github.com/seungmin-park/dempfrontend/pull/9)의 수정 head CI·보호된 merge·main CI가 남는다. 그 뒤 시장조사/필터→카드→조회수를 순차 진행한다. 운영 DB SQL과 새 UI 배포는 아직 실행하지 않았다. 기존 파비콘의 승인된 배포는 SSH 인증 대기다.
 
 ## 전체 리뷰와 한 번의 수정 검증
 
@@ -61,3 +61,12 @@ Fresh reviewer가 backend `7ad8fab..3204d17`, frontend `39bc0a0..5f26d5c` 전체
 | 기존 late-401 정책을 같은 수정에 포함 | 새 관리자 판정 요청도 계정 교체를 깨뜨릴 수 있다. 만료 알림 누락 위험을 현재/변경/빈 토큰의 실제 Axios adapter로 검증했다. |
 
 Deferred minors: 없음. 프런트 기존 배포 PR #6의 두 파일 blob이 이미 머지된 #7/main과 동일함을 확인해 19:00에 중복 PR을 닫았다. 코드나 브랜치를 삭제하거나 다시 머지하지 않았다.
+
+## PR CI에서 관찰한 검증 코드 오류와 수정
+
+Frontend head `0e13dba`의 [첫 PR CI](https://github.com/seungmin-park/dempfrontend/actions/runs/37605097189)는 unit 271/271·contracts/types/lint/build를 통과했지만 브라우저 182 passed·4 failed로 실패했다. development/production 각각 같은 두 흐름이 실패했으며 재시도는 0이다. 취소선 보존과 반응형 태그/이력의 추가 회귀는 이 실행에서 통과했다.
+
+- 계정 전환: 작성자로 로그인한 채 `/login`으로 이동해 새 비밀번호를 입력하려 했다. 기존 로그인 화면은 로그인된 회원을 홈으로 이동시키므로 `#password` 대기가 timeout 됐다. 테스트에서 실제 로그아웃 버튼→header 로그인 버튼 확인→다른 회원 로그인 순서로 수정했다. 작성자 편집/취소선/태그 보존과 타인 편집 거절 assertions는 유지한다.
+- 공고 상세: 기존 통합 text 기대값 `경력3~5년`은 별도 고용 형태 배지의 `고용 형태 미확인`을 누락했다. 모집 구분의 접근성 라벨, 연차 `.audience-years`, 고용 형태의 접근성 라벨을 각각 정확한 값으로 검사한다. 경력 요구를 제거하거나 배지를 숨기지 않았다.
+
+실패 보고서와 trace는 `/private/tmp/demp-question-ui-20261007/ci/frontend-pr-failed/`에 보관한다. 이 수정은 E2E 설정/기대 계약만 바꾸며 production 코드 변경은 없다. 로컬 `ci-fixture-lint`와 `ci-fixture-discovery` exit 0; discovery는 186건의 수집이며 실행 통과가 아니다. cmux 실제 서버에서 local-other 로그아웃→header 로그인 버튼 확인→local-member 로그인→타인 질문 1 조회/편집 URL 진입으로 작성자 전환·취소선 보존·편집 링크 없음·본인 안내 및 form 숨김 assertions를 통과했다. 수정한 fixture의 development/production 실행은 다음 PR CI에서 확인한다.

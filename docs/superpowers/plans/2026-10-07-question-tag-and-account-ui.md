@@ -106,8 +106,10 @@ Files: `src/App.vue`, 새 `src/composables/useAdminAccess.ts`, unit suites.
 | 전달 대상 | commit | PR | 필수 CI | merge | main CI | 배포 |
 |---|---|---|---|---|---|---|
 | 기존 파비콘 | e4ae376 | frontend #7 | 37595823311 성공 | 39bc0a0 | 37596617175 성공 | GCP SSH 인증 대기 |
-| 현재 backend 고용 형태 | 3204d17 | [backend #7](https://github.com/seungmin-park/demp/pull/7) | 37604415112 실행 중 | 미완료 | 미실행 | 운영 SQL 미적용 |
-| 현재 frontend UI | 5f26d5c 및 리뷰 수정 | 미생성 | 미실행 | 미완료 | 미실행 | 미배포 |
+| 현재 backend 고용 형태 | 3204d17 | [backend #7](https://github.com/seungmin-park/demp/pull/7) | 37604415112 성공: 390·API·문서 | 13fcb24 | 37604774466 성공: 390·API·문서 | 운영 SQL 미적용 |
+| 현재 frontend UI | 0e13dba 및 CI 검증 코드 수정 | [frontend #9](https://github.com/seungmin-park/dempfrontend/pull/9) | 37605097189 실패: 브라우저 182 passed/4 failed; 수정 head 재검증 대기 | 미완료 | 미실행 | 미배포 |
+
+19:12 CI 피드백: development/production에서 계정 전환의 로그아웃 누락과 새 고용 형태를 누락한 이전 기대값이 각각 실패했다. [실제 실패와 수정 근거](../../question-tag-and-account-ui-verification.md)에 따라 테스트만 고치며 기존 편집/권한/연차 assertions는 유지한다. 첫 실패를 같은 head의 재실행으로 덮지 않고 새 head로 전체 CI를 실행한다. 중복 frontend PR #6은 변경 두 blob이 이미 #7/main에 들어 있음을 확인해 닫았다.
 
 ## 순차 대기 목록
 
