@@ -2,8 +2,29 @@
   <div class="results-heading"><h2>공고 목록 <span>{{ notices.length }}</span></h2><span>최신 등록순</span></div>
   <div class="job-grid" :aria-busy="loading">
     <article v-for="notice in notices" :key="notice.id" class="item job-card" tabindex="0" role="link" :aria-label="notice.title ?? '공고 상세'" @click="openAnnouncementDetail(notice.id)" @keydown.enter="openAnnouncementDetail(notice.id)">
-      <div class="item-image-box"><CompanyImage :src="notice.image" /></div>
-      <div class="job-card-content"><AnnouncementAudience :announcement="notice" /><span class="job-position">{{ formatPosition(notice.position) }}</span><p v-if="notice.company" class="job-company">{{ notice.company }}</p><h2 class="notice-title">{{ notice.title }}</h2><p class="job-stack" aria-label="기술 스택">{{ formatLanguages(notice.language) }}</p><div v-if="notice.announcementType === 'EDU' && notice.education" class="education-card-facts"><span v-if="notice.education.deliveryMode">{{ educationLabel('deliveryMode', notice.education.deliveryMode) }}</span><span v-if="notice.education.region">{{ educationLabel('region', notice.education.region) }}</span><span v-if="notice.education.commitment">{{ educationLabel('commitment', notice.education.commitment) }}</span><span v-if="notice.education.learningStartDate">{{ notice.education.learningStartDate }} 개강</span></div><div class="job-card-facts"><span v-if="notice.announcementType === 'EDU'">{{ formatTuition(notice.payment) }}</span><span v-if="notice.recruitmentClosed">모집 종료</span><span v-else-if="notice.deadLineDate">{{ formatRecruitDate(notice.deadLineDate).slice(0,10) }} 마감</span></div></div>
+      <div class="job-card-content">
+        <div class="job-card-heading">
+          <div class="item-image-box"><CompanyImage :src="notice.image" /></div>
+          <div class="job-card-identity">
+            <p v-if="notice.company" class="job-company">{{ notice.company }}</p>
+            <span class="job-position">{{ formatPosition(notice.position) }}</span>
+          </div>
+        </div>
+        <h2 class="notice-title">{{ notice.title }}</h2>
+        <AnnouncementAudience :announcement="notice" />
+        <p class="job-stack" aria-label="기술 스택">{{ formatLanguages(notice.language) }}</p>
+        <div v-if="notice.announcementType === 'EDU' && notice.education" class="education-card-facts">
+          <span v-if="notice.education.deliveryMode">{{ educationLabel('deliveryMode', notice.education.deliveryMode) }}</span>
+          <span v-if="notice.education.region">{{ educationLabel('region', notice.education.region) }}</span>
+          <span v-if="notice.education.commitment">{{ educationLabel('commitment', notice.education.commitment) }}</span>
+          <span v-if="notice.education.learningStartDate">{{ notice.education.learningStartDate }} 개강</span>
+        </div>
+        <div class="job-card-facts">
+          <span v-if="notice.announcementType === 'EDU'">{{ formatTuition(notice.payment) }}</span>
+          <span v-if="notice.recruitmentClosed">모집 종료</span>
+          <span v-else-if="notice.deadLineDate">{{ formatRecruitDate(notice.deadLineDate).slice(0,10) }} 마감</span>
+        </div>
+      </div>
     </article>
   </div>
   <div ref="listEnd" data-test="list-end" aria-hidden="true" class="list-end"></div>
@@ -141,3 +162,37 @@ export default defineComponent({
   },
 });
 </script>
+<style scoped>
+.job-card {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s;
+}
+.job-card:hover { border-color: #b9bbf8; box-shadow: 0 6px 20px #4f46e50a; }
+.job-card:focus-visible { outline: 3px solid #818cf8; outline-offset: 3px; }
+.job-card-content { display: grid; gap: 12px; padding: 16px; }
+.job-card-heading { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
+.item-image-box {
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--canvas);
+}
+.item-image-box :deep(img) { width: 100%; height: 100%; object-fit: cover; }
+.item-image-box :deep(.job-image-fallback) { font-size: 15px; letter-spacing: -.5px; }
+.job-card-identity { min-width: 0; overflow-wrap: anywhere; }
+.job-company { margin: 0; font-size: 16px; font-weight: 650; line-height: 1.45; color: var(--ink); }
+.job-position { display: block; margin-top: 4px; font-size: 13px; line-height: 1.5; color: var(--muted); }
+.notice-title { margin: 0; font-size: 16px; line-height: 1.5; letter-spacing: -.3px; overflow-wrap: anywhere; }
+.announcement-audience { margin: 0; }
+.job-stack { margin: 0; font-size: 13px; line-height: 1.5; color: var(--muted); overflow-wrap: anywhere; }
+.education-card-facts { margin: 0; gap: 8px 12px; overflow-wrap: anywhere; }
+.job-card-facts { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; border-top: 1px solid var(--line); padding-top: 12px; font-size: 12px; line-height: 1.5; color: var(--meta); }
+.job-card-facts:empty { display: none; }
+</style>

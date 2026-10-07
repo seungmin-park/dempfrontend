@@ -88,6 +88,16 @@ for (const width of widths) {
       await page.getByLabel('공고 검색어').fill(longText);
       await page.getByRole('button', { name: '검색', exact: true }).click();
       await expect(page.getByRole('button', { name: `${longText} 조건 해제` })).toBeVisible();
+      const card = page.locator('.job-card');
+      const image = await card.locator('.item-image-box').boundingBox();
+      expect(image.width, '카드 이미지가 정보보다 큰 배너를 차지하지 않는다').toBeCloseTo(56, 0);
+      expect(image.height).toBeCloseTo(56, 0);
+      expect(await card.locator('.job-company').evaluate(element => parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(16);
+      expect(await card.locator('.job-position').evaluate(element => parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(13);
+      await expect(card.locator('.job-company')).toHaveText(longText);
+      await expect(card.locator('.notice-title')).toHaveText(longText);
+      await expectGap(card.locator('.job-card-heading'), card.locator('.notice-title'), 8, 'y');
+      await expectGap(card.locator('.notice-title'), card.locator('.announcement-audience'), 8, 'y');
       await expectContained(page); await capture(page, testInfo);
     });
 

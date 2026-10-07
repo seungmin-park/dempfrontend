@@ -1,5 +1,9 @@
 # UI의 책임 경계
 
+## 공고 카드
+
+`AnnouncementList`는 기존 route query→API→페이지 누적과 인증/상세 이동을 조정한다. 카드의 회사·직무/제목/모집·고용/기술·마감은 서버 summary의 표시이며 새 상태를 소유하지 않는다. `AnnouncementAudience`와 `CompanyImage`의 props 계약을 유지한다. 카드 전용 CSS는 List의 scoped 영역에서 56px 썸네일·글자 크기·padding/gap·자연 줄바꿈을 소유한다. 제목/회사/교육 정보를 고정 높이로 자르지 않고 상세/관련 공고의 공통 스타일은 바꾸지 않는다. [실행 기록](../announcement-card-density.md).
+
 ## 공고 검색 필터
 
 ```text
