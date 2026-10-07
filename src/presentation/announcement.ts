@@ -1,4 +1,11 @@
-import type { Language, AnnouncementSummary } from '@/types/api';
+import type { Language, AnnouncementSummary, EmploymentType } from '@/types/api';
+
+export const employmentTypeLabels: Record<EmploymentType, string> = {
+  REGULAR: '정규직', CONTRACT: '계약직', CONVERSION_INTERNSHIP: '전환형 인턴', EXPERIENTIAL_INTERNSHIP: '체험형 인턴',
+};
+export function formatEmploymentType(value: EmploymentType | null | undefined): string {
+  return value && employmentTypeLabels[value] || '고용 형태 미확인';
+}
 
 const languageLabels: Record<Language, string> = {
   HTML: 'HTML', CSS: 'CSS', React: 'React', JAVA: 'Java', JPA: 'JPA', SPRING: 'Spring',

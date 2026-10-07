@@ -69,6 +69,7 @@ const routes = [
     meta: { requiresAuth: true },
     component: () => import("../views/question/QuestionWrite.vue"),
   },
+  { path: '/questions/:questionId/edit', name: 'editQuestion', meta: { requiresAuth: true }, component: () => import('../views/question/QuestionWrite.vue') },
 ];
 
 export const router = createRouter({

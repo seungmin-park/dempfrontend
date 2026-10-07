@@ -1,5 +1,32 @@
 # 반응 UI의 책임 경계
 
+## 질문·태그·관리자 표시
+
+```text
+QuestionDetail ── 본인 편집 링크 ──► QuestionWrite ──► questions API ──► QuestionService/DB
+                                    입력·응답 경쟁      HTTP           작성자 검사·저장
+route query ──► QuestionTagFilters / QuestionControl / QuestionList
+                 표시·해제             checkbox            조회
+Login store ──► useAdminAccess ──► admin API ──► 서버 /api/admin/me
+                     │ readonly 판정
+                     └──► App footer
+```
+
+질문 편집은 기존 작성 컴포넌트를 재사용한다. `QuestionWrite`가 입력 복원·Markdown 변환·저장 중 차단·지연 응답 폐기를 조정하며 `questions.ts`만 HTTP PATCH를 실행한다. 편집 요청은 작성자 이름을 바꾸지 않는다. 화면의 본인 비교는 안내용이며 서버의 작성자 검사가 최종 권한이다. 태그 입력은 `initialTags`와 `disabled`를 받아 기존 `addHashtags` 이벤트로 전달한다. 필터는 URL을 원본으로 삼아 표시·checkbox·조회가 같은 조건을 읽는다.
+
+`useAdminAccess`는 서버 권한 확인 중과 실패 시 false이며, 토큰/사용자 변경 시 판정을 비운다. 요청 세대를 비교해 로그아웃·계정 전환·unmount 뒤의 응답을 버린다. `App`은 읽기 전용 판정만 소비한다. 관리자 route guard와 서버 권한 검사는 각각의 진입·API 접근을 계속 보호한다.
+
+## 공고 입력과 공통 표시
+
+```text
+AdminAnnouncementEditor → announcements API → 서버 Announcement/DB
+  고용 형태·날짜·checkbox 입력                 EMP/EDU 상태 규칙
+서버 상세·목록·스크롤 → AnnouncementAudience → 경력/고용 형태 배지
+서버 이력 배열 → editor의 이력 목록 → 날짜·작성자·상태 / 제목
+```
+
+고용 형태는 모집 대상과 별개이고 기존 null은 미확인이다. HTTP serializer는 EMP에만 값을 전달하며 서버도 EDU 값을 비운다. 공통 표현 컴포넌트가 목록/상세/관련 공고의 문구를 통일한다. 분 단위 날짜의 표시 값과 수정하지 않은 서버 정밀도는 editor가 조정한다. 기술 스택은 기존 native label/input과 저장 배열을 유지하고, 이력은 서버 순서/값을 표시만 하므로 새로운 상태 객체를 추가하지 않는다. CSS gap·padding·줄바꿈은 각각 해당 입력/목록 영역이 소유하며 공백 문자열이나 전역 span 규칙으로 정렬하지 않는다.
+
 답변 페이지의 협력은 아래와 같다. 목록·커서의 변경 이유와 HTTP의 변경 이유를 분리하되 단순 위임 객체는 추가하지 않는다.
 
 ```text

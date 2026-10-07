@@ -99,6 +99,19 @@ for (const width of widths) {
       await expectContained(page); await capture(page, testInfo);
     });
 
+    test(`${width}px: 태그 입력은 중앙 정렬되고 중복 오류는 도움말과 겹치지 않는다`, async ({ page }, testInfo) => {
+      await layoutFixture(page); await page.goto('/questions/new');
+      await page.locator('.comp_hashtag').click();
+      const input = page.getByLabel('태그 입력', { exact: true });
+      await input.fill('Docker'); await input.press('Enter');
+      await input.fill('Docker'); await input.press('Enter');
+      await expect(page.locator('.noti')).toContainText('중복');
+      await expectGap(page.locator('.noti'), page.locator('.write-form .field-hint'), 8, 'y');
+      const control = await page.locator('.comp_hashtag').boundingBox(), field = await page.locator('.inp').boundingBox();
+      expect(Math.abs((field.y + field.height / 2) - (control.y + control.height / 2)), '입력 영역의 세로 중앙').toBeLessThanOrEqual(2);
+      await expectContained(page); await capture(page, testInfo);
+    });
+
     test(`${width}px: 공고 상세의 안내와 지원 버튼은 서로 붙지 않는다`, async ({ page }, testInfo) => {
       await layoutFixture(page); await page.goto('/detail/71');
       const apply = page.getByRole('link', { name: '지원하기', exact: true });
@@ -138,6 +151,10 @@ for (const width of widths) {
       await expectContained(page);
       await page.getByRole('link', { name: '공고 등록', exact: true }).click();
       await expect(page.getByLabel('모집 시작', { exact: true })).toBeVisible();
+      const chips = page.locator('.technology-choice');
+      await expect(chips).toHaveCount(6);
+      for (const chip of await chips.all()) expect((await chip.boundingBox()).height, '기술 칩 클릭 영역').toBeGreaterThanOrEqual(40);
+      expect(await page.locator('.technology-options').evaluate(element => getComputedStyle(element).gap)).toBe('8px');
       await expectContained(page); await capture(page, testInfo);
     });
 

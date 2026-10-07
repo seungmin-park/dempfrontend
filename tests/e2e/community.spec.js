@@ -78,9 +78,12 @@ async function isolatedCommunity(page) {
       return question ? reply(200, { ...question, hits: 1, ...reactionState('question', question.id, username) }) : reply(404, {});
     }
     if (path === '/api/question/update' && method === 'PATCH') {
+      if (!username || state.expired) return reply(401, {});
       const form = request.postDataJSON();
-      const question = state.questions.find(q => q.id === form.questionId);
-      return reply(question && question.username === username ? 200 : 403, {});
+      const question = state.questions.find(q => q.id === Number(form.questionId));
+      if (!question || question.username !== username) return reply(403, {});
+      Object.assign(question, { title: form.title, content: form.content, hashtags: form.hashtags });
+      return reply(200, {});
     }
     const answerList = path.match(/^\/api\/answer\/(\d+)$/);
     if (answerList) {
@@ -223,6 +226,31 @@ test('타인 수정 거절과 만료된 인증 상태 정리', async ({ page }) 
   await expect(page).toHaveURL(/\/login\?redirect=/);
   await page.reload();
   await expect(page.locator('form').getByRole('button', { name: '로그인' })).toBeVisible();
+});
+
+test('본인 질문은 태그와 서식을 편집해 재조회하고 타인 편집 화면은 숨긴다', async ({ page }) => {
+  const state = await isolatedCommunity(page);
+  state.questions.push({ id: 1, title: '본인 질문', content: '<h2>원본 제목</h2><p><u>밑줄</u></p>', username: 'writer', hashtags: ['Docker'] });
+  await loginAs(page, state, 'writer'); await page.goto('/questions/1');
+  await page.getByRole('link', { name: '질문 편집', exact: true }).click();
+  await expect(page.locator('#question-title')).toHaveValue('본인 질문');
+  await expect(page.locator('#content')).toHaveValue(/## 원본 제목/);
+  await page.locator('#question-title').fill('편집한 본인 질문');
+  await page.locator('#content').fill('## 편집 제목\n\n<u>밑줄</u>');
+  await page.getByLabel('태그 입력', { exact: true }).fill('JAVA');
+  await page.getByLabel('태그 입력', { exact: true }).press('Enter');
+  await page.getByRole('button', { name: '변경 저장', exact: true }).click();
+  await expect(page).toHaveURL('/questions/1'); await page.reload();
+  await expect(page.getByRole('heading', { name: '편집한 본인 질문' })).toBeVisible();
+  await expect(page.locator('.article-content h2')).toHaveText('편집 제목');
+  await expect(page.locator('.article-content u')).toHaveText('밑줄');
+  await expect(page.locator('.tag-list a')).toHaveText(['#Docker', '#JAVA']);
+  expect(state.questions[0].username).toBe('writer');
+  await loginAs(page, state, 'reader'); await page.goto('/questions/1');
+  await expect(page.getByRole('link', { name: '질문 편집', exact: true })).toHaveCount(0);
+  await page.goto('/questions/1/edit');
+  await expect(page.getByRole('alert')).toContainText('본인');
+  await expect(page.locator('.write-form')).toHaveCount(0);
 });
 
 test('HTML 콘텐츠를 안전하게 렌더링하고 새로고침 후 인증을 유지한다', async ({ page }) => {

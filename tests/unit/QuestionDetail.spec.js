@@ -52,3 +52,10 @@ test('저장 중에는 연타를 막고 컴포넌트 종료 후 늦은 응답을
   expect(axios.put).toHaveBeenCalledTimes(1); expect(up.attributes('disabled')).toBeDefined();
   wrapper.unmount(); resolve({ data: { recommend: 4, dislike: 1, myReaction: 'RECOMMEND' } }); await flushPromises();
 });
+
+test('본인 질문에 편집 링크를 표시하고 타인 질문에는 표시하지 않는다', async () => {
+  const own = await page();
+  expect(own.find('router-link-stub[to="/questions/7/edit"]').exists()).toBe(true);
+  const other = await page({ ...detail, username: 'another-member' });
+  expect(other.find('router-link-stub[to="/questions/7/edit"]').exists()).toBe(false);
+});

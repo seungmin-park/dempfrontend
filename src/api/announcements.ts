@@ -10,6 +10,7 @@ export function toAnnouncementFormData(announcement: AnnouncementForm) {
     'startedDate', 'deadLineDate', 'content', 'accessUrl', 'payment', 'salaryStatus', 'salaryMax',
   ] as const;
   fields.forEach(field => { if (announcement[field] != null && announcement[field] !== '') form.append(field, String(announcement[field])); });
+  if (announcement.type === 'EMP' && announcement.employmentType) form.append('employmentType', announcement.employmentType);
   if (announcement.type === 'EDU') {
     for (const key of [...educationFields.map(field => field.key), 'learningStartDate', 'learningEndDate', 'cohort', 'stipendAmount', 'stipendNote'] as const) {
       if (announcement[key] != null && announcement[key] !== '') form.append(key, String(announcement[key]));
