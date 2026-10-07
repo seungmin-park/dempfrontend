@@ -43,6 +43,8 @@ Header는 route/event와 화면 상태만 소유하고 HTTP를 가져오지 않�
 
 ## 상태와 전달
 
+첫 PR #10 CI [37610543930](https://github.com/seungmin-park/dempfrontend/actions/runs/37610543930)는 unit 288/288 및 types/contracts/lint/build 통과, browser 190 pass/2 failure였다. 두 프로젝트의 동일한 상태 선택 테스트가 `locator.check()` 후 이미 닫힌 radio를 다시 찾아 30초 시간 초과했다. 실패 DOM에는 status=OPEN의 요약과 focused trigger가 이미 있었다. 즉시 적용/닫기가 승인 계약이므로 제품을 바꾸거나 timeout/retry를 늘리지 않고 native click으로 실행한다. 기존 URL/요약/종료/focus assertions를 유지하고 패널을 다시 열어 `toBeChecked()`로 복원까지 검증한다. 원본 artifact/trace는 `/private/tmp/demp-announcement-filter-research-20261007/ci/pr-first`에 보존했다. 테스트만 수정한 새 서명 head에서 전체 CI를 확인한다.
+
 단일 whole-phase reviewer: Critical 0 / Important 1 / Minor 1. 실제 SFC/JSDOM에서 상태 radio 선택 후 focus BODY가 재현됐다. `status-focus-red` 1 fail/14 pass 후 `closeFilter(true)` 최소 수정, `status-focus-green` 15/15 exit 0. URL/요약/패널 assertion은 유지하고 실제 focused radio와 복귀 trigger assertion을 추가했다. Minor의 초기 CI polling은 `requests.at(-1)?.career`로 빈 목록에 안전하게 대기하게 했다. 두 항목 모두 처리했으며 보류 Minor 없음. 보고서 `/private/tmp/demp-announcement-filter-research-20261007/final-review.md`.
 
 Reviewer가 판단에서 제외한 카드·조회수·관리자 폼은 승인된 후속 순서를 유지한다. 외부 CD 구현 자체의 재설계와 운영 SQL은 이 제품 diff에 추가하지 않는다. 기존 CD 최신 main 통합/테스트·자동 연계 결과 관찰은 전달 검증으로 진행한다. 제외 항목을 해결 완료로 보고하지 않는다.

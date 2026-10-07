@@ -55,11 +55,15 @@ test('직무·기술 검색은 숨긴 선택을 유지하며 키보드 열기·E
   await page.getByRole('button', { name: '모집 상태', exact: true }).click();
   await expect(page.locator('.filter-popover')).toHaveCount(1);
   await expect(languages).toHaveAttribute('aria-expanded', 'false');
-  await page.getByRole('radio', { name: '모집 중', exact: true }).check();
+  await page.getByRole('radio', { name: '모집 중', exact: true }).click();
   await expect(page.locator('.filter-popover')).toHaveCount(0);
   await expect(page.getByRole('button', { name: '모집 상태', exact: true })).toBeFocused();
   await expect(page).toHaveURL(/status=OPEN/);
   await expect(page.getByRole('button', { name: '모집 중 조건 해제', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: '모집 상태', exact: true }).click();
+  await expect(page.getByRole('radio', { name: '모집 중', exact: true })).toBeChecked();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', { name: '모집 상태', exact: true })).toBeFocused();
 });
 
 test('경력은 20년 URL·정확한 연차·오류·빠른 선택·해제를 기존 서버 의미로 전달한다', async ({ page }) => {
