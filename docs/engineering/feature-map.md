@@ -10,6 +10,7 @@
 | 채용 고용 형태 | 관리자 등록/수정 → 미확인·정규직·계약직·두 인턴 선택 → 목록·상세 재조회 | `AdminAnnouncementEditor` 입력, 서버 Announcement 상태 규칙, `AnnouncementAudience` 공통 표현 | 단위·CI fixture + 실제 cmux 저장/조회; backend 실제 MySQL 25 assertions |
 | 기술 스택·변경 이력 | 전체 선택 칩 클릭 → 저장/재조회, 이력 보기 → 날짜/작성자/상태·제목 | 기존 native checkbox와 관리자 editor; history는 서버 순서 그대로 표현 | 단위·CI 반응형 회귀 + cmux 320/390/1440px 치수/화면 |
 | 공고 검색 필터 | `/` → 직무/기술 검색·선택 → 모집 상태/정확한 경력 → 조건 해제·뒤로 이동 | route query가 적용 조건의 원본, Header가 검색/연차 초안·단일 패널을 소유 | `AnnouncementFilters`/`AnnouncementFilterPanels` + development/production CI + 실제 cmux/Spring 결과·6개 폭 |
+| 공고 카드 밀도·회사/직무 | 목록 → 회사/직무·제목·모집/고용·기술/마감 → click/Enter 상세 → 목록 복귀 | `AnnouncementList` 기존 조회/페이지/상세 이동, card scoped CSS 표현 | `AnnouncementPresentation` + 6개 폭 CI/실제 cmux의 56px 이미지·글자 크기·간격·자연 줄바꿈; [기록](../announcement-card-density.md) |
 | 반응형 간격·텍스트 표시 | 공고 목록·상세, 질문 목록·상세·작성, 인증, 관리자 목록·등록 | 공통 CSS + MarkdownEditor 내부 CSS | `responsive-layout.spec.js` + Codex 실제 로컬 화면 |
 
 ## 답변 페이지·저장

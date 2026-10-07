@@ -32,6 +32,10 @@ For authorized PR/merge tasks, verify main protection and the GitHub Actions `DE
 
 Use actual clicks at `/questions/-1`: add/remove tags, observe duplicate error spacing, click a detail hashtag and clear the visible list condition without losing other query parameters. Check checkbox state after navigation. As the author, edit title/Markdown/tags, save, reload, and confirm question/answer reactions remain. A different author or server 403 must not expose the form; failed saves preserve inputs. Check guest/member footer absence, verified admin presence, logout reset, and delayed old-admin responses in the unit suite. Local fixture coverage, actual server persistence, and pending CI execution must be recorded separately.
 
+## Announcement card density
+
+Use actual cmux/Spring at `/`: company/position precede title, recruitment/employment follow title; preserve technology/date/education. At 320/390/640/768/1024/1440px verify 56×56px thumbnail, company >=16px, position >=13px, >=8px heading/title/audience gaps, natural text wrapping and no horizontal overflow. Click or Enter into detail and return with the query preserved; reload preserves server values. Existing CompanyImage fallback/error and education contracts remain in unit/CI fixtures. Record comparable card heights using the same data/width. [Phase evidence](../../../docs/announcement-card-density.md).
+
 ## Announcement search filters
 
 At `/`, open positions then languages: only one `.filter-popover` remains. Search items, select another value and clear item search: hidden previous selections must remain checked and appear in URL/chips. Search title stays a draft until submit; selecting another filter must use the previously applied title. Check status radio, direct career 20 restoration, invalid integer input keeping URL/value, exact quick years, clear career, reload/back and EDU tuition. Career 0 means no condition; it is not new graduate. Groups retain existing OR-within/AND-between server semantics.

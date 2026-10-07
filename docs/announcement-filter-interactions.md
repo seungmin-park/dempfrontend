@@ -56,3 +56,5 @@ Reviewer가 판단에서 제외한 카드·조회수·관리자 폼은 승인된
 기존 작업 완료 뒤 필터→카드 밀도/회사·분야 시인성→조회수 재현/수정→관리자 공고 등록 화면을 순차 진행한다. 새 요청으로 현재 작업을 버리지 않는다.
 
 19:53 추가 요청: 질문 목록의 아티클 구분 시인성. 글 행과 페이지 이동 영역의 경계, 제목/메타 정보 대비를 기존 관리자 화면 다음 순서에 추가했다. 이번 필터 제품 변경에는 섞지 않았다.
+
+후속 Phase 시작 시 확인: [PR #10](https://github.com/seungmin-park/dempfrontend/pull/10)은 main `a26c416461ed082da145205197ee986c55900c66`에 머지됐다. [main CI 37611794128](https://github.com/seungmin-park/dempfrontend/actions/runs/37611794128)은 288 unit/192 browser 통과 및 artifact identity/hash 검증 exit 0, [자동 CD 37612159811](https://github.com/seungmin-park/dempfrontend/actions/runs/37612159811) 성공, 공개 cmux 필터 흐름 12 assertions exit 0이다. [카드 Phase](announcement-card-density.md)부터 기존 순서를 이어간다. 직무·기술 분류 확장은 질문 목록 다음 순서로 추가했고, 관리자 폼에는 기존 native 달력 디자인 개선을 포함한다.

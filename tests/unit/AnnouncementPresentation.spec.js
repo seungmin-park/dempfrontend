@@ -5,6 +5,24 @@ import AnnouncementDetail from '@/components/announcement/AnnouncementDetail.vue
 vi.mock('axios');
 afterEach(() => vi.clearAllMocks());
 
+it('공고 카드는 회사와 직무를 제목보다 먼저 보여주고 모집 조건을 제목 다음에 읽게 한다', async () => {
+  axios.get.mockResolvedValue({ data: { content: [{ id: 1, title: '백엔드 개발자 채용', company: '당근', position: 'BACKEND', announcementType: 'EMP', recruitmentAudience: 'ANY', employmentType: 'CONVERSION_INTERNSHIP', language: ['JAVA', 'SPRING'], image: '' }], last: true } });
+  const wrapper = mount(AnnouncementList, { global: { mocks: { emitter: { on: vi.fn(), off: vi.fn() } } } });
+  await flushPromises();
+  const card = wrapper.get('.job-card');
+  const company = card.get('.job-company').element;
+  const position = card.get('.job-position').element;
+  const title = card.get('.notice-title').element;
+  const audience = card.get('[aria-label="모집 구분"]').element;
+  expect(company.textContent).toBe('당근');
+  expect(position.textContent).toBe('백엔드');
+  expect(company.compareDocumentPosition(position) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(position.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(title.compareDocumentPosition(audience) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(card.get('[aria-label="기술 스택"]').text()).toBe('Java, Spring');
+  wrapper.unmount();
+});
+
 it('공고 이미지를 불러오지 못하면 깨진 이미지 대신 기본 표시를 보여준다', async () => {
   axios.get.mockResolvedValue({ data: { content: [{ id: 1, title: '채용', language: ['JAVA'], image: '/missing.png' }], last: true } });
   const wrapper = mount(AnnouncementList, { global: { mocks: { emitter: { on: vi.fn(), off: vi.fn() } } } });
