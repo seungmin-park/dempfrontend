@@ -1,5 +1,7 @@
 # 기능 지도
 
+질문 조회수: 상세 진입은 `viewQuestion`으로 집계하며, 편집 입력 복원은 `getQuestionDetail`의 `recordView=false`로 순수 조회한다. 서버 응답의 hits만 표시한다. API 계약/상세 렌더링 테스트와 실제 cmux/Spring의 진입·새로고침·편집·목록 재조회로 검증한다.
+
 | 기능 | 사용자 경로 | UI 상태 소유자 | 검증 |
 |---|---|---|---|
 | 질문·답변 반응 | `/questions/-1` → 추천/비추천 → 새로고침 | `useContentReaction` (readonly 상태·선택 명령) | 타입 부정 계약/Vitest/개발·배포 Playwright + 현재 세션 실제 Spring 브라우저 |

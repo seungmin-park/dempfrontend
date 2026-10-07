@@ -1,5 +1,9 @@
 # UI의 책임 경계
 
+## 질문 조회수
+
+`QuestionDetail`은 진입 때 `viewQuestion`을 호출하고 서버 hits를 렌더링한다. `QuestionWrite`는 `getQuestionDetail`로 입력을 복원하며 API 모듈이 `recordView=false`를 전달한다. API 모듈의 이름은 집계 요청과 순수 조회를 구분한다. 집계·트랜잭션·동시성의 소유자는 서버이며 UI는 별도의 조회수 상태나 증가 계산을 만들지 않는다. 기존 경로·응답 JSON·요청 세대 처리는 유지한다.
+
 ## 공고 카드
 
 `AnnouncementList`는 기존 route query→API→페이지 누적과 인증/상세 이동을 조정한다. 카드의 회사·직무/제목/모집·고용/기술·마감은 서버 summary의 표시이며 새 상태를 소유하지 않는다. `AnnouncementAudience`와 `CompanyImage`의 props 계약을 유지한다. 카드 전용 CSS는 List의 scoped 영역에서 56px 썸네일·글자 크기·padding/gap·자연 줄바꿈을 소유한다. 제목/회사/교육 정보를 고정 높이로 자르지 않고 상세/관련 공고의 공통 스타일은 바꾸지 않는다. [실행 기록](../announcement-card-density.md).

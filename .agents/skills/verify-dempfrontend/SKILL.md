@@ -30,6 +30,8 @@ For authorized PR/merge tasks, verify main protection and the GitHub Actions `DE
 
 ## Question editing, tags, and admin footer
 
+For view counts, distinguish `viewQuestion` (detail GET) from editing `getQuestionDetail` (`recordView=false`). In the actual cmux/Spring browser, enter detail, reload, return to list, then open editing without saving: successful detail requests add one, editing/list do not. Confirm committed hits through a fresh pure API query. Browser fixture counts do not prove storage. Do not open Chrome for Testing locally when the user excludes it; keep fixture tests in CI.
+
 Use actual clicks at `/questions/-1`: add/remove tags, observe duplicate error spacing, click a detail hashtag and clear the visible list condition without losing other query parameters. Check checkbox state after navigation. As the author, edit title/Markdown/tags, save, reload, and confirm question/answer reactions remain. A different author or server 403 must not expose the form; failed saves preserve inputs. Check guest/member footer absence, verified admin presence, logout reset, and delayed old-admin responses in the unit suite. Local fixture coverage, actual server persistence, and pending CI execution must be recorded separately.
 
 ## Announcement card density
