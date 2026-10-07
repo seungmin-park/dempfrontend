@@ -13,7 +13,7 @@ import { routeId } from '@/router/query';
 import AsyncState from '@/components/common/AsyncState.vue';
 import { requestErrorMessage } from '@/presentation/requestError';
 import { defineComponent } from "vue";
-import { getQuestionDetail } from '@/api/questions';
+import { viewQuestion } from '@/api/questions';
 import MemberBadge from '@/components/common/MemberBadge.vue';
 import ContentReactionControl from '@/components/common/ContentReactionControl.vue';
 import AppIcon from '@/components/common/AppIcon.vue';
@@ -55,7 +55,7 @@ export default defineComponent({
       this.$emit('ready', false);
       this.error = '';
       try {
-        const result = await getQuestionDetail(routeId(this.$route.params.questionId));
+        const result = await viewQuestion(routeId(this.$route.params.questionId));
         if (generation === this.requestGeneration) { this.question = result.data; this.$emit('ready', true); }
       } catch (error) { if (generation === this.requestGeneration) this.error = requestErrorMessage(error); }
       finally { if (generation === this.requestGeneration) this.loading = false; }

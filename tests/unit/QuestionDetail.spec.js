@@ -14,6 +14,11 @@ async function page(data = detail) {
   } } });
   await flushPromises(); return wrapper;
 }
+test('상세 진입은 한 번 집계 요청하고 서버 조회수를 그대로 표시한다', async () => {
+  const wrapper = await page({ ...detail, hits: 4 });
+  expect(axios.get).toHaveBeenCalledExactlyOnceWith('/api/question/detail/7');
+  expect(wrapper.get('[aria-label="조회수 4"]').exists()).toBe(true);
+});
 test('질문 추천을 서버에 저장한 개수와 내 선택으로 표시하고 다시 누르면 취소한다', async () => {
   axios.put.mockResolvedValueOnce({ data: { recommend: 4, dislike: 1, myReaction: 'RECOMMEND' } })
     .mockResolvedValueOnce({ data: { recommend: 3, dislike: 1, myReaction: 'NONE' } });

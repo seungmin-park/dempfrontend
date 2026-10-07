@@ -47,7 +47,8 @@
     "tests/unit/server.spec.js",
     "tests/unit/test-environment.spec.js",
     "tests/unit/VueWarningGate.spec.js",
-    "tests/unit/TypeSafetyLint.spec.js"
+    "tests/unit/TypeSafetyLint.spec.js",
+    "tests/unit/questionApi.spec.js"
   ],
   "unitAssertions": [
     {
@@ -145,6 +146,14 @@
     {
       "file": "tests/unit/AnnouncementPresentation.spec.js",
       "title": "공고 카드는 회사와 직무를 제목보다 먼저 보여주고 모집 조건을 제목 다음에 읽게 한다"
+    },
+    {
+      "file": "tests/unit/questionApi.spec.js",
+      "title": "편집용 질문 조회는 조회수 집계에서 제외하는 HTTP 조건을 전달한다"
+    },
+    {
+      "file": "tests/unit/QuestionDetail.spec.js",
+      "title": "상세 진입은 한 번 집계 요청하고 서버 조회수를 그대로 표시한다"
     }
   ],
   "e2eTests": [

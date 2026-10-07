@@ -13,6 +13,10 @@ export function fetchQuestionPage(condition: QuestionSearchCondition) {
 }
 
 export function getQuestionDetail(id: EntityId) {
+  return apiClient.get<QuestionDetail>(`/api/question/detail/${id}`, { params: { recordView: false } });
+}
+
+export function viewQuestion(id: EntityId) {
   return apiClient.get<QuestionDetail>(`/api/question/detail/${id}`);
 }
 
