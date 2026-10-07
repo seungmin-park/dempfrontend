@@ -4,13 +4,15 @@ import axios from 'axios';
 import AnnouncementHeader from '@/components/announcement/AnnouncementHeader.vue';
 import AnnouncementList from '@/components/announcement/AnnouncementList.vue';
 vi.mock('axios');
-afterEach(() => vi.clearAllMocks());
+const hosts = [];
+afterEach(() => { vi.clearAllMocks(); for (const host of hosts.splice(0)) host.remove(); });
 async function setup(url) {
   const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/', component: { template: '<div />' } }] });
   await router.push(url);
   await router.isReady();
   axios.get.mockResolvedValue({ data: { content: [], last: true } });
-  const wrapper = mount({ components: { AnnouncementHeader, AnnouncementList }, template: '<AnnouncementHeader /><AnnouncementList />' }, { global: { plugins: [router], mocks: { emitter: { on: vi.fn(), off: vi.fn() } } } });
+  const host = document.createElement('div'); document.body.append(host); hosts.push(host);
+  const wrapper = mount({ components: { AnnouncementHeader, AnnouncementList }, template: '<AnnouncementHeader /><AnnouncementList />' }, { attachTo: host, global: { plugins: [router], mocks: { emitter: { on: vi.fn(), off: vi.fn() } } } });
   await flushPromises();
   return { wrapper, router };
 }
@@ -23,6 +25,7 @@ it('URL에서 교육·분야·기술·모집상태·비용·검색을 복원해 
 });
 it('필터 선택은 URL에 저장되고 개별 해제·뒤로 가기는 목록을 첫 페이지부터 복원한다', async () => {
   const { wrapper, router } = await setup('/?type=EMP');
+  await wrapper.get('button[aria-label="기술 스택"]').trigger('click');
   await wrapper.get('input[value="JAVA"]').setValue(true);
   await flushPromises();
   expect(router.currentRoute.value.query.languages).toBe('JAVA');
@@ -33,6 +36,7 @@ it('필터 선택은 URL에 저장되고 개별 해제·뒤로 가기는 목록�
   router.back();
   await vi.waitFor(() => expect(router.currentRoute.value.query.languages).toBe('JAVA'));
   await flushPromises();
+  await wrapper.get('button[aria-label="기술 스택"]').trigger('click');
   expect(wrapper.get('input[value="JAVA"]').element.checked).toBe(true);
   expect(axios.get.mock.lastCall[1].params).toMatchObject({ languages: 'JAVA', page: 0 });
 });
@@ -58,6 +62,30 @@ it('연봉 필터를 숨기고 과거 연봉 URL도 검색에 적용하지 않�
   expect(wrapper.find('[aria-label="최소 연봉"]').exists()).toBe(false);
   expect(axios.get.mock.lastCall[1].params.payment).toBeUndefined();
   expect(wrapper.text()).not.toContain('연봉 5,000만원 이상');
+});
+it('제출 전 검색어는 다른 필터 선택의 조회 조건과 적용 요약에 섞이지 않는다', async () => {
+  const { wrapper, router } = await setup('/?type=EMP&q=기존 검색');
+  await wrapper.get('[aria-label="공고 검색어"]').setValue('아직 제출하지 않은 검색');
+  expect(wrapper.get('.active-filters').text()).toContain('기존 검색');
+  expect(wrapper.get('.active-filters').text()).not.toContain('아직 제출하지 않은 검색');
+  await wrapper.get('button[aria-label="기술 스택"]').trigger('click');
+  await wrapper.get('input[value="JAVA"]').setValue(true);
+  await flushPromises();
+  expect(router.currentRoute.value.query).toEqual({ type: 'EMP', languages: 'JAVA', q: '기존 검색' });
+  expect(axios.get.mock.lastCall[1].params).toMatchObject({ title: '기존 검색', languages: 'JAVA', page: 0 });
+  expect(wrapper.get('[aria-label="공고 검색어"]').element.value).toBe('아직 제출하지 않은 검색');
+  await wrapper.get('.discovery-search').trigger('submit');
+  await flushPromises();
+  expect(router.currentRoute.value.query.q).toBe('아직 제출하지 않은 검색');
+  expect(wrapper.get('.active-filters').text()).toContain('아직 제출하지 않은 검색');
+});
+it('전체 초기화는 제출하지 않은 검색어도 지우고 현재 공고 종류만 유지한다', async () => {
+  const { wrapper, router } = await setup('/?type=EDU&tuition=FREE');
+  await wrapper.get('[aria-label="공고 검색어"]').setValue('입력 중');
+  await wrapper.get('[aria-label="전체 조건 초기화"]').trigger('click');
+  await flushPromises();
+  expect(wrapper.get('[aria-label="공고 검색어"]').element.value).toBe('');
+  expect(router.currentRoute.value.query).toEqual({ type: 'EDU' });
 });
 it('교육 상세 조건은 URL에서 복원되어 실제 검색 API에 전달되고 채용 전환 시 제거된다', async () => {
   const { wrapper, router } = await setup('/?type=EDU&deliveryMode=ONLINE&region=SEOUL&commitment=PART_TIME&fundingType=CARD_REQUIRED&selectionProcess=NO_CODING&learningLevel=BEGINNER&duration=LONG&startAfter=2026-10-01');

@@ -9,6 +9,7 @@
     "tests/unit/AnnouncementDetail.spec.js",
     "tests/unit/AnnouncementEmptyStates.spec.js",
     "tests/unit/AnnouncementFilters.spec.js",
+    "tests/unit/AnnouncementFilterPanels.spec.js",
     "tests/unit/AnnouncementList.spec.js",
     "tests/unit/AnnouncementPresentation.spec.js",
     "tests/unit/AnnouncementReports.spec.js",
@@ -143,6 +144,18 @@
     }
   ],
   "e2eTests": [
+    {
+      "file": "announcement-filters.spec.js",
+      "title": "검색 초안은 다른 필터 선택에 섞이지 않고 제출·개별 해제·뒤로 가기로 URL과 API에 복원된다"
+    },
+    {
+      "file": "announcement-filters.spec.js",
+      "title": "직무·기술 검색은 숨긴 선택을 유지하며 키보드 열기·Esc·모집 상태 선택은 단일 패널을 지킨다"
+    },
+    {
+      "file": "announcement-filters.spec.js",
+      "title": "경력은 20년 URL·정확한 연차·오류·빠른 선택·해제를 기존 서버 의미로 전달한다"
+    },
     {
       "file": "community.spec.js",
       "title": "답변 20개 조회 후 더 보기와 단건 저장을 함께 진행한다"

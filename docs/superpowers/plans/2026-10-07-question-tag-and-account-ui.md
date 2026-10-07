@@ -101,18 +101,22 @@ Files: `src/App.vue`, 새 `src/composables/useAdminAccess.ts`, unit suites.
 - [x] 로컬: 전체 unit 267/267, typecheck, contracts/probe, lint, build exit 0. 기존 Playwright assertions를 유지하며 320/390/1440px 이력 회귀를 추가했다. discovery는 실행 여부와 구분한다.
 - [x] 현재 cmux 실제 Spring/H2: 태그 7개·320/390/1440px 여러 줄/오류/도움말, 상세 태그→필터 해제, 본인 편집→재조회·서식·질문/답변 반응 보존, 필수 제목 오류 입력 보존, 비회원/일반회원 footer 및 타인 편집 form 숨김 통과. 서버 저장 실패·지연 응답은 단위/CI API 경계 검증이며 실제 브라우저에 장애를 주입하지 않았다.
 - [x] 결과·명령·Red/Green 로그·책임/이름 리뷰·검증 한계를 기록했다. Whole-phase review Important 2건과 shared client late-401 경계를 단일 TDD fix pass로 해결했다. 수정 후 271/271·types/contracts probe/lint/build exit 0. [판단 기록과 리뷰](../../question-tag-and-account-ui-verification.md)를 따른다.
-- [ ] 새 UI의 최종 검증·리뷰 후 commit→PR→정확한 head CI→보호된 merge→main CI까지 확인한다. 파비콘의 승인된 전달/배포는 별도 진행한다.
+- [x] 새 UI의 최종 검증·리뷰 후 commit→PR→정확한 head CI→보호된 merge→main CI까지 확인했다. 파비콘의 승인된 전달/배포는 별도 진행한다.
 
 | 전달 대상 | commit | PR | 필수 CI | merge | main CI | 배포 |
 |---|---|---|---|---|---|---|
 | 기존 파비콘 | e4ae376 | frontend #7 | 37595823311 성공 | 39bc0a0 | 37596617175 성공 | GCP SSH 인증 대기 |
 | 현재 backend 고용 형태 | 3204d17 | [backend #7](https://github.com/seungmin-park/demp/pull/7) | 37604415112 성공: 390·API·문서 | 13fcb24 | 37604774466 성공: 390·API·문서 | 운영 SQL 미적용 |
-| 현재 frontend UI | 0e13dba 및 CI 검증 코드 수정 | [frontend #9](https://github.com/seungmin-park/dempfrontend/pull/9) | 37605097189 실패: 브라우저 182 passed/4 failed; 수정 head 재검증 대기 | 미완료 | 미실행 | 미배포 |
+| 현재 frontend UI | 9e2e99bdc1b10ed31e1f2ab0ed670fab94e7a191 | [frontend #9](https://github.com/seungmin-park/dempfrontend/pull/9) | [37606082622](https://github.com/seungmin-park/dempfrontend/actions/runs/37606082622) 성공: 271 unit/186 browser | 45b30634bc33b0639595d53ea431c87ac504efa5 | [37606454585](https://github.com/seungmin-park/dempfrontend/actions/runs/37606454585) 성공: 271 unit/186 browser | 미배포 |
 
 19:12 CI 피드백: development/production에서 계정 전환의 로그아웃 누락과 새 고용 형태를 누락한 이전 기대값이 각각 실패했다. [실제 실패와 수정 근거](../../question-tag-and-account-ui-verification.md)에 따라 테스트만 고치며 기존 편집/권한/연차 assertions는 유지한다. 첫 실패를 같은 head의 재실행으로 덮지 않고 새 head로 전체 CI를 실행한다. 중복 frontend PR #6은 변경 두 blob이 이미 #7/main에 들어 있음을 확인해 닫았다.
 
+최종 전달: PR/main 모두 재시도·skip·실패 0, 각 browser flow의 Vue warnings 빈 배열 확인. PR head와 merge tree `b815cd2ada35c09a4cf75ac6ee1db5c6a57e4382` 일치 및 실제 artifact 검증 완료. 실행 근거는 `/private/tmp/demp-question-ui-20261007/ci/frontend-pr-fixed`, `frontend-main`과 PR #9 설명에 남겼다. 이후 필터 Phase가 이 main을 기준으로 진행한다.
+
 ## 순차 대기 목록
 
-- 공고 검색 필터: 18:11 시장조사 후 개선 요청. 점핏/원티드/프로그래머스/공개 프로젝트의 실제 필터 흐름과 DEMP 계약을 비교한다. 현재 조사 첫 검색만 수행했으며 구현은 앞선 작업 완료 후 설계 검토를 거친다.
+- 공고 검색 필터: 조사·설계 승인 완료, 별도 `refactor/announcement-filter-interactions`에서 순차 구현 중. [조사](../../announcement-filter-research.md)와 [실행 기록](../../announcement-filter-interactions.md)을 기준으로 확인한다.
 - 공고 카드: 필터 조사 다음 순서. 카드마다 큰 이미지/여백을 줄이고 분야·회사·제목의 정보 순서를 검토한다. 사용자 첨부 카드에서 관찰한 문제이며 아직 구현하지 않았다.
 - 조회수: 카드 다음 순서. 상세 진입 조건/증가 정책/DB 저장을 확인하고 실제 재현 후 TDD로 수정한다. 아직 원인을 조사하거나 변경하지 않았다.
+- 관리자 공고 등록: 조회수 다음 순서. 사용자 추가 화면의 긴 폼을 입력 목적별 그룹·읽는 순서·간격·도움말·동작 위치로 개선한다. 아직 구현하지 않았다.
+- 질문 목록 글 구분: 19:53 추가 요청. 기존 관리자 화면 다음에 행·페이지 이동 영역 경계와 제목/메타 정보 대비를 개선한다. 현재 작업을 중단하지 않는다.
