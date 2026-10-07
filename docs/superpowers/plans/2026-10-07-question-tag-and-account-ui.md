@@ -100,14 +100,14 @@ Files: `src/App.vue`, 새 `src/composables/useAdminAccess.ts`, unit suites.
 
 - [x] 로컬: 전체 unit 267/267, typecheck, contracts/probe, lint, build exit 0. 기존 Playwright assertions를 유지하며 320/390/1440px 이력 회귀를 추가했다. discovery는 실행 여부와 구분한다.
 - [x] 현재 cmux 실제 Spring/H2: 태그 7개·320/390/1440px 여러 줄/오류/도움말, 상세 태그→필터 해제, 본인 편집→재조회·서식·질문/답변 반응 보존, 필수 제목 오류 입력 보존, 비회원/일반회원 footer 및 타인 편집 form 숨김 통과. 서버 저장 실패·지연 응답은 단위/CI API 경계 검증이며 실제 브라우저에 장애를 주입하지 않았다.
-- [ ] 결과·명령·Red/Green 로그·책임/이름 리뷰·검증 한계를 기록한다.
+- [x] 결과·명령·Red/Green 로그·책임/이름 리뷰·검증 한계를 기록했다. Whole-phase review Important 2건과 shared client late-401 경계를 단일 TDD fix pass로 해결했다. 수정 후 271/271·types/contracts probe/lint/build exit 0. [판단 기록과 리뷰](../../question-tag-and-account-ui-verification.md)를 따른다.
 - [ ] 새 UI의 최종 검증·리뷰 후 commit→PR→정확한 head CI→보호된 merge→main CI까지 확인한다. 파비콘의 승인된 전달/배포는 별도 진행한다.
 
 | 전달 대상 | commit | PR | 필수 CI | merge | main CI | 배포 |
 |---|---|---|---|---|---|---|
 | 기존 파비콘 | e4ae376 | frontend #7 | 37595823311 성공 | 39bc0a0 | 37596617175 성공 | GCP SSH 인증 대기 |
-| 현재 backend 고용 형태 | 최종 리뷰 전 | 미생성 | 미실행 | 미완료 | 미실행 | 운영 SQL 미적용 |
-| 현재 frontend UI | 최종 리뷰 전 | 미생성 | 미실행 | 미완료 | 미실행 | 미배포 |
+| 현재 backend 고용 형태 | 3204d17 | [backend #7](https://github.com/seungmin-park/demp/pull/7) | 37604415112 실행 중 | 미완료 | 미실행 | 운영 SQL 미적용 |
+| 현재 frontend UI | 5f26d5c 및 리뷰 수정 | 미생성 | 미실행 | 미완료 | 미실행 | 미배포 |
 
 ## 순차 대기 목록
 

@@ -70,8 +70,8 @@ test('질문 저장 중에는 중복 제출을 막는다', async () => {
   await flushPromises();
 });
 
-async function editPage(owner = 'member') {
-  axios.get.mockResolvedValue({ data: { id: 7, title: '기존 질문', content: '<h2>기존 제목</h2><p><u>밑줄</u></p>', username: owner, hashtags: ['Docker'], hits: 2, recommend: 1, dislike: 0 } });
+async function editPage(owner = 'member', content = '<h2>기존 제목</h2><p><u>밑줄</u></p>') {
+  axios.get.mockResolvedValue({ data: { id: 7, title: '기존 질문', content, username: owner, hashtags: ['Docker'], hits: 2, recommend: 1, dislike: 0 } });
   const push = vi.fn();
   const wrapper = mount(QuestionWrite, { props: { questionId: '7' }, global: { stubs: { RouterLink: true }, mocks: {
     $store: { state: { Login: { token: 'jwt', username: 'member' } } }, $router: { push, replace: vi.fn() },
@@ -114,6 +114,20 @@ test('편집 저장의 403도 입력을 보존하고 성공 이동이나 중복 
   expect(wrapper.get('#content').element.value).toBe('작성 중인 본문');
   expect(wrapper.get('.tag').text()).toBe('#Docker');
   expect(push).not.toHaveBeenCalled();
+});
+
+test.each([false, true])('본문 변경 여부 %s에서도 기존 취소선 의미를 저장 요청에 보존한다', async changeBody => {
+  axios.patch.mockResolvedValue({ data: {} });
+  const { wrapper } = await editPage('member', '<p><del>취소한 내용</del> 유지할 문장</p>');
+  await wrapper.get('#question-title').setValue('제목만 변경');
+  if (changeBody) await wrapper.get('#content').setValue(wrapper.get('#content').element.value + '\n\n추가한 문장');
+  await wrapper.get('form').trigger('submit'); await flushPromises();
+  await vi.waitFor(() => expect(axios.patch).toHaveBeenCalled());
+  const payload = axios.patch.mock.calls[0][1];
+  expect(payload.title).toBe('제목만 변경');
+  expect(payload.content).toContain('<del>취소한 내용</del>');
+  expect(payload.content).toContain('유지할 문장');
+  if (changeBody) expect(payload.content).toContain('추가한 문장');
 });
 
 test('타인 질문의 편집 URL을 직접 열어도 편집 폼을 표시하지 않는다', async () => {

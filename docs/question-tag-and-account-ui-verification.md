@@ -1,6 +1,6 @@
 # 질문·태그·계정 UI 검증 기록
 
-2026-10-07. Phase `question-tag-and-account-ui`, branch `refactor/question-tag-and-account-ui`, base `39bc0a00c9d86faad6e7af4b634aab2419a8c365`. 18:32 사용자의 PR·CI·merge 관리 요청에 따라 최종 리뷰 후 보호된 전달까지 진행한다. 아직 미커밋이며 원격 CI·머지 결과는 확인 후 기록한다. [계획](superpowers/plans/2026-10-07-question-tag-and-account-ui.md)이 순차 진행과 대기 항목을 관리하며 [기능 지도](engineering/feature-map.md)와 [책임 경계](engineering/architecture.md)가 최종 동작의 진입점이다.
+2026-10-07. Phase `question-tag-and-account-ui`, branch `refactor/question-tag-and-account-ui`, base `39bc0a00c9d86faad6e7af4b634aab2419a8c365`. 18:32 사용자의 PR·CI·merge 관리 요청에 따라 보호된 전달까지 진행한다. 최초 서명 커밋 `5f26d5c`의 전체 리뷰 후 아래 수정/검증을 수행했다. 원격 CI·머지는 PR의 최종 head로 별도 확인한다. [계획](superpowers/plans/2026-10-07-question-tag-and-account-ui.md)이 순차 진행과 대기 항목을 관리하며 [기능 지도](engineering/feature-map.md)와 [책임 경계](engineering/architecture.md)가 최종 동작의 진입점이다.
 
 ## 관찰과 변경
 
@@ -35,4 +35,29 @@ Playwright development/production fixture와 반응형 회귀를 유지·추가�
 
 ## 남은 순차 작업
 
-현재 Phase의 최종 리뷰·PR·정확한 head CI·보호된 merge·main CI가 남는다. 그 뒤 시장조사/필터→카드→조회수를 순차 진행한다. 운영 DB SQL과 새 UI 배포는 아직 실행하지 않았다. 기존 파비콘의 승인된 배포는 SSH 인증 대기다.
+현재 Phase의 PR·정확한 head CI·보호된 merge·main CI가 남는다. 그 뒤 시장조사/필터→카드→조회수를 순차 진행한다. 운영 DB SQL과 새 UI 배포는 아직 실행하지 않았다. 기존 파비콘의 승인된 배포는 SSH 인증 대기다.
+
+## 전체 리뷰와 한 번의 수정 검증
+
+Fresh reviewer가 backend `7ad8fab..3204d17`, frontend `39bc0a0..5f26d5c` 전체를 읽었다. Critical 0, Important 2, Minor 0이며 제품 변환은 실행 재현, 레이아웃은 정적 분석으로 구분했다. 뒤이어 implementer가 실제 cmux에서 320px one-tag의 잘못된 전체 중심 검사도 delta 19px로 재현했다.
+
+- 취소선 소실: 제목만/본문도 바꾸는 두 저장 요청에서 `<del>`이 없다는 Red→converter의 기존 HTML 보존 정책에 del 추가→13/13 대상 통과. cmux 실제 생성→제목만 변경→재조회에서도 취소선이 남았다.
+- 320px 검사: 자연스러운 줄바꿈을 허용하면서 같은 행 중심, 줄 간 gap, containment와 오류/도움말 간격을 모두 검사한다. cmux 320px은 행 gap 8px, 390/1440px은 같은 행 중심 차이 0px; CI 실제 fixture 실행은 별도다.
+- 공유 client의 늦은 401: 리뷰의 별도 범위 항목을 현재 권한 확인 요청과 함께 판단했다. 새 계정/로그아웃 후 이전 요청의 401이 현재 상태를 초기화하는 두 Red→실제 요청 토큰과 현재 토큰을 비교→통과. 현재 토큰의 실제 Axios 401은 기존 인증 해제·redirect 계약을 계속 통과한다. 기존 router fixture의 일반 객체 오류를 실제 AxiosError 형태로 수정했으며 assertion을 제거하지 않았다.
+
+수정 후 전체 unit 271/271, contracts/probe·typecheck·lint·build exit 0 (`review-frontend-suite-valid`, `review-frontend-*`). 첫 전체 실행의 router fixture 1개 실패와 수정 후 실행을 모두 보관한다. CI 회귀에는 제목만 수정/본문 수정의 취소선 검사를 함께 추가했다. 두 번째 리뷰는 수행하지 않았으며 단일 fix pass의 실패→통과·전체 suite로 검증했다. 이름/책임: converter는 서식 변환, client는 현재 요청의 인증 만료, editor는 입력/저장을 소유한다. 임의 Vue 상태 쓰기나 인증 우회 옵션을 추가하지 않았다.
+
+## 실행 중 판단 기록
+
+| 판단 | 근거와 틀릴 때의 비용 |
+|---|---|
+| 이전 실행 로그를 ledger에 복구 | 소급 구현/완료로 보고하지 않는다. 연결 오류가 나면 과거 증거를 재확인해야 한다. |
+| 처음에는 commit 전 미커밋으로 유지 | 구현 승인만 있었던 시점의 규칙을 따른다. 전달이 잠시 지연된다. |
+| 18:32 PR·CI·merge 관리 요청 이후 보호된 전달 진행 | 최신 지시를 이전 구현 범위와 함께 적용한다. 운영 SQL/배포 권한으로 확대하면 의도 밖 변경이 되므로 별도로 둔다. |
+| Task 7 완료와 원격 전달을 별도 추적 | task extractor가 다음 전달 절까지 포함했다. 구분을 틀리면 CI/main 확인을 놓칠 수 있어 PR/run 상태 표를 둔다. |
+| 필터 조사·카드·조회수는 기존 순차 대기 | 새 요청 때문에 현재 Phase를 중단하지 않는다. 후속 처리가 지연될 수 있어 대기 목록을 유지한다. |
+| 운영 SQL/새 UI 배포는 별도 | MySQL 리허설을 운영 적용으로 주장하지 않는다. 실제 배포가 지연될 수 있다. |
+| 리뷰 당시 pending CI/전달은 면제하지 않음 | 최종 PR head와 main의 실제 실행을 확인한다. 확인이 빠지면 검증 공백이다. |
+| 기존 late-401 정책을 같은 수정에 포함 | 새 관리자 판정 요청도 계정 교체를 깨뜨릴 수 있다. 만료 알림 누락 위험을 현재/변경/빈 토큰의 실제 Axios adapter로 검증했다. |
+
+Deferred minors: 없음. 프런트 기존 배포 PR #6의 두 파일 blob이 이미 머지된 #7/main과 동일함을 확인해 19:00에 중복 PR을 닫았다. 코드나 브랜치를 삭제하거나 다시 머지하지 않았다.

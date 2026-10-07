@@ -230,13 +230,18 @@ test('타인 수정 거절과 만료된 인증 상태 정리', async ({ page }) 
 
 test('본인 질문은 태그와 서식을 편집해 재조회하고 타인 편집 화면은 숨긴다', async ({ page }) => {
   const state = await isolatedCommunity(page);
-  state.questions.push({ id: 1, title: '본인 질문', content: '<h2>원본 제목</h2><p><u>밑줄</u></p>', username: 'writer', hashtags: ['Docker'] });
+  state.questions.push({ id: 1, title: '본인 질문', content: '<h2>원본 제목</h2><p><u>밑줄</u> <del>철회한 내용</del></p>', username: 'writer', hashtags: ['Docker'] });
   await loginAs(page, state, 'writer'); await page.goto('/questions/1');
   await page.getByRole('link', { name: '질문 편집', exact: true }).click();
   await expect(page.locator('#question-title')).toHaveValue('본인 질문');
   await expect(page.locator('#content')).toHaveValue(/## 원본 제목/);
+  await page.locator('#question-title').fill('제목만 편집');
+  await page.getByRole('button', { name: '변경 저장', exact: true }).click();
+  await expect(page).toHaveURL('/questions/1');
+  await expect(page.locator('.article-content del')).toHaveText('철회한 내용');
+  await page.getByRole('link', { name: '질문 편집', exact: true }).click();
   await page.locator('#question-title').fill('편집한 본인 질문');
-  await page.locator('#content').fill('## 편집 제목\n\n<u>밑줄</u>');
+  await page.locator('#content').fill('## 편집 제목\n\n<u>밑줄</u>\n\n~~철회한 내용~~');
   await page.getByLabel('태그 입력', { exact: true }).fill('JAVA');
   await page.getByLabel('태그 입력', { exact: true }).press('Enter');
   await page.getByRole('button', { name: '변경 저장', exact: true }).click();
@@ -244,6 +249,7 @@ test('본인 질문은 태그와 서식을 편집해 재조회하고 타인 편�
   await expect(page.getByRole('heading', { name: '편집한 본인 질문' })).toBeVisible();
   await expect(page.locator('.article-content h2')).toHaveText('편집 제목');
   await expect(page.locator('.article-content u')).toHaveText('밑줄');
+  await expect(page.locator('.article-content del')).toHaveText('철회한 내용');
   await expect(page.locator('.tag-list a')).toHaveText(['#Docker', '#JAVA']);
   expect(state.questions[0].username).toBe('writer');
   await loginAs(page, state, 'reader'); await page.goto('/questions/1');

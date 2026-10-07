@@ -3,8 +3,8 @@ import TurndownService from 'turndown';
 import { sanitizeHtml } from './sanitizeHtml';
 
 const converter = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced', bulletListMarker: '-' });
-// Underlines and arbitrary legacy tables have no lossless CommonMark equivalent.
-converter.keep(['u', 'table']);
+// Preserve supported HTML that the built-in converter cannot round-trip.
+converter.keep(['u', 'table', 'del']);
 
 export function renderMarkdown(source: string): string {
   return sanitizeHtml(marked.parse(source, { async: false, gfm: true }));
