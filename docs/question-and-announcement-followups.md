@@ -52,3 +52,9 @@ TechnologySelector는 검색·표현·props/event, 부모는 선택/저장/검�
 전체 로그·원시 JSON·스크린샷·실패 이력은 [현재 검증 기록](https://github.com/seungmin-park/demp/blob/main/docs/verification/announcement-catalog-and-discovery/README.md), 백엔드 설계/TDD/이름 검토는 [현재 계획](https://github.com/seungmin-park/demp/blob/main/docs/plans/announcement-catalog-and-discovery.md), 질문의 기존 운영 반영은 [운영 증거](https://github.com/seungmin-park/demp/blob/main/docs/verification/announcement-catalog-and-discovery/production-question-views.md)에 남겼다.
 
 현재 서버/검증 pane은 결과를 볼 수 있게 유지한다. 새 공고 기능의 실제 운영 확인은 배포 이후 필요하며, 후보 JAR 전에 hits 수동 SQL이 적용되어야 한다.
+
+## PR 브라우저 검증의 실제 실패와 보정
+
+[최초 PR CI](https://github.com/seungmin-park/dempfrontend/actions/runs/37774410193)는 브라우저 206개를 실제 실행하여 176 통과·30 실패했다. 실패 로그는 보존했다. 달력 버튼도 `모집 시작`을 포함하므로 부분 label 선택자가 두 요소를 선택했고, 제보 summary에는 `제보하기`가 추가되어 예전 전체 문자열과 다르며, 기술 영역은 단일 영역에서 8개 분야로 변경되었다.
+
+날짜 입력은 정확한 label로 구분한다. 제보는 summary의 전체 문구와 접힘/펼침 상태를 확인하며 빈 값 차단·오류·초점·높이·간격 assertion은 유지한다. 기술 선택은 8개 분야 전체의 간격과 내부 스크롤 부재를 검증하며 66개 항목·클릭 영역·화면 경계 assertion도 유지한다. 정적 리뷰에서 자식만 검사하면 바깥 분야 컨테이너의 높이 제한이 재발할 수 있음을 지적하여 `.technology-groups`의 전체 높이도 검증한다. 프로덕션 코드·합격 기준·테스트 수를 줄이지 않았다. 수정 후의 CI 결과는 이 최초 실패와 별도로 확인한다.

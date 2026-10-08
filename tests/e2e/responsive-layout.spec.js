@@ -168,11 +168,15 @@ for (const width of widths) {
 
     test(`${width}px: 접힌 오류 제보는 간결하게 표시되고 지원 영역과 간격이 있다`, async ({ page }, testInfo) => {
       await layoutFixture(page); await page.goto('/detail/71');
-      await expect(page.getByText('공고 정보가 잘못되었나요?', { exact: true })).toBeVisible();
       const report = page.locator('.job-detail > details');
+      const summary = report.locator('summary');
+      await expect(summary).toBeVisible();
+      await expect(summary).toHaveText('공고 정보가 잘못되었나요?제보하기');
+      await expect(report).not.toHaveAttribute('open', '');
       expect.soft((await report.boundingBox()).height, '접힌 제보 영역 높이').toBeLessThanOrEqual(90);
       await expectGap(page.locator('.apply-bar'), report, 20, 'y');
-      await page.getByText('공고 정보가 잘못되었나요?', { exact: true }).click();
+      await summary.click();
+      await expect(report).toHaveAttribute('open', '');
       await expect(page.getByLabel('공고 오류 내용')).toBeVisible();
       await page.getByRole('button', { name: '오류 제보', exact: true }).click();
       await expect(report.getByRole('alert')).toHaveText('오류 내용을 입력해 주세요.');
@@ -193,7 +197,15 @@ for (const width of widths) {
       const chips = page.locator('.technology-choice');
       await expect(chips).toHaveCount(66);
       for (const chip of await chips.all()) expect((await chip.boundingBox()).height, '기술 칩 클릭 영역').toBeGreaterThanOrEqual(40);
-      expect(await page.locator('.technology-options').evaluate(element => getComputedStyle(element).gap)).toBe('8px');
+      const categories = page.locator('.technology-options');
+      await expect(categories).toHaveCount(8);
+      for (const category of await categories.all()) {
+        expect(await category.evaluate(element => getComputedStyle(element).gap)).toBe('8px');
+        const size = await category.evaluate(element => ({ height: element.clientHeight, content: element.scrollHeight }));
+        expect(size.content, '모든 기술 항목을 내부 스크롤 없이 표시한다').toBeLessThanOrEqual(size.height + 1);
+      }
+      const groups = await page.locator('.technology-groups').evaluate(element => ({ height: element.clientHeight, content: element.scrollHeight }));
+      expect(groups.content, '분야 전체도 높이 제한과 내부 스크롤 없이 표시한다').toBeLessThanOrEqual(groups.height + 1);
       await expectContained(page); await capture(page, testInfo);
     });
 

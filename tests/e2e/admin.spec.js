@@ -86,8 +86,8 @@ test('모바일 관리자는 공고 등록 수정 재조회 삭제 확인을 진
   await page.getByLabel('원문 공고 URL').fill('https://example.test/apply');
   await page.getByLabel('공고 종류', { exact: true }).selectOption('EDU');
   await page.getByLabel('분야', { exact: true }).selectOption('BACKEND');
-  await page.getByLabel('모집 시작').fill('2026-09-01T09:00');
-  await page.getByLabel('모집 마감').fill('2026-12-31T18:00');
+  await page.getByLabel('모집 시작', { exact: true }).fill('2026-09-01T09:00');
+  await page.getByLabel('모집 마감', { exact: true }).fill('2026-12-31T18:00');
   await page.getByLabel('Java', { exact: true }).check();
   await page.getByLabel('Spring', { exact: true }).check();
   await page.locator('#admin-image').setInputFiles({ name: 'fixture.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/F9sAAAAASUVORK5CYII=', 'base64') });
@@ -248,8 +248,8 @@ test('본문 붙여넣기와 이미지 저장 후 재조회하고 지원하기�
   const employerURL = new URL('/original-employer-job', page.url()).href;
   await page.getByLabel('원문 공고 URL').fill(employerURL);
   await page.getByLabel('분야', { exact: true }).selectOption('BACKEND');
-  await page.getByLabel('모집 시작').fill('2026-09-01T09:00');
-  await page.getByLabel('모집 마감').fill('2026-12-31T18:00');
+  await page.getByLabel('모집 시작', { exact: true }).fill('2026-09-01T09:00');
+  await page.getByLabel('모집 마감', { exact: true }).fill('2026-12-31T18:00');
   await page.getByLabel('Java', { exact: true }).check();
   await page.locator('#admin-content').focus();
   await page.locator('#admin-content').evaluate(element => {
@@ -293,8 +293,8 @@ test('초안은 공개 상세에서 숨기고 검토 후 게시하며 수동 마
   await page.getByLabel('분야', { exact: true }).selectOption('BACKEND');
   await page.getByLabel('모집 대상', { exact: true }).selectOption('NEW');
   await page.getByLabel('고용 형태', { exact: true }).selectOption('CONVERSION_INTERNSHIP');
-  await page.getByLabel('모집 시작').fill('2026-09-01T09:00');
-  await page.getByLabel('모집 마감').fill('2026-12-31T18:00');
+  await page.getByLabel('모집 시작', { exact: true }).fill('2026-09-01T09:00');
+  await page.getByLabel('모집 마감', { exact: true }).fill('2026-12-31T18:00');
   await page.getByLabel('Java', { exact: true }).check();
   await page.locator('#admin-content').fill('원문 확인 요약');
   await page.getByRole('button', { name: '등록하기', exact: true }).click();
