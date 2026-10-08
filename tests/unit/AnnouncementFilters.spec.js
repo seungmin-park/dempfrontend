@@ -4,6 +4,51 @@ import axios from 'axios';
 import AnnouncementHeader from '@/components/announcement/AnnouncementHeader.vue';
 import AnnouncementList from '@/components/announcement/AnnouncementList.vue';
 vi.mock('axios');
+it('정렬을 URL에서 복원하고 변경해도 기존 필터를 보존하며 뒤로 가기에 첫 페이지를 다시 요청한다', async () => {
+  const { wrapper, router } = await setup('/?type=EMP&positions=SRE&languages=KOTLIN&q=운영&orderBy=DEADLINE');
+  const select = wrapper.get('[aria-label="공고 정렬"]');
+  expect(select.findAll('option').map(option => option.text())).toEqual(['최신 등록순', '마감 임박순', '조회 많은 순']);
+  expect(select.element.value).toBe('DEADLINE');
+  expect(axios.get.mock.lastCall[1].params).toMatchObject({ orderBy: 'DEADLINE', positions: 'SRE', languages: 'KOTLIN', title: '운영', page: 0 });
+  await select.setValue('VIEWS'); await flushPromises();
+  expect(router.currentRoute.value.query).toEqual({ type: 'EMP', positions: 'SRE', languages: 'KOTLIN', q: '운영', orderBy: 'VIEWS' });
+  expect(axios.get.mock.lastCall[1].params).toMatchObject({ orderBy: 'VIEWS', page: 0 });
+  await wrapper.get('button[aria-label="기술 스택"]').trigger('click');
+  await wrapper.get('input[value=JAVA]').setValue(true); await flushPromises();
+  expect(router.currentRoute.value.query.orderBy).toBe('VIEWS');
+  router.back(); await vi.waitFor(() => expect(router.currentRoute.value.query.languages).toBe('KOTLIN'));
+  router.back(); await vi.waitFor(() => expect(router.currentRoute.value.query.orderBy).toBe('DEADLINE'));
+  await flushPromises();
+  expect(wrapper.get('[aria-label="공고 정렬"]').element.value).toBe('DEADLINE');
+  expect(axios.get.mock.lastCall[1].params).toMatchObject({ orderBy: 'DEADLINE', page: 0 });
+  wrapper.unmount();
+});
+it('잘못된 정렬 URL과 기본 최신순은 호환되는 기본 검색 요청으로 복원한다', async () => {
+  const { wrapper } = await setup('/?orderBy=INVALID');
+  expect(wrapper.get('[aria-label="공고 정렬"]').element.value).toBe('LATEST');
+  expect(axios.get.mock.lastCall[1].params.orderBy).toBeUndefined();
+  wrapper.unmount();
+});
+it('확장된 직무와 기술 값은 기존 값과 함께 URL·첫 검색 요청·표시에 보존된다', async () => {
+  const { wrapper } = await setup('/?positions=SRE,BACKEND&languages=JAVA,KOTLIN,SPRING_BOOT,KUBERNETES,FASTAPI,RAG');
+  expect(axios.get.mock.lastCall[1].params).toMatchObject({ positions: 'BACKEND,SRE', languages: expect.stringContaining('KOTLIN') });
+  for (const value of ['JAVA','KOTLIN','SPRING_BOOT','KUBERNETES','FASTAPI','RAG']) expect(axios.get.mock.lastCall[1].params.languages.split(',')).toContain(value);
+  for (const label of ['SRE','Kotlin','Spring Boot','Kubernetes','FastAPI','RAG']) expect(wrapper.get('.active-filters').text()).toContain(label);
+  wrapper.unmount();
+});
+it('기술 항목을 분류별로 찾고 검색해도 기존 선택과 새 선택이 함께 요청된다', async () => {
+  const { wrapper, router } = await setup('/?languages=JAVA');
+  await wrapper.get('button[aria-label="기술 스택"]').trigger('click');
+  const groups = wrapper.findAll('#languages-filter-panel fieldset');
+  expect(groups.map(group => group.get('legend').text())).toEqual(['언어', '웹 UI', '서버 프레임워크', '모바일·게임', '데이터 저장·메시징', '클라우드·운영', '데이터·AI', '개발 도구']);
+  await wrapper.get('[aria-label="기술 스택 검색"]').setValue('Kotlin');
+  await wrapper.get('input[value=KOTLIN]').setValue(true); await flushPromises();
+  expect(router.currentRoute.value.query.languages.split(',')).toEqual(expect.arrayContaining(['JAVA','KOTLIN']));
+  expect(wrapper.find('input[value=JAVA]').exists()).toBe(false);
+  await wrapper.get('[aria-label="기술 스택 검색"]').setValue('');
+  expect(wrapper.get('input[value=JAVA]').element.checked).toBe(true);
+  wrapper.unmount();
+});
 const hosts = [];
 afterEach(() => { vi.clearAllMocks(); for (const host of hosts.splice(0)) host.remove(); });
 async function setup(url) {

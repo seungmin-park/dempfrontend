@@ -8,6 +8,30 @@ vi.mock('axios');
 
 afterEach(() => vi.clearAllMocks());
 
+test('질문마다 제목과 조회·추천을 구분하고 페이지 이동을 별도 탐색 영역에 둔다', async () => {
+  axios.get.mockResolvedValue({ data: { content: [
+    { id: 5, title: '첫 질문', hits: 12, recommend: 3 },
+    { id: 4, title: '다음 질문', hits: 0, recommend: 0 },
+  ], last: false, number: 0 } });
+  const push = vi.fn();
+  const wrapper = mount(QuestionList, { global: { mocks: {
+    $route: { query: {} }, $router: { push },
+    $store: { state: { Login: { token: 'token' } } }, emitter: { on: vi.fn(), off: vi.fn() },
+  } } }); await flushPromises();
+  const articles = wrapper.findAll('article');
+  expect(articles).toHaveLength(2);
+  expect(articles[0].get('[aria-label="조회수 12"]').text()).toContain('조회');
+  expect(articles[0].get('[aria-label="추천 3"]').text()).toContain('추천');
+  expect(articles[1].get('[aria-label="조회수 0"]').text()).toContain('0');
+  const navigation = wrapper.get('nav[aria-label="질문 페이지 이동"]');
+  expect(navigation.findAll('button')).toHaveLength(2);
+  expect(navigation.get('[aria-current="page"]').text()).toBe('1 페이지');
+  expect(articles.every(article => !article.find('nav').exists())).toBe(true);
+  await articles[0].get('.question-list-title').trigger('click');
+  expect(push).toHaveBeenCalledWith('/questions/5');
+  wrapper.unmount();
+});
+
 test('질문 페이지를 넘겨도 검색 조건을 유지하고 마지막 페이지에서 다음을 막는다', async () => {
   axios.get
     .mockResolvedValueOnce({ data: { content: [{ id: 5, title: 'Java 첫 질문', hits: 0, recommend: 0 }], last: false, number: 0 } })

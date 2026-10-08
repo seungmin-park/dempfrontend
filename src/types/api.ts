@@ -1,9 +1,10 @@
 import type { EducationInfo } from '@/data/education';
 import type positions from '@/data/positions';
+import type { Technology } from '@/data/technologies';
 
 export type EntityId = number | string;
 export type JobPosition = typeof positions[number];
-export type Language = 'HTML' | 'CSS' | 'React' | 'JAVA' | 'JPA' | 'SPRING';
+export type Language = Technology;
 export type SalaryStatus = 'UNDISCLOSED' | 'NEGOTIABLE' | 'DISCLOSED';
 export type PublicationStatus = 'DRAFT' | 'REVIEW' | 'PUBLISHED' | 'HIDDEN';
 export type RecruitmentAudience = 'NEW' | 'EXPERIENCED' | 'ANY' | 'MIXED';
@@ -16,6 +17,7 @@ export interface MemberInfo { username: string; jwt: string }
 export interface Member { id: number; username: string }
 export interface Company { name: string | null }
 export interface AnnouncementSummary extends PublicationInfo {
+  hits?: number;
   education?: EducationInfo | null;
   company?: string | null;
   announcementType?: AnnouncementType | null;
@@ -31,6 +33,7 @@ export interface AnnouncementSummary extends PublicationInfo {
   image: string;
 }
 export interface AnnouncementDetailResponse extends PublicationInfo {
+  hits?: number;
   education?: EducationInfo | null;
   image: string;
   company: Company | null;
@@ -51,6 +54,7 @@ export interface AnnouncementDetailResponse extends PublicationInfo {
 export type AnnouncementDetail = Omit<AnnouncementDetailResponse, 'company'> & { company: string; type: AnnouncementType | null };
 export interface AnnouncementScroll extends Pick<AnnouncementSummary, 'announcementType' | 'minCareer' | 'maxCareer' | 'recruitmentAudience' | 'employmentType'> { id: number; title: string | null; company: Company | null; image: string }
 export interface AnnouncementFilters extends EducationInfo {
+  orderBy?: 'LATEST' | 'DEADLINE' | 'VIEWS';
   duration?: string;
   startAfter?: string;
   startBefore?: string;

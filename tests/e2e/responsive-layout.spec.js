@@ -174,6 +174,13 @@ for (const width of widths) {
       await expectGap(page.locator('.apply-bar'), report, 20, 'y');
       await page.getByText('공고 정보가 잘못되었나요?', { exact: true }).click();
       await expect(page.getByLabel('공고 오류 내용')).toBeVisible();
+      await page.getByRole('button', { name: '오류 제보', exact: true }).click();
+      await expect(report.getByRole('alert')).toHaveText('오류 내용을 입력해 주세요.');
+      await expect(page.getByLabel('공고 오류 내용')).toBeFocused();
+      await expect(page.getByLabel('공고 오류 내용')).toHaveAttribute('aria-invalid', 'true');
+      expect(await report.locator('form').evaluate(element => element.noValidate)).toBe(true);
+      expect((await page.getByLabel('공고 오류 내용').boundingBox()).height).toBeGreaterThanOrEqual(128);
+      await expectGap(report.locator('.feedback-input-footer'), report.locator('.feedback-actions'), 16, 'y');
       await expectContained(page); await capture(page, testInfo);
     });
 
@@ -184,7 +191,7 @@ for (const width of widths) {
       await page.getByRole('link', { name: '공고 등록', exact: true }).click();
       await expect(page.getByLabel('모집 시작', { exact: true })).toBeVisible();
       const chips = page.locator('.technology-choice');
-      await expect(chips).toHaveCount(6);
+      await expect(chips).toHaveCount(66);
       for (const chip of await chips.all()) expect((await chip.boundingBox()).height, '기술 칩 클릭 영역').toBeGreaterThanOrEqual(40);
       expect(await page.locator('.technology-options').evaluate(element => getComputedStyle(element).gap)).toBe('8px');
       await expectContained(page); await capture(page, testInfo);

@@ -1,7 +1,7 @@
 import { test, expect } from './fixtures';
 
 async function adminFixture(page, role = 'admin') {
-  const state = { role, expired: false, items: [], histories: {}, nextId: 10, post: { id: 5, questionId: 5, title: '기존 질문', content: '<h2>기존 HTML</h2><p><u>보존할 밑줄</u></p>', username: 'author', hashtags: ['JAVA'] } };
+  const state = { role, expired: false, items: [], histories: {}, reports: [], nextId: 10, post: { id: 5, questionId: 5, title: '기존 질문', content: '<h2>기존 HTML</h2><p><u>보존할 밑줄</u></p>', username: 'author', hashtags: ['JAVA'] } };
   if (role !== 'guest') await page.addInitScript(() => localStorage.setItem('vuex', JSON.stringify({ Login: { username: 'fixture', token: 'fixture-token', roles: ['ROLE_ADMIN'] } })));
   await page.route(/^https:\/\//, route => route.abort());
   await page.route('/api/**', async route => {
@@ -13,6 +13,14 @@ async function adminFixture(page, role = 'admin') {
     if (state.expired || state.role === 'guest') return reply(401, {});
     if (state.role !== 'admin') return reply(403, {});
     if (path === '/api/admin/me') return reply(200, { id: 1, username: 'fixture' });
+    if (path === '/api/admin/announcement-reports') return reply(200, { content: state.reports.filter(item => url.searchParams.get('all') === 'true' || !item.resolvedAt), last: true, number: 0 });
+    const report = path.match(/^\/api\/admin\/announcement-reports\/(\d+)$/);
+    if (report && method === 'PATCH') {
+      const item = state.reports.find(item => item.id === Number(report[1]));
+      if (!item) return reply(404, {});
+      Object.assign(item, { resolution: request.postDataJSON().note, resolvedAt: '2026-10-08T19:00:00', resolvedBy: 'fixture' });
+      return reply(204);
+    }
     if (path === '/api/admin/overview') return reply(200, { announcements: state.items.length, bootcamps: 0, questions: 1, answers: 0, members: 2 });
     if (path === '/api/admin/announcements' && method === 'GET') return reply(200, { content: state.items.map(item => ({ ...item, company: item.company.name })), last: true, number: 0 });
     const history = path.match(/\/announcements\/(\d+)\/history$/);
@@ -128,6 +136,65 @@ test('관리자가 기존 HTML 질문을 수정해도 제목 서식과 밑줄은
 });
 
 for (const width of [320, 390, 1440]) {
+  test(`제보 처리 입력은 ${width}px에서 필드 오류·내용 저장·처리 결과를 유지한다`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 1000 });
+    const state = await adminFixture(page);
+    state.reports = [{ id: 7, announcementId: 10, title: '제보 확인 공고', message: '마감일이 다릅니다.', reporter: 'fixture-member', createdAt: '2026-10-08T12:00:00' }];
+    await page.goto('/admin/announcement-reports');
+    await page.getByRole('button', { name: '처리 완료', exact: true }).click();
+    await expect(page.getByRole('alert')).toHaveText('처리 내용을 입력해 주세요.');
+    const input = page.getByLabel('제보 처리 내용');
+    await expect(input).toBeFocused();
+    await expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(await page.locator('form').evaluate(element => element.noValidate)).toBe(true);
+    expect((await input.boundingBox()).height).toBeGreaterThanOrEqual(128);
+    expect(await page.locator('.report-review-card').evaluate(element => getComputedStyle(element).textAlign)).toBe('left');
+    const footer = await page.locator('.feedback-input-footer').boundingBox();
+    const actions = await page.locator('.feedback-actions').boundingBox();
+    expect(actions.y - footer.y - footer.height).toBeGreaterThanOrEqual(15);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await input.fill('원문 확인 후 마감일을 수정했습니다.');
+    await expect(page.getByRole('alert')).toHaveCount(0);
+    await page.getByRole('button', { name: '처리 완료', exact: true }).click();
+    await expect(page.getByText('미처리 제보가 없습니다.', { exact: true })).toBeVisible();
+    await page.getByLabel('처리 완료 포함').check();
+    await expect(page.getByText('원문 확인 후 마감일을 수정했습니다.', { exact: true })).toBeVisible();
+    await expect(input).toHaveCount(0);
+  });
+  test(`관리자 폼과 앱 달력은 ${width}px에서 입력 그룹·날짜 선택·키보드·화면 경계를 유지한다`, async ({ page }) => {
+    const state = await adminFixture(page);
+    state.items = [{ id: 10, title: '달력 검증 공고', company: { name: 'DEMP' }, announcementType: 'EMP', publicationStatus: 'PUBLISHED', language: ['JAVA'], content: '<p>본문</p>', minCareer: 0, maxCareer: 0, position: 'BACKEND', accessUrl: 'https://example.test/calendar', startedDate: '2026-10-07T09:15:30', deadLineDate: '2026-10-31T18:00:45' }];
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/admin/announcements/10');
+    await expect(page.locator('form > fieldset > legend')).toHaveText(['기본 정보', '모집 조건·일정', '공고 내용', '출처·지원', '게시 설정']);
+    expect(await page.locator('form select').evaluateAll(controls => controls.every(control => control.getBoundingClientRect().height >= 44))).toBe(true);
+    const trigger = page.getByRole('button', { name: '모집 시작 달력 열기', exact: true });
+    await trigger.click();
+    const calendar = page.getByRole('dialog', { name: '모집 시작 날짜 선택', exact: true });
+    await expect(calendar.getByRole('button', { name: '2026년 10월 7일', exact: true })).toBeFocused();
+    await page.keyboard.press('ArrowRight');
+    await expect(calendar.getByRole('button', { name: '2026년 10월 8일', exact: true })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(trigger).toBeFocused();
+    await expect(calendar).toHaveCount(0);
+    await trigger.click();
+    await calendar.getByRole('button', { name: '다음 달', exact: true }).click();
+    await expect(calendar.getByRole('button', { name: '2026년 11월 7일', exact: true })).toBeFocused();
+    await calendar.getByRole('button', { name: '이전 달', exact: true }).click();
+    const box = await calendar.boundingBox();
+    expect(box.x).toBeGreaterThanOrEqual(0); expect(box.x + box.width).toBeLessThanOrEqual(width);
+    if (width > 480) { expect(box.y).toBeGreaterThanOrEqual(0); expect(box.y + box.height).toBeLessThanOrEqual(900); }
+    await calendar.getByRole('button', { name: '2026년 10월 8일', exact: true }).click();
+    await expect(page.getByLabel('모집 시작', { exact: true })).toHaveValue('2026-10-08T09:15');
+    await page.getByRole('button', { name: '변경 저장', exact: true }).click();
+    await expect(page).toHaveURL(/\/admin\/announcements$/);
+    expect(state.items[0].startedDate).toBe('2026-10-08T09:15');
+    expect(state.items[0].deadLineDate).toBe('2026-10-31T18:00:45');
+    await page.goto('/admin/announcements/10');
+    await expect(page.getByLabel('모집 시작', { exact: true })).toHaveValue('2026-10-08T09:15');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
+
   test(`변경 이력은 ${width}px에서 순서와 값을 보존하고 제목을 다음 줄에 정렬한다`, async ({ page }) => {
     const state = await adminFixture(page);
     await page.setViewportSize({ width, height: 900 });

@@ -1,5 +1,23 @@
 import { test, expect } from './fixtures';
 
+test('확장 항목과 정렬은 URL·서버 요청·새로고침·뒤로 가기에 복원된다', async ({ page }) => {
+  const requests = await announcements(page);
+  await page.goto('/?type=EMP&positions=SRE&languages=KOTLIN&orderBy=DEADLINE');
+  await expect(page.getByLabel('공고 정렬')).toHaveValue('DEADLINE');
+  await expect.poll(() => requests.at(-1)).toMatchObject({ positions: 'SRE', languages: 'KOTLIN', orderBy: 'DEADLINE', page: '0' });
+  await page.getByLabel('공고 정렬').selectOption('VIEWS');
+  await expect.poll(() => requests.at(-1)).toMatchObject({ positions: 'SRE', languages: 'KOTLIN', orderBy: 'VIEWS', page: '0' });
+  await page.reload(); await expect(page.getByLabel('공고 정렬')).toHaveValue('VIEWS');
+  await page.getByRole('button', { name: '기술 스택', exact: true }).click();
+  await page.getByLabel('기술 스택 검색').fill('Spring Boot');
+  await page.getByRole('checkbox', { name: 'Spring Boot', exact: true }).check();
+  await expect.poll(() => requests.at(-1).languages?.split(',')).toEqual(expect.arrayContaining(['KOTLIN', 'SPRING_BOOT']));
+  await expect(page).toHaveURL(/orderBy=VIEWS/);
+  await page.goBack(); await expect(page).not.toHaveURL(/SPRING_BOOT/);
+  await page.goBack(); await expect(page.getByLabel('공고 정렬')).toHaveValue('DEADLINE');
+  await expect.poll(() => requests.at(-1)).toMatchObject({ orderBy: 'DEADLINE', page: '0' });
+});
+
 async function announcements(page) {
   const requests = [];
   await page.route('/api/announce*', route => {

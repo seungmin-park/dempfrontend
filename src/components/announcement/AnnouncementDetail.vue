@@ -1,7 +1,7 @@
 <template>
   <AsyncState :loading="loading" :error="error" @retry="loadAnnouncementDetail" />
   <article v-if="!loading && !error" class="job-detail">
-    <header class="job-detail-heading"><div class="company-logo"><CompanyImage :src="announcement.image" /></div><AnnouncementAudience :announcement="announcement" /><h1>{{ announcement.title }}</h1><p>{{ announcement.company }}</p></header>
+    <header class="job-detail-heading"><div class="company-logo"><CompanyImage :src="announcement.image" /></div><AnnouncementAudience :announcement="announcement" /><h1>{{ announcement.title }}</h1><p>{{ announcement.company }}</p><p v-if="typeof announcement.hits === 'number'" class="job-view-count" aria-label="공고 조회수">조회 {{ announcement.hits.toLocaleString() }}</p></header>
     <div class="detail-facts">
       <p>회사명 : {{ announcement.company }}</p>
       <p v-if="announcement.type === 'EDU'">{{ formatTuition(announcement.payment) }}</p>
@@ -30,7 +30,7 @@ import AsyncState from '@/components/common/AsyncState.vue';
 import { requestErrorMessage, safeApplicationUrl } from '@/presentation/requestError';
 import { defineComponent } from "vue";
 import SafeHtml from "@/components/common/SafeHtml.vue";
-import { getAnnouncementDetail } from "@/api/announcements";
+import { viewAnnouncement } from "@/api/announcements";
 import { formatLanguages, formatRecruitDate } from '@/presentation/announcement';
 
 export default defineComponent({
@@ -62,7 +62,7 @@ export default defineComponent({
       this.loading = true;
       this.error = '';
       try {
-        const result = await getAnnouncementDetail(routeId(this.$route.params.itemId));
+        const result = await viewAnnouncement(routeId(this.$route.params.itemId));
         if (generation === this.requestGeneration) this.announcement = result;
       } catch (error) { if (generation === this.requestGeneration) this.error = requestErrorMessage(error); }
       finally { if (generation === this.requestGeneration) this.loading = false; }
