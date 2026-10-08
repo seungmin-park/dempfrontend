@@ -1,4 +1,5 @@
 import type { Language, AnnouncementSummary, EmploymentType } from '@/types/api';
+import { technologyLabels } from '@/data/technologies';
 
 export const employmentTypeLabels: Record<EmploymentType, string> = {
   REGULAR: '정규직', CONTRACT: '계약직', CONVERSION_INTERNSHIP: '전환형 인턴', EXPERIENTIAL_INTERNSHIP: '체험형 인턴',
@@ -7,12 +8,8 @@ export function formatEmploymentType(value: EmploymentType | null | undefined): 
   return value && employmentTypeLabels[value] || '고용 형태 미확인';
 }
 
-const languageLabels: Record<Language, string> = {
-  HTML: 'HTML', CSS: 'CSS', React: 'React', JAVA: 'Java', JPA: 'JPA', SPRING: 'Spring',
-};
-
 export function formatLanguages(languages: readonly Language[] | null | undefined): string {
-  return languages?.length ? languages.map(language => languageLabels[language] ?? language).join(', ') : '기술 정보 없음';
+  return languages?.length ? languages.map(language => technologyLabels[language] ?? language).join(', ') : '기술 정보 없음';
 }
 
 // The API uses local date/time values; format their parts without a timezone conversion.

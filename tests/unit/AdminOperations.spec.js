@@ -74,6 +74,167 @@ it('관리자 저장의 400 오류는 입력값 안내를 표시하고 작성 �
 
 const datedAnnouncement = () => ({ title: '모집 공고', company: { name: 'DEMP' }, content: '<p>지원 안내</p>', language: ['JAVA'], announcementType: 'EMP', position: 'BACKEND', minCareer: 0, maxCareer: 0, payment: null, startedDate: '2026-10-07T17:56:53', deadLineDate: '2026-10-31T18:30:45', accessUrl: 'https://example.test', image: '' });
 
+it('검색으로 숨겨진 선택도 요약에서 한 번 눌러 해제하고 남은 값만 저장한다', async () => {
+  axios.get.mockResolvedValue({ data: { ...datedAnnouncement(), language: ['JAVA', 'React', 'KUBERNETES'] } });
+  axios.patch.mockResolvedValue({ data: { cleanupPending: false } });
+  const wrapper = mount(AdminAnnouncementEditor, options({ id: '7' })); await flushPromises();
+  await wrapper.get('[aria-label="관리자 기술 스택 검색"]').setValue('Spring');
+  expect(wrapper.find('input[value=JAVA]').exists()).toBe(false);
+  expect(wrapper.get('[aria-label="선택한 기술 스택"]').text()).toContain('Java');
+  await wrapper.get('button[aria-label="Java 선택 해제"]').trigger('click');
+  expect(wrapper.get('[aria-label="선택한 기술 스택"]').text()).not.toContain('Java');
+  await wrapper.get('button[aria-label="기술 검색어 지우기"]').trigger('click');
+  expect(wrapper.findAll('.technology-group')).toHaveLength(8);
+  expect(wrapper.findAll('.technology-choice')).toHaveLength(66);
+  expect(wrapper.get('input[value=JAVA]').element.checked).toBe(false);
+  expect(wrapper.get('input[value=React]').element.checked).toBe(true);
+  await wrapper.get('form').trigger('submit'); await flushPromises();
+  expect(axios.patch.mock.lastCall[1].getAll('language')).toEqual(['React', 'KUBERNETES']);
+  wrapper.unmount();
+});
+
+it('검색 결과가 없어도 검색을 바로 초기화하고 기존 선택을 유지한다', async () => {
+  axios.get.mockResolvedValue({ data: datedAnnouncement() });
+  const wrapper = mount(AdminAnnouncementEditor, options({ id: '7' })); await flushPromises();
+  await wrapper.get('[aria-label="관리자 기술 스택 검색"]').setValue('없는 기술');
+  expect(wrapper.get('[role="status"]').text()).toContain('일치하는 기술이 없습니다');
+  expect(wrapper.get('[aria-label="선택한 기술 스택"]').text()).toContain('Java');
+  await wrapper.get('button[aria-label="기술 검색어 지우기"]').trigger('click');
+  expect(wrapper.get('[aria-label="관리자 기술 스택 검색"]').element.value).toBe('');
+  expect(wrapper.get('input[value=JAVA]').element.checked).toBe(true);
+  wrapper.unmount();
+});
+
+it('저장 중에는 선택 요약에서도 해제를 막아 제출한 값을 보존한다', async () => {
+  axios.get.mockResolvedValue({ data: datedAnnouncement() });
+  let finish; axios.patch.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+  const wrapper = mount(AdminAnnouncementEditor, options({ id: '7' })); await flushPromises();
+  await wrapper.get('form').trigger('submit');
+  const remove = wrapper.get('button[aria-label="Java 선택 해제"]');
+  expect(remove.element.disabled).toBe(true);
+  await remove.trigger('click');
+  expect(wrapper.get('input[value=JAVA]').element.checked).toBe(true);
+  expect(axios.patch.mock.lastCall[1].getAll('language')).toEqual(['JAVA']);
+  finish({ data: {} }); await flushPromises(); wrapper.unmount();
+});
+
+it('기술을 모두 해제한 저장은 요청하지 않고 고칠 곳으로 초점을 옮기며 선택 즉시 오류를 지운다', async () => {
+  axios.get.mockResolvedValue({ data: datedAnnouncement() });
+  axios.patch.mockResolvedValue({ data: { cleanupPending: false } });
+  const wrapper = mount(AdminAnnouncementEditor, { ...options({ id: '7' }), attachTo: document.body }); await flushPromises();
+  await wrapper.get('[aria-label="Java 선택 해제"]').trigger('click');
+  wrapper.get('button[type=submit]').element.focus();
+  await wrapper.get('form').trigger('submit'); await flushPromises();
+  const search = wrapper.get('[aria-label="관리자 기술 스택 검색"]');
+  expect(axios.patch).not.toHaveBeenCalled();
+  expect(document.activeElement).toBe(search.element);
+  expect(search.attributes('aria-invalid')).toBe('true');
+  expect(wrapper.get('#admin-technology-error').text()).toContain('하나 이상');
+  await wrapper.get('input[value=KOTLIN]').setValue(true);
+  expect(wrapper.find('#admin-technology-error').exists()).toBe(false);
+  expect(search.attributes('aria-invalid')).toBe('false');
+  await wrapper.get('form').trigger('submit'); await flushPromises();
+  expect(axios.patch.mock.lastCall[1].getAll('language')).toEqual(['KOTLIN']);
+  wrapper.unmount();
+});
+
+it('저장 서버 오류에서도 검색·선택·본문을 보존하고 같은 화면에서 동일한 값으로 재시도한다', async () => {
+  axios.get.mockResolvedValue({ data: datedAnnouncement() });
+  axios.patch.mockRejectedValueOnce({ response: { status: 500 } }).mockResolvedValueOnce({ data: { cleanupPending: false } });
+  const config = options({ id: '7' });
+  const wrapper = mount(AdminAnnouncementEditor, config); await flushPromises();
+  await wrapper.get('input[value=KOTLIN]').setValue(true);
+  await wrapper.get('[aria-label="관리자 기술 스택 검색"]').setValue('Spring');
+  await wrapper.get('#admin-title').setValue('오류 후 보존할 제목');
+  await wrapper.get('form').trigger('submit'); await flushPromises();
+  expect(wrapper.get('[role=alert]').text()).toContain('다시');
+  expect(config.global.mocks.$router.push).not.toHaveBeenCalled();
+  expect(wrapper.get('[aria-label="관리자 기술 스택 검색"]').element.value).toBe('Spring');
+  expect(wrapper.get('[aria-label="선택한 기술 스택"]').text()).toContain('Kotlin');
+  expect(wrapper.get('#admin-title').element.value).toBe('오류 후 보존할 제목');
+  expect(wrapper.get('#admin-content').text()).toContain('지원 안내');
+  expect(wrapper.get('button[type=submit]').element.disabled).toBe(false);
+  await wrapper.get('form').trigger('submit'); await flushPromises();
+  expect(axios.patch.mock.calls).toHaveLength(2);
+  expect(axios.patch.mock.calls.map(([, form]) => form.getAll('language'))).toEqual([['JAVA', 'KOTLIN'], ['JAVA', 'KOTLIN']]);
+  expect(config.global.mocks.$router.push).toHaveBeenCalledTimes(1);
+  wrapper.unmount();
+});
+
+it('확장된 스택과 직무를 수정 폼에서 복원하고 선택·저장해 기존 값과 함께 보존한다', async () => {
+  axios.get.mockResolvedValue({ data: { ...datedAnnouncement(), position: 'SRE', language: ['React','JAVA','KOTLIN','KUBERNETES'] } });
+  axios.patch.mockResolvedValue({ data: { cleanupPending: false } });
+  const wrapper = mount(AdminAnnouncementEditor, options({ id: '7' })); await flushPromises();
+  expect(wrapper.get('#admin-position').element.value).toBe('SRE');
+  expect(wrapper.get('input[value=KOTLIN]').element.checked).toBe(true);
+  expect(wrapper.get('input[value=React]').element.checked).toBe(true);
+  expect(wrapper.findAll('.technology-group > legend').map(group => group.text())).toContain('클라우드·운영');
+  await wrapper.get('[aria-label="관리자 기술 스택 검색"]').setValue('Spring Boot');
+  await wrapper.get('input[value=SPRING_BOOT]').setValue(true);
+  await wrapper.get('form').trigger('submit'); await flushPromises();
+  expect(axios.patch.mock.lastCall[1].get('position')).toBe('SRE');
+  expect(axios.patch.mock.lastCall[1].getAll('language')).toEqual(['React','JAVA','KOTLIN','KUBERNETES','SPRING_BOOT']);
+  wrapper.unmount();
+});
+
+it('공고 폼은 기본·모집·내용·출처·게시를 읽는 순서대로 구분한다', async () => {
+  const wrapper = mount(AdminAnnouncementEditor, options()); await flushPromises();
+  const groups = wrapper.findAll('form > fieldset');
+  expect(groups.map(group => group.get('legend').text())).toEqual(['기본 정보', '모집 조건·일정', '공고 내용', '출처·지원', '게시 설정']);
+  expect(groups[0].find('#admin-title').exists()).toBe(true);
+  expect(groups[1].find('#admin-startedDate').exists()).toBe(true);
+  expect(groups[2].find('#admin-content').exists()).toBe(true);
+  expect(groups[3].find('#admin-accessUrl').exists()).toBe(true);
+  expect(groups[4].find('#admin-publication').exists()).toBe(true);
+  expect(wrapper.get('button[type="submit"]').text()).toBe('등록하기');
+  wrapper.unmount();
+});
+
+it('앱 달력은 기존 선택 날짜로 열리고 월 이동·날짜 선택 시 기존 시·분을 보존한다', async () => {
+  axios.get.mockResolvedValue({ data: datedAnnouncement() });
+  const wrapper = mount(AdminAnnouncementEditor, { ...options({ id: '7' }), attachTo: document.body }); await flushPromises();
+  await wrapper.get('button[aria-label="모집 시작 달력 열기"]').trigger('click');
+  await flushPromises();
+  const dialog = wrapper.get('[role="dialog"][aria-label="모집 시작 날짜 선택"]');
+  expect(dialog.get('[aria-label="2026년 10월 7일"]').attributes('aria-pressed')).toBe('true');
+  expect(document.activeElement).toBe(dialog.get('[aria-label="2026년 10월 7일"]').element);
+  await dialog.get('[aria-label="다음 달"]').trigger('click');
+  await dialog.get('[aria-label="2026년 11월 1일"]').trigger('click');
+  expect(wrapper.get('#admin-startedDate').element.value).toBe('2026-11-01T17:56');
+  expect(wrapper.find('[role="dialog"]').exists()).toBe(false);
+  expect(wrapper.vm.form.deadLineDate).toBe('2026-10-31T18:30:45');
+  wrapper.unmount();
+});
+
+it('달력의 방향키는 날짜를 이동하고 Escape는 값을 바꾸지 않고 여는 버튼에 초점을 돌린다', async () => {
+  axios.get.mockResolvedValue({ data: datedAnnouncement() });
+  const wrapper = mount(AdminAnnouncementEditor, { ...options({ id: '7' }), attachTo: document.body }); await flushPromises();
+  const trigger = wrapper.get('button[aria-label="모집 시작 달력 열기"]');
+  await trigger.trigger('click');
+  await wrapper.get('[aria-label="2026년 10월 7일"]').trigger('keydown', { key: 'ArrowRight' });
+  expect(document.activeElement).toBe(wrapper.get('[aria-label="2026년 10월 8일"]').element);
+  await wrapper.get('[role="dialog"]').trigger('keydown', { key: 'Escape' });
+  expect(wrapper.find('[role="dialog"]').exists()).toBe(false);
+  expect(document.activeElement).toBe(trigger.element);
+  expect(wrapper.vm.form.startedDate).toBe('2026-10-07T17:56:53');
+  wrapper.unmount();
+});
+
+it('달력은 윤년 2월 29일을 선택하고 저장 중에는 날짜 입력과 달력 열기를 막는다', async () => {
+  axios.get.mockResolvedValue({ data: { ...datedAnnouncement(), startedDate: '2028-02-28T09:15:30', deadLineDate: '2028-03-31T18:00:00' } });
+  let finish;
+  axios.patch.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+  const wrapper = mount(AdminAnnouncementEditor, options({ id: '7' })); await flushPromises();
+  await wrapper.get('button[aria-label="모집 시작 달력 열기"]').trigger('click');
+  await wrapper.get('[aria-label="2028년 2월 29일"]').trigger('click');
+  expect(wrapper.get('#admin-startedDate').element.value).toBe('2028-02-29T09:15');
+  await wrapper.get('form').trigger('submit');
+  expect(wrapper.get('#admin-startedDate').element.disabled).toBe(true);
+  expect(wrapper.get('button[aria-label="모집 시작 달력 열기"]').element.disabled).toBe(true);
+  expect(axios.patch.mock.calls[0][1].get('startedDate')).toBe('2028-02-29T09:15');
+  finish({ data: { cleanupPending: false } }); await flushPromises(); wrapper.unmount();
+});
+
 it.each(['REGULAR', 'CONTRACT', 'CONVERSION_INTERNSHIP', 'EXPERIENTIAL_INTERNSHIP'])('고용 형태 %s를 모집 대상과 따로 복원하고 저장한다', async employmentType => {
   axios.get.mockResolvedValue({ data: { ...datedAnnouncement(), recruitmentAudience: 'NEW', employmentType } });
   axios.patch.mockResolvedValue({ data: { cleanupPending: false } });
@@ -130,11 +291,13 @@ it('기술 스택은 선택 칩 전체를 눌러 선택·해제하고 같은 값
   axios.patch.mockResolvedValue({ data: { cleanupPending: false } });
   const wrapper = mount(AdminAnnouncementEditor, { ...options({ id: '7' }), attachTo: document.body }); await flushPromises();
   const choices = wrapper.findAll('.technology-choice');
-  expect(choices.map(choice => choice.text())).toEqual(['Java', 'Spring', 'JPA', 'HTML', 'CSS', 'React']);
+  expect(choices).toHaveLength(66);
+  expect(choices.map(choice => choice.text())).toEqual(expect.arrayContaining(['Java', 'Spring', 'JPA', 'HTML', 'CSS', 'React', 'Kotlin', 'Kubernetes']));
   expect(choices[0].classes()).toContain('is-selected');
-  await choices[1].trigger('click');
-  expect(choices[1].get('input').element.checked).toBe(true);
-  expect(choices[1].classes()).toContain('is-selected');
+  const spring = wrapper.get('label:has(input[value=SPRING])');
+  await spring.trigger('click');
+  expect(spring.get('input').element.checked).toBe(true);
+  expect(spring.classes()).toContain('is-selected');
   await choices[0].trigger('click');
   expect(choices[0].get('input').element.checked).toBe(false);
   expect(choices[0].classes()).not.toContain('is-selected');
@@ -150,10 +313,11 @@ it('저장 중 기술 스택 칩은 비활성이고 선택과 중복 요청을 �
   const wrapper = mount(AdminAnnouncementEditor, { ...options({ id: '7' }), attachTo: document.body }); await flushPromises();
   await wrapper.get('form').trigger('submit');
   const choices = wrapper.findAll('.technology-choice');
-  expect(choices).toHaveLength(6);
+  expect(choices).toHaveLength(66);
   for (const choice of choices) expect(choice.get('input').element.disabled).toBe(true);
-  await choices[1].trigger('click');
-  expect(choices[1].get('input').element.checked).toBe(false);
+  const spring = wrapper.get('label:has(input[value=SPRING])');
+  await spring.trigger('click');
+  expect(spring.get('input').element.checked).toBe(false);
   await wrapper.get('form').trigger('submit');
   expect(axios.patch).toHaveBeenCalledTimes(1);
   expect(axios.patch.mock.calls[0][1].getAll('language')).toEqual(['JAVA']);

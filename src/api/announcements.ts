@@ -38,6 +38,10 @@ export function toAnnouncementDetail(data: AnnouncementDetailResponse): Announce
 }
 
 export function getAnnouncementDetail(id: EntityId) {
+  return apiClient.get<AnnouncementDetailResponse>(`/api/announce/detail/${id}`, { params: { recordView: false } }).then(response => toAnnouncementDetail(response.data));
+}
+
+export function viewAnnouncement(id: EntityId) {
   return apiClient.get<AnnouncementDetailResponse>(`/api/announce/detail/${id}`).then(response => toAnnouncementDetail(response.data));
 }
 
@@ -48,6 +52,7 @@ export function getAnnouncements(condition: AnnouncementSearchCondition) {
       positions: condition.positions.join(','),
       career: condition.career,
       title: condition.title,
+      ...(condition.orderBy && condition.orderBy !== 'LATEST' ? { orderBy: condition.orderBy } : {}),
       ...(condition.languages?.length ? { languages: condition.languages.join(',') } : {}),
       ...(condition.recruitmentStatus ? { recruitmentStatus: condition.recruitmentStatus } : {}),
       ...(condition.tuition ? { tuition: condition.tuition } : {}),

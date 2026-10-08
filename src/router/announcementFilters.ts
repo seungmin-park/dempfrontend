@@ -1,8 +1,9 @@
 import { educationFields, durations, validDate } from '@/data/education';
 import type { LocationQuery, LocationQueryRaw } from 'vue-router';
-import type { AnnouncementFilters, Language } from '@/types/api';
+import type { AnnouncementFilters } from '@/types/api';
+import { technologyValues } from '@/data/technologies';
 import positions from '@/data/positions';
-export const languages: Language[] = ['JAVA', 'SPRING', 'JPA', 'React', 'HTML', 'CSS'];
+export const languages = technologyValues;
 const text = (value: LocationQuery[string] | undefined) => (Array.isArray(value) ? value[0] : value) ?? '';
 const values = (value: LocationQuery[string] | undefined) => (Array.isArray(value) ? value : [value]).flatMap(part => part?.split(',') ?? []);
 const positive = (value: LocationQuery[string] | undefined) => /^\d+$/.test(text(value)) && Number.isSafeInteger(Number(text(value))) && Number(text(value)) <= 2147483647 ? Number(text(value)) : 0;
@@ -10,6 +11,7 @@ export function filtersFromQuery(query: LocationQuery = {}): AnnouncementFilters
   const type = text(query.type);
   const status = text(query.status);
   const tuition = text(query.tuition);
+  const orderBy = text(query.orderBy);
   const education: Partial<AnnouncementFilters> = {};
   if (type === 'EDU') {
     for (const field of educationFields) { const value = text(query[field.key]); if (Object.hasOwn(field.options, value)) education[field.key] = value; }
@@ -18,6 +20,7 @@ export function filtersFromQuery(query: LocationQuery = {}): AnnouncementFilters
   }
   return {
     ...education,
+    ...(orderBy === 'DEADLINE' || orderBy === 'VIEWS' ? { orderBy } : {}),
     announcementType: type === 'EMP' || type === 'EDU' ? type : '',
     positions: [...new Set(positions.filter(item => values(query.positions).includes(item)))],
     languages: [...new Set(languages.filter(item => values(query.languages).includes(item)))],
@@ -30,6 +33,7 @@ export function filtersFromQuery(query: LocationQuery = {}): AnnouncementFilters
 }
 export function filtersToQuery(filters: AnnouncementFilters): LocationQueryRaw {
   const query: LocationQueryRaw = {};
+  if (filters.orderBy && filters.orderBy !== 'LATEST') query.orderBy = filters.orderBy;
   if (filters.announcementType) query.type = filters.announcementType;
   if (filters.positions.length) query.positions = filters.positions.join(',');
   if (filters.languages?.length) query.languages = filters.languages.join(',');

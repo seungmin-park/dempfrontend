@@ -22,8 +22,8 @@
         <div v-if="openFilter === 'languages'" id="languages-filter-panel" class="filter-popover">
           <div class="filter-panel-heading"><strong>기술 스택 선택</strong><button type="button" aria-label="기술 스택 닫기" @click="closeFilter(true)"><AppIcon name="close" :size="16" /></button></div>
           <input aria-label="기술 스택 검색" placeholder="기술 이름으로 찾기" v-model="languageSearch" />
-          <fieldset class="filter-choice-list"><legend class="sr-only">기술 스택 선택</legend><label v-for="language in matchingLanguages" :key="language" :class="{ 'is-selected': filters.languages?.includes(language) }"><input type="checkbox" :value="language" v-model="filters.languages" @change="commit" /><span>{{ formatLanguages([language]) }}</span></label></fieldset>
-          <p v-if="!matchingLanguages.length" role="status" class="filter-empty">일치하는 기술이 없습니다. 검색어를 바꿔 주세요.</p>
+          <div class="technology-filter-groups"><fieldset v-for="group in matchingTechnologyGroups" :key="group.label" class="filter-choice-list"><legend>{{ group.label }}</legend><label v-for="[value,label] in group.items" :key="value" :class="{ 'is-selected': filters.languages?.includes(value) }"><input type="checkbox" :value="value" v-model="filters.languages" @change="commit" /><span>{{ label }}</span></label></fieldset></div>
+          <p v-if="!matchingTechnologyGroups.length" role="status" class="filter-empty">일치하는 기술이 없습니다. 검색어를 바꿔 주세요.</p>
           <p class="filter-hint">선택한 기술 중 하나를 사용하는 공고를 찾습니다.</p>
         </div>
       </div>
@@ -68,6 +68,7 @@ import { educationFields, educationLabel, durations } from '@/data/education';
 import { defineComponent } from 'vue';
 import AppIcon from '@/components/common/AppIcon.vue';
 import positions from '@/data/positions';
+import { matchingTechnologyGroups } from '@/data/technologies';
 import { languages, filtersFromQuery, filtersToQuery } from '@/router/announcementFilters';
 import { formatLanguages } from '@/presentation/announcement';
 import { formatPosition } from '@/presentation/positions';
@@ -83,7 +84,7 @@ export default defineComponent({
   beforeUnmount() { document.removeEventListener('click', this.onOutsideClick); document.removeEventListener('keydown', this.onEscape); },
   computed: {
     matchingPositions() { const term = this.positionSearch.trim().toLowerCase(); return this.positions.filter(value => `${formatPosition(value)} ${value}`.toLowerCase().includes(term)); },
-    matchingLanguages() { const term = this.languageSearch.trim().toLowerCase(); return this.languages.filter(value => `${formatLanguages([value])} ${value}`.toLowerCase().includes(term)); },
+    matchingTechnologyGroups() { return matchingTechnologyGroups(this.languageSearch); },
     educationCount() { return educationFields.filter(field => this.filters[field.key]).length + ['duration','startAfter','startBefore'].filter(key => this.filters[key as 'duration' | 'startAfter' | 'startBefore']).length; },
     chips() {
       const chips = this.filters.positions.map(item => ({ key: `position:${item}`, label: formatPosition(item) }));
@@ -200,6 +201,9 @@ export default defineComponent({
 .filter-choice-list label:hover { background: var(--primary-soft); }
 .filter-choice-list input { flex-shrink: 0; margin: 0; }
 .filter-choice-list .is-selected { background: var(--primary-soft); color: var(--primary-dark); }
+.technology-filter-groups { max-height: 280px; overflow: auto; overscroll-behavior: contain; margin-top: 12px; }
+.technology-filter-groups .filter-choice-list { max-height: none; overflow: visible; margin-top: 0; }
+.technology-filter-groups legend { padding: 12px 8px 4px; color: var(--meta); font-size: 12px; font-weight: 600; }
 #status-filter-panel .filter-choice-list { margin-top: 0; }
 .filter-hint, .filter-empty { margin-top: 12px; color: var(--meta); font-size: 12px; line-height: 1.6; }
 .filter-empty { color: var(--muted); }

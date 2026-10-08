@@ -1,5 +1,12 @@
 <template>
-  <div class="results-heading"><h2>공고 목록 <span>{{ notices.length }}</span></h2><span>최신 등록순</span></div>
+  <div class="results-heading">
+    <h2>공고 목록 <span>{{ notices.length }}</span></h2>
+    <label class="announcement-order">정렬
+      <select aria-label="공고 정렬" :value="announcementSearchCondition.orderBy || 'LATEST'" @change="changeOrder">
+        <option value="LATEST">최신 등록순</option><option value="DEADLINE">마감 임박순</option><option value="VIEWS">조회 많은 순</option>
+      </select>
+    </label>
+  </div>
   <div class="job-grid" :aria-busy="loading">
     <article v-for="notice in notices" :key="notice.id" class="item job-card" tabindex="0" role="link" :aria-label="notice.title ?? '공고 상세'" @click="openAnnouncementDetail(notice.id)" @keydown.enter="openAnnouncementDetail(notice.id)">
       <div class="job-card-content">
@@ -20,6 +27,7 @@
           <span v-if="notice.education.learningStartDate">{{ notice.education.learningStartDate }} 개강</span>
         </div>
         <div class="job-card-facts">
+          <span v-if="typeof notice.hits === 'number'" class="job-view-count" aria-label="공고 조회수">조회 {{ notice.hits.toLocaleString() }}</span>
           <span v-if="notice.announcementType === 'EDU'">{{ formatTuition(notice.payment) }}</span>
           <span v-if="notice.recruitmentClosed">모집 종료</span>
           <span v-else-if="notice.deadLineDate">{{ formatRecruitDate(notice.deadLineDate).slice(0,10) }} 마감</span>
@@ -54,7 +62,7 @@ import { markRaw } from "vue";
 import { getAnnouncements } from "@/api/announcements";
 import { announcementEmptyState } from '@/presentation/announcementStates';
 import AppIcon from '@/components/common/AppIcon.vue';
-import { filtersFromQuery } from '@/router/announcementFilters';
+import { filtersFromQuery, filtersToQuery } from '@/router/announcementFilters';
 import { formatPosition } from '@/presentation/positions';
 import { formatRecruitDate } from '@/presentation/announcement';
 import { formatLanguages } from '@/presentation/announcement';
@@ -102,6 +110,11 @@ export default defineComponent({
   computed: { emptyState() { return announcementEmptyState(this.announcementSearchCondition); } },
   methods: {
     educationLabel, formatTuition,
+    changeOrder(event: Event) {
+      const orderBy = (event.target as HTMLSelectElement).value;
+      if (orderBy !== 'LATEST' && orderBy !== 'DEADLINE' && orderBy !== 'VIEWS') return;
+      this.$router.push({ path: '/', query: filtersToQuery({ ...this.announcementSearchCondition, orderBy }) });
+    },
     resetSearch() {
       const type = this.announcementSearchCondition.announcementType;
       this.$router.push({ path: '/', query: type ? { type } : {} });
@@ -163,6 +176,9 @@ export default defineComponent({
 });
 </script>
 <style scoped>
+.results-heading { gap: 12px; flex-wrap: wrap; }
+.announcement-order { display: flex; align-items: center; gap: 8px; color: var(--meta); font-size: 12px; }
+.announcement-order select { width: 156px; height: 44px; padding: 8px 30px 8px 12px; font-size: 13px; cursor: pointer; }
 .job-card {
   min-width: 0;
   border: 1px solid var(--line);
