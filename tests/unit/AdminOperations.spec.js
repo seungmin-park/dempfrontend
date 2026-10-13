@@ -72,7 +72,7 @@ it('관리자 저장의 400 오류는 입력값 안내를 표시하고 작성 �
   expect(wrapper.get('#admin-content').element.value).toBe('수정한 본문');
 });
 
-const datedAnnouncement = () => ({ title: '모집 공고', company: { name: 'DEMP' }, content: '<p>지원 안내</p>', language: ['JAVA'], announcementType: 'EMP', position: 'BACKEND', minCareer: 0, maxCareer: 0, payment: null, startedDate: '2026-10-07T17:56:53', deadLineDate: '2026-10-31T18:30:45', accessUrl: 'https://example.test', image: '' });
+const datedAnnouncement = () => ({ publicationStatus: 'PUBLISHED', title: '모집 공고', company: { name: 'DEMP' }, content: '<p>지원 안내</p>', language: ['JAVA'], announcementType: 'EMP', position: 'BACKEND', minCareer: 0, maxCareer: 0, payment: null, startedDate: '2026-10-07T17:56:53', deadLineDate: '2026-10-31T18:30:45', accessUrl: 'https://example.test', image: '' });
 
 it('검색으로 숨겨진 선택도 요약에서 한 번 눌러 해제하고 남은 값만 저장한다', async () => {
   axios.get.mockResolvedValue({ data: { ...datedAnnouncement(), language: ['JAVA', 'React', 'KUBERNETES'] } });
@@ -367,4 +367,24 @@ it('시각을 직접 바꾸면 입력한 분 단위를 저장하고 다른 날�
   await flushPromises();
   expect(axios.patch.mock.calls[0][1].get('startedDate')).toBe('2026-10-08T09:15');
   expect(axios.patch.mock.calls[0][1].get('deadLineDate')).toBe('2026-10-31T18:30:45');
+});
+
+
+it('미확인 분야·기술·일정은 초안으로 저장하고 공개 전에는 같은 입력을 유지하며 보완을 요청한다', async () => {
+  axios.get.mockResolvedValue({ data: { ...datedAnnouncement(), publicationStatus: 'DRAFT', position: null, language: [], startedDate: null, deadLineDate: null } });
+  axios.patch.mockResolvedValue({ data: {} });
+  const wrapper = mount(AdminAnnouncementEditor, options({ id: '7' })); await flushPromises();
+  expect(wrapper.get('#admin-position').element.required).toBe(false);
+  expect(wrapper.get('#admin-startedDate').element.required).toBe(false);
+  await wrapper.get('form').trigger('submit'); await flushPromises();
+  expect(axios.patch).toHaveBeenCalledTimes(1);
+  expect(axios.patch.mock.lastCall[1].has('startedDate')).toBe(false);
+  expect(axios.patch.mock.lastCall[1].getAll('language')).toEqual([]);
+  await wrapper.get('#admin-publication').setValue('PUBLISHED');
+  await wrapper.get('form').trigger('submit'); await flushPromises();
+  expect(axios.patch).toHaveBeenCalledTimes(1);
+  expect(wrapper.text()).toContain('분야를 선택');
+  expect(wrapper.text()).toContain('모집 시작을 입력');
+  expect(wrapper.get('#admin-title').element.value).toBe('모집 공고');
+  wrapper.unmount();
 });
