@@ -49,7 +49,8 @@
     "tests/unit/VueWarningGate.spec.js",
     "tests/unit/TypeSafetyLint.spec.js",
     "tests/unit/questionApi.spec.js",
-    "tests/unit/MyPage.spec.js"
+    "tests/unit/MyPage.spec.js",
+    "tests/unit/AppAdminAccess.spec.js"
   ],
   "unitAssertions": [
     {
@@ -509,6 +510,10 @@
     {
       "file": "member-account.spec.js",
       "title": "비로그인 마이페이지 진입은 로그인 후 돌아올 경로를 보존한다"
+    },
+    {
+      "file": "admin.spec.js",
+      "title": "관리자 상단 메뉴는 320px에서도 글자를 한 줄로 읽고 각 링크를 누를 수 있다"
     }
   ],
   "browserWarningAttachment": "vue-warnings",

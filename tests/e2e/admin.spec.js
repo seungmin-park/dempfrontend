@@ -67,6 +67,7 @@ test('관리자 직접 URL은 비로그인 사용자를 로그인으로 보낸�
   await expect(page).toHaveURL(/\/login\?redirect=/);
   await expect(page.getByLabel('아이디')).toBeVisible();
   await expect(page.locator('.site-footer a[href="/admin"]')).toHaveCount(0);
+  await expect(page.locator('.header-account a[href="/admin"]')).toHaveCount(0);
 });
 
 test('localStorage 관리자 역할을 넣어도 일반 회원은 운영 화면을 볼 수 없다', async ({ page }) => {
@@ -74,12 +75,15 @@ test('localStorage 관리자 역할을 넣어도 일반 회원은 운영 화면�
   await expect(page.getByRole('alert')).toContainText('관리자 권한');
   await expect(page.locator('.admin-stats')).toHaveCount(0);
   await expect(page.locator('.site-footer a[href="/admin"]')).toHaveCount(0);
+  await expect(page.locator('.header-account a[href="/admin"]')).toHaveCount(0);
 });
 
 test('모바일 관리자는 공고 등록 수정 재조회 삭제 확인을 진행한다', async ({ page }) => {
   const state = await adminFixture(page); await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/admin/announcements');
   await expect(page.locator('.site-footer a[href="/admin"]')).toBeVisible();
+  await expect(page.locator('.header-account a[href="/admin"]')).toBeVisible();
+  await expect(page.getByRole('link', { name: '내 계정 관리' })).toHaveAttribute('href', '/mypage');
   await page.getByRole('link', { name: '공고 등록', exact: true }).click();
   await page.getByRole('textbox', { name: '제목', exact: true }).fill('새 관리자 공고');
   await page.getByLabel('회사·교육기관').fill('DEMP 교육');
@@ -331,3 +335,19 @@ for (const width of [320, 390, 1440]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 }
+
+test('관리자 상단 메뉴는 320px에서도 글자를 한 줄로 읽고 각 링크를 누를 수 있다', async ({ page }) => {
+  await adminFixture(page); await page.setViewportSize({ width: 320, height: 844 });
+  await page.goto('/admin');
+  await expect(page.locator('.header-account a[href="/admin"]')).toBeVisible();
+  for (const selector of ['.primary-nav a', '.header-account a', '.header-account button']) {
+    for (const element of await page.locator(selector).all()) {
+      const box = await element.boundingBox();
+      expect(box.width).toBeGreaterThanOrEqual(40);
+      expect(box.height).toBeGreaterThanOrEqual(40);
+      expect(box.height).toBeLessThanOrEqual(48);
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(320);
+    }
+  }
+});
