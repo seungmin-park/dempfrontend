@@ -29,14 +29,15 @@
         <div class="job-card-facts">
           <span v-if="typeof notice.hits === 'number'" class="job-view-count" aria-label="공고 조회수">조회 {{ notice.hits.toLocaleString() }}</span>
           <span v-if="notice.announcementType === 'EDU'">{{ formatTuition(notice.payment) }}</span>
-          <span v-if="notice.recruitmentClosed">모집 종료</span>
-          <span v-else-if="notice.deadLineDate">{{ formatRecruitDate(notice.deadLineDate).slice(0,10) }} 마감</span>
+          <span aria-label="현재 모집 상태">{{ recruitmentLabels[recruitmentState(notice, recruitmentNow)] }}</span>
+          <span v-if="!notice.recruitmentClosed && notice.deadLineDate">{{ formatRecruitDate(notice.deadLineDate).slice(0,10) }} 마감</span>
         </div>
       </div>
     </article>
   </div>
   <div ref="listEnd" data-test="list-end" aria-hidden="true" class="list-end"></div>
   <div class="list-status">
+    <p v-if="refreshError" role="status">{{ refreshError }} <button type="button" class="button button-secondary" @click="refreshRecruitment">다시 확인</button></p>
     <p v-if="loading" role="status" aria-live="polite" class="list-loading">{{ notices.length ? '다음 공고를 불러오고 있습니다…' : '공고를 불러오고 있습니다…' }}</p>
     <button v-if="!last && !error" :disabled="loading" data-test="load-more" @click="loadNextPage" class="button button-secondary">{{ loading ? '불러오는 중…' : '더보기' }}</button>
     <div v-if="error" role="alert" class="list-error">
@@ -54,6 +55,8 @@
   </div>
 </template>
 <script lang="ts">
+import { useRecruitmentTime } from '@/composables/useRecruitmentTime';
+import { recruitmentState, recruitmentLabels } from '@/presentation/recruitment';
 import { educationLabel } from '@/data/education';
 import { formatTuition } from '@/presentation/compensation';
 import type { AnnouncementSummary, AnnouncementFilters, JobPosition } from '@/types/api';
@@ -70,6 +73,7 @@ import AnnouncementAudience from './AnnouncementAudience.vue';
 import CompanyImage from '@/components/common/CompanyImage.vue';
 export default defineComponent({
   name: "demp-announcement",
+  setup() { return { ...useRecruitmentTime(), recruitmentLabels }; },
   components: { AppIcon, AnnouncementAudience, CompanyImage },
   mounted() {
     this.announcementSearchCondition = { ...filtersFromQuery(this.$route?.query), page: 0 };
@@ -81,15 +85,21 @@ export default defineComponent({
       this.pageObserver.observe(this.$refs.listEnd as Element);
     }
     this.loadNextPage();
+    this.refreshTimer = setInterval(this.refreshRecruitment, 30000);
+    document.addEventListener("visibilitychange", this.onVisibilityChange);
   },
   unmounted() {
     this.requestGeneration++;
+    clearInterval(this.refreshTimer);
+    document.removeEventListener("visibilitychange", this.onVisibilityChange);
     this.pageObserver?.disconnect();
     this.emitter.off("announcementSearchCondition", this.onSearchCondition);
   },
   data() {
     return {
       notices: [] as AnnouncementSummary[],
+      refreshTimer: undefined as ReturnType<typeof setInterval> | undefined,
+      refreshing: false, refreshError: '',
       announcementSearchCondition: {
         announcementType: "" as AnnouncementFilters["announcementType"],
         positions: [] as JobPosition[],
@@ -109,7 +119,33 @@ export default defineComponent({
 
   computed: { emptyState() { return announcementEmptyState(this.announcementSearchCondition); } },
   methods: {
-    educationLabel, formatTuition,
+    educationLabel, formatTuition, recruitmentState,
+    onVisibilityChange() { if (document.visibilityState === 'visible') this.refreshRecruitment(); },
+    async refreshRecruitment() {
+      if (this.loading || this.refreshing) return;
+      const generation = this.requestGeneration;
+      const condition = { ...this.announcementSearchCondition };
+      this.refreshing = true;
+      try {
+        const refreshed: AnnouncementSummary[] = [];
+        let last = false, pages = 0;
+        for (let page = 0; page < Math.max(1, condition.page); page++) {
+          const result = await getAnnouncements({ ...condition, page });
+          if (generation !== this.requestGeneration) return;
+          const ids = new Set(refreshed.map(item => item.id));
+          refreshed.push(...result.data.content.filter(item => !ids.has(item.id)));
+          pages = page + 1;
+          last = result.data.last || !result.data.content.length;
+          if (last) break;
+        }
+        this.notices = refreshed;
+        this.last = last;
+        this.announcementSearchCondition.page = pages;
+        this.refreshError = '';
+      } catch {
+        if (generation === this.requestGeneration) this.refreshError = '최신 모집 상태를 확인하지 못했습니다. 기존 목록을 유지합니다.';
+      } finally { this.refreshing = false; }
+    },
     changeOrder(event: Event) {
       const orderBy = (event.target as HTMLSelectElement).value;
       if (orderBy !== 'LATEST' && orderBy !== 'DEADLINE' && orderBy !== 'VIEWS') return;
@@ -125,6 +161,7 @@ export default defineComponent({
       this.notices = [];
       this.last = false;
       this.error = null;
+      this.refreshError = '';
       this.requestGeneration++;
       this.loading = false;
       this.loadNextPage();

@@ -185,13 +185,13 @@ for (const width of [320, 390, 1440]) {
     expect(box.x).toBeGreaterThanOrEqual(0); expect(box.x + box.width).toBeLessThanOrEqual(width);
     if (width > 480) { expect(box.y).toBeGreaterThanOrEqual(0); expect(box.y + box.height).toBeLessThanOrEqual(900); }
     await calendar.getByRole('button', { name: '2026년 10월 8일', exact: true }).click();
-    await expect(page.getByLabel('모집 시작', { exact: true })).toHaveValue('2026-10-08T09:15');
+    await expect(page.getByLabel('모집 시작', { exact: true })).toHaveValue('2026-10-08T09:15:30');
     await page.getByRole('button', { name: '변경 저장', exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/announcements$/);
-    expect(state.items[0].startedDate).toBe('2026-10-08T09:15');
+    expect(state.items[0].startedDate).toBe('2026-10-08T09:15:30');
     expect(state.items[0].deadLineDate).toBe('2026-10-31T18:00:45');
     await page.goto('/admin/announcements/10');
-    await expect(page.getByLabel('모집 시작', { exact: true })).toHaveValue('2026-10-08T09:15');
+    await expect(page.getByLabel('모집 시작', { exact: true })).toHaveValue('2026-10-08T09:15:30');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 

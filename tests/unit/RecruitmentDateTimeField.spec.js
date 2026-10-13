@@ -48,3 +48,22 @@ test('위·아래 모두 좁고 위가 넓으면 위쪽 실제 공간으로 높�
   await dialog.get('[data-day="20"]').trigger('click');
   expect(wrapper.emitted('update:modelValue')).toEqual([['2030-11-20T18:30']]);
 });
+
+
+test('달력에서 같은 날짜와 다른 날짜를 선택해도 원문의 초를 보존한다', async () => {
+  const wrapper = await openAt(100);
+  await wrapper.setProps({ modelValue: '2030-11-01T16:59:59' });
+  expect(wrapper.get('input').element.value).toBe('2030-11-01T16:59:59');
+  await wrapper.get('[data-day="1"]').trigger('click');
+  expect(wrapper.emitted('update:modelValue').at(-1)).toEqual(['2030-11-01T16:59:59']);
+  await wrapper.get('button.calendar-trigger').trigger('click');
+  await wrapper.get('[data-day="20"]').trigger('click');
+  expect(wrapper.emitted('update:modelValue').at(-1)).toEqual(['2030-11-20T16:59:59']);
+});
+
+
+test('원문 마감의 59초는 상세 날짜 표시에서도 사라지지 않는다', async () => {
+  const { formatRecruitDate } = await import('@/presentation/announcement');
+  expect(formatRecruitDate('2030-11-01T16:59:59')).toBe('2030.11.01 16:59:59');
+  expect(formatRecruitDate('2030-11-01T17:00:00')).toBe('2030.11.01 17:00');
+});

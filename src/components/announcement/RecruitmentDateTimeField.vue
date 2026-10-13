@@ -2,7 +2,7 @@
   <div ref="root" class="recruitment-datetime">
     <label :for="id">{{ label }}</label>
     <div class="datetime-input-row">
-      <input :id="id" type="datetime-local" :value="modelValue?.slice(0, 16)" step="60" required :disabled="disabled"
+      <input :id="id" type="datetime-local" :value="modelValue" step="1" :required="required ?? true" :disabled="disabled"
         @input="emit('update:modelValue', ($event.target as HTMLInputElement).value || null)" />
       <button ref="trigger" type="button" class="calendar-trigger" :aria-label="`${label} 달력 열기`"
         :aria-expanded="open" :aria-controls="`${id}-calendar`" :disabled="disabled" @click="toggleCalendar">
@@ -23,7 +23,7 @@
           :aria-pressed="selectedDate === dateValue(day)" :aria-current="today === dateValue(day) ? 'date' : undefined"
           :tabindex="focusedDay === day ? 0 : -1" @focus="focusedDay = day" @click="selectDate(day)">{{ day }}</button>
       </div>
-      <div class="calendar-footer"><span>시각은 입력한 시·분을 유지합니다.</span><button type="button" @click="closeCalendar">닫기</button></div>
+      <div class="calendar-footer"><span>시각은 입력한 시·분·초를 유지합니다.</span><button type="button" @click="closeCalendar">닫기</button></div>
     </div>
   </div>
 </template>
@@ -31,7 +31,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-const props = defineProps<{ id: string; label: string; modelValue: string | null | undefined; disabled?: boolean }>();
+const props = defineProps<{ id: string; label: string; modelValue: string | null | undefined; disabled?: boolean; required?: boolean }>();
 const emit = defineEmits<{ 'update:modelValue': [value: string | null] }>();
 const root = ref<HTMLElement>();
 const trigger = ref<HTMLButtonElement>();
@@ -87,7 +87,7 @@ async function toggleCalendar() {
 }
 function selectDate(day: number) {
   if (props.disabled) return;
-  const time = props.modelValue?.slice(11, 16) || '00:00';
+  const time = props.modelValue?.slice(11) || '00:00';
   emit('update:modelValue', `${dateValue(day)}T${time}`);
   closeCalendar();
 }
