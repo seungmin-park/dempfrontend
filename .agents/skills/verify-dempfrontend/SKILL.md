@@ -55,3 +55,7 @@ Use the actual current cmux/Spring browser. At 320/390/640/768/1024/1440px asser
 ## Announcement employment type and spacing
 
 Employment type is separate from recruitment audience: unknown/null, regular, contract, conversion internship, experiential internship. Check admin save/reload and public list/detail badges together with backend storage/legacy SQL rehearsal. Do not infer regular employment for old rows. Education changes clear employment type. Use full native checkbox labels to select technology, save/reload, and verify retained values. At 320/390/1440px check 40px chip height, 8px gaps, natural wrapping and no horizontal overflow. Load history with several long titles: preserve server order/values and verify date/actor/status above the title, left alignment and at least 8px vertical gap. See [the phase evidence](../../../docs/question-tag-and-account-ui-verification.md) for actual results and runtime identity.
+
+## Member account
+
+At `/mypage`, use the actual caller cmux Spring browser to save nickname, reload, reject wrong current password, correct and change it, then sign in with the new password. Login ID remains fixed. Check old token 401 with the backend contract and that password inputs are cleared only after success or leaving the account session. Nickname failure/re-auth draft stays per user; passwords must never enter session/local storage. The fixture suite covers retry, persisted requery presentation, mobile layout and login return, separately from real DB evidence.

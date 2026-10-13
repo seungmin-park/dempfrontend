@@ -24,3 +24,10 @@ export function register(form: FormData) {
 export function checkUsername(username: string) {
   return apiClient.get<boolean>('/api/member/validUsername', { params: { username } });
 }
+
+export interface MemberProfile { id: number; username: string; nickname: string | null; admin: boolean }
+export function getMyProfile() { return apiClient.get<MemberProfile>('/api/member/me'); }
+export function updateMyNickname(nickname: string) { return apiClient.patch<MemberProfile>('/api/member/me', { nickname }); }
+export function changeMyPassword(currentPassword: string, newPassword: string) {
+  return apiClient.put<void>('/api/member/me/password', { currentPassword, newPassword });
+}

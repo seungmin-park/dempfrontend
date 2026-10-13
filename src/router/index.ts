@@ -13,6 +13,7 @@ export function createAuthGuard(authStore: { state: RootState }): NavigationGuar
 }
 
 const routes = [
+  { path: '/mypage', meta: { requiresAuth: true }, component: () => import('@/views/member/MyPage.vue') },
   { path: "/admin", meta: { requiresAuth: true }, component: () => import("@/views/admin/AdminLayout.vue"), children: [
     { path: '', component: () => import('@/views/admin/AdminDashboard.vue') },
     { path: 'announcement-reports', component: () => import('@/views/admin/AdminAnnouncementReports.vue') },

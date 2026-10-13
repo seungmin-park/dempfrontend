@@ -38,3 +38,7 @@
 `/login` → 기존 계정의 15분 내 실패 5회 → 429·Retry-After → 입력 보존·대기 안내. 최종 제한 상태는 Member DB, 인증/commit은 MemberService, 표시 상태는 LoginForm이 소유한다. 정상 로그인·시간 경계·DB 재조회·동시 요청·두 독립 컨텍스트·HTTP/CORS·단위/개발·배포 브라우저와 실제 Spring 화면을 함께 검증한다.
 
 모집 상태: `recruitmentState`가 한국 시각의 기간 경계를 판단하고 `useRecruitmentTime`이 1초마다 표시를 갱신한다. 목록은 30초/탭 복귀 재조회, 실패 시 이전 목록 보존. 관리자 초안은 분야·기술·일정 null을 허용하며 공개·검토 요청에 필수 검증을 적용한다. `RecruitmentFactsFields`는 직무별 조건, `CompensationFields`는 YEAR/MONTH 단위를 표현한다.
+
+## 마이페이지
+
+`/mypage` → `MyPage` → `useMemberAccount` → `members` API. 로그인 아이디/회원 구분 조회, 닉네임 수정 및 현재 비밀번호 확인 후 변경. 실패 입력 유지, 사용자별 닉네임 초안 복귀, 이전 응답 폐기, 비밀번호 성공 시 비밀 입력/세션 삭제. `MyPage.spec.js`, `member-account.spec.js`를 공용 verify에서 실행한다. 실제 Spring/H2 저장 검증은 별도 cmux 흐름으로 확인한다.
