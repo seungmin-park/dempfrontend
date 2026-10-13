@@ -91,3 +91,20 @@ test('무료 교육 공고는 교육비 0원으로 입력 검증을 통과한다
   await vi.waitFor(() => expect(axios.post.mock.calls.length, wrapper.text()).toBe(1));
   expect(axios.post.mock.calls[0][1].get('payment')).toBe('0');
 });
+
+
+test('기존 등록 화면에서도 월급 단위를 선택하면 월급 230만원으로 전송한다', async () => {
+  axios.post.mockResolvedValue({ data: 'ok' });
+  const wrapper = mount(AnnouncementWrite, { global: { stubs: { RouterLink: true }, mocks: {
+    $store: { state: { Login: { token: 'token' } } }, $router: { push: vi.fn() },
+  } } });
+  await wrapper.setData({ title: '인턴', company: 'DEMP', type: 'EMP', position: 'BACKEND',
+    startedDate: '2030-11-01T00:00', deadLineDate: '2030-11-02T00:00', accessUrl: 'https://example.com', content: '설명', language: 'JAVA' });
+  await wrapper.get('#payment-period').setValue('MONTH');
+  await wrapper.get('#payment-salary-status').setValue('DISCLOSED');
+  await wrapper.get('#payment').setValue('230');
+  await wrapper.get('form').trigger('submit'); await flushPromises();
+  expect(axios.post.mock.lastCall[1].get('salaryPeriod')).toBe('MONTH');
+  expect(axios.post.mock.lastCall[1].get('payment')).toBe('230');
+  wrapper.unmount();
+});

@@ -92,3 +92,24 @@ test('열어 둔 상세는 한국 시각의 시작·마감을 지나면 예정·
     expect(axios.get).toHaveBeenCalledTimes(1);
   } finally { wrapper.unmount(); vi.useRealTimers(); }
 });
+
+
+test('월급은 연봉으로 환산하지 않고 직무별 필수·우대와 근무 조건을 표시한다', async () => {
+  axios.get.mockResolvedValue({ data: { title: '인턴 공고', company: { name: 'DEMP' }, announcementType: 'EMP', language: [],
+    salaryPeriod: 'MONTH', salaryStatus: 'DISCLOSED', payment: 230, workPeriod: '약 5개월', conversionNote: '전환 불가',
+    roles: [{ title: 'AI-OCR', requiredSkills: 'Python 또는 PyTorch', preferredSkills: '문서 인식 경험' }],
+    referenceUrls: ['https://example.com/job.pdf'] } });
+  const wrapper = mount(AnnouncementDetail, { global: { mocks: {
+    $store: { state: { Login: { token: 'token' } } }, $route: { params: { itemId: 71 } },
+    $router: { replace: vi.fn(), currentRoute: { value: { fullPath: '/detail/71' } } },
+  } } });
+  await flushPromises();
+  expect(wrapper.text()).toContain('월급 230만원');
+  expect(wrapper.text()).not.toContain('연봉 230');
+  expect(wrapper.text()).toContain('약 5개월');
+  expect(wrapper.text()).toContain('전환 불가');
+  expect(wrapper.get('[aria-label="직무별 모집 조건"]').text()).toContain('필수 요건');
+  expect(wrapper.get('[aria-label="직무별 모집 조건"]').text()).toContain('문서 인식 경험');
+  expect(wrapper.find('a[href="https://example.com/job.pdf"]').exists()).toBe(true);
+  wrapper.unmount();
+});

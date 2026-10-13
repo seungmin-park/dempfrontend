@@ -388,3 +388,27 @@ it('미확인 분야·기술·일정은 초안으로 저장하고 공개 전에�
   expect(wrapper.get('#admin-title').element.value).toBe('모집 공고');
   wrapper.unmount();
 });
+
+
+it('월급과 근무 조건 및 여러 직무의 필수·우대를 구분해 복원하고 같은 계약으로 저장한다', async () => {
+  axios.get.mockResolvedValue({ data: { ...datedAnnouncement(), salaryPeriod: 'MONTH', salaryStatus: 'DISCLOSED', payment: 230,
+    workPeriod: '2026년 10월부터 5개월', conversionNote: '정규직 전환 불가',
+    roles: [{ title: 'AI-OCR', position: 'AI', requiredSkills: 'Python 또는 PyTorch', preferredSkills: '문서 인식 경험', location: '서울' }],
+    referenceUrls: ['https://linkareer.com/activity/345218'] } });
+  axios.patch.mockResolvedValue({ data: {} });
+  const wrapper = mount(AdminAnnouncementEditor, options({ id: '7' })); await flushPromises();
+  expect(wrapper.get('#admin-payment-period').element.value).toBe('MONTH');
+  expect(wrapper.get('#admin-work-period').element.value).toBe('2026년 10월부터 5개월');
+  expect(wrapper.get('[aria-label="직무 1 필수 요건"]').element.value).toBe('Python 또는 PyTorch');
+  await wrapper.get('[aria-label="직무 추가"]').trigger('click');
+  await wrapper.get('[aria-label="직무 2 이름"]').setValue('플랫폼 개발');
+  await wrapper.get('[aria-label="직무 2 분야"]').setValue('FULLSTACK');
+  await wrapper.get('form').trigger('submit'); await flushPromises();
+  const body = axios.patch.mock.lastCall[1];
+  expect(body.get('salaryPeriod')).toBe('MONTH');
+  expect(body.get('payment')).toBe('230');
+  expect(body.get('roles[0].requiredSkills')).toBe('Python 또는 PyTorch');
+  expect(body.get('roles[1].title')).toBe('플랫폼 개발');
+  expect(body.get('referenceUrls[0]')).toBe('https://linkareer.com/activity/345218');
+  wrapper.unmount();
+});

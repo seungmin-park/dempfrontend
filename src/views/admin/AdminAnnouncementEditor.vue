@@ -23,7 +23,9 @@
           <div v-for="field in numberFields" :key="field.key" class="field"><label :for="`admin-${field.key}`">{{ field.label }}</label><input :id="`admin-${field.key}`" v-model.number="form[field.key]" type="number" min="0" step="1" required :disabled="saving" /><p v-if="errors[field.key]" class="field-error">{{ errors[field.key] }}</p></div>
           <div v-for="field in dateFields" :key="field.key" class="field"><RecruitmentDateTimeField :id="`admin-${field.key}`" :label="field.label" v-model="form[field.key]" :required="requiresCompleteInformation" :disabled="saving" /><p v-if="errors[field.key]" class="field-error">{{ errors[field.key] }}</p></div>
         </div>
-        <CompensationFields id="admin-payment" :type="form.type" v-model:payment="form.payment" v-model:salary-status="form.salaryStatus" v-model:salary-max="form.salaryMax" :disabled="saving" /><p v-if="errors.payment" class="field-error">{{ errors.payment }}</p>
+        <CompensationFields id="admin-payment" :type="form.type" v-model:payment="form.payment" v-model:salary-status="form.salaryStatus" v-model:salary-max="form.salaryMax" v-model:salary-period="form.salaryPeriod" :disabled="saving" /><p v-if="errors.payment" class="field-error">{{ errors.payment }}</p>
+        <RecruitmentFactsFields v-if="form.type === 'EMP'" :roles="form.roles || []" @update:roles="form.roles = $event" v-model:work-period="form.workPeriod" v-model:conversion-note="form.conversionNote" :disabled="saving" />
+        <p v-if="errors.roles" class="field-error">{{ errors.roles }}</p>
         <EducationFields v-if="form.type === 'EDU'" id="admin-education-" :model-value="form" @update:model-value="Object.assign(form, $event)" :disabled="saving" />
       </fieldset>
 
@@ -43,6 +45,7 @@
           <div class="field"><label for="admin-source">출처 이름</label><input id="admin-source" aria-label="출처 이름" v-model="form.sourceName" maxlength="255" :disabled="saving" placeholder="예: 회사 채용 홈페이지" /></div>
           <div class="field"><label for="admin-source-id">원문 식별값 (선택)</label><input id="admin-source-id" v-model="form.sourceIdentifier" maxlength="255" :disabled="saving" placeholder="원문 사이트의 공고 번호" /></div>
         </div>
+        <div class="field"><label for="admin-references">보조 출처 URL (한 줄에 하나)</label><textarea id="admin-references" :value="(form.referenceUrls || []).join('\n')" :disabled="saving" rows="3" @input="form.referenceUrls = ($event.target as HTMLTextAreaElement).value.split('\n').map(value => value.trim()).filter(Boolean)" /><p class="field-hint">만료된 원문 URL과 식별값은 유지하고, 대체 게시처·직무기술서 링크를 추가하세요.</p><p v-if="errors.references" class="field-error">{{ errors.references }}</p></div>
         <div class="field"><label><input type="checkbox" v-model="form.sourceVerified" :disabled="saving" /> 원문 내용을 직접 확인했습니다</label><p class="field-hint">저장할 때 확인 시각을 기록합니다. 원문 주소를 바꾸면 다시 확인하세요.</p></div>
       </fieldset>
 
@@ -73,6 +76,7 @@
 <script lang="ts">
 import { publicationLabels } from '@/presentation/publication';
 import type { PublicationRevision } from '@/types/api';
+import RecruitmentFactsFields from '@/components/announcement/RecruitmentFactsFields.vue';
 import EducationFields from '@/components/announcement/EducationFields.vue';
 import RecruitmentDateTimeField from '@/components/announcement/RecruitmentDateTimeField.vue';
 import TechnologySelector from '@/components/announcement/TechnologySelector.vue';
@@ -92,9 +96,9 @@ import positions from '@/data/positions';
 import AnnouncementBodyEditor from '@/components/announcement/AnnouncementBodyEditor.vue';
 import AsyncState from '@/components/common/AsyncState.vue';
 import CompanyImage from '@/components/common/CompanyImage.vue';
-function blankForm(): AnnouncementForm { return { employmentType: null, recruitmentClosed: false, recruitmentAudience: null, cohort: '', stipendAmount: null, stipendNote: '', publicationStatus: 'DRAFT', sourceName: '', sourceIdentifier: '', applicationUrl: '', sourceVerified: false, title: '', company: '', type: 'EMP', position: '', minCareer: 0, maxCareer: 0, payment: null, salaryMax: null, accessUrl: '', startedDate: null, deadLineDate: null, content: '', language: [], image: null }; }
+function blankForm(): AnnouncementForm { return { salaryPeriod: 'YEAR', roles: [], referenceUrls: [], workPeriod: '', conversionNote: '', employmentType: null, recruitmentClosed: false, recruitmentAudience: null, cohort: '', stipendAmount: null, stipendNote: '', publicationStatus: 'DRAFT', sourceName: '', sourceIdentifier: '', applicationUrl: '', sourceVerified: false, title: '', company: '', type: 'EMP', position: '', minCareer: 0, maxCareer: 0, payment: null, salaryMax: null, accessUrl: '', startedDate: null, deadLineDate: null, content: '', language: [], image: null }; }
 export default defineComponent({
-  components: { EducationFields, RecruitmentDateTimeField, TechnologySelector, CompensationFields, AnnouncementBodyEditor, AsyncState, CompanyImage },
+  components: { RecruitmentFactsFields, EducationFields, RecruitmentDateTimeField, TechnologySelector, CompensationFields, AnnouncementBodyEditor, AsyncState, CompanyImage },
   data: () => ({ employmentTypeLabels, publicationLabels, history: [] as PublicationRevision[], historyError: '', historyLoaded: false, form: blankForm(), selectedLanguages: [] as Language[], bodyImages: [] as File[], imageUrl: '', loading: false, saving: false, loadError: '', error: '', errors: {} as Record<string,string>, generation: 0, positions,
     textFields: [{ key: 'title', label: '제목' }, { key: 'company', label: '회사·교육기관' }] as const,
     dateFields: [{ key: 'startedDate', label: '모집 시작' }, { key: 'deadLineDate', label: '모집 마감' }] as const,
@@ -111,7 +115,7 @@ export default defineComponent({
       catch (reason) { if (current === this.generation) this.historyError = requestErrorMessage(reason); }
     },
     changeAudience() { if (this.form.recruitmentAudience === 'NEW' || this.form.recruitmentAudience === 'ANY') { this.form.minCareer = 0; this.form.maxCareer = 0; } },
-    changeType() { this.form.employmentType = null; this.form.recruitmentAudience = null; this.form.cohort = ''; this.form.stipendAmount = null; this.form.stipendNote = '';  this.form.payment = null; delete this.form.salaryStatus; this.form.salaryMax = null; },
+    changeType() { this.form.roles = []; this.form.workPeriod = ''; this.form.conversionNote = ''; this.form.salaryPeriod = 'YEAR'; this.form.employmentType = null; this.form.recruitmentAudience = null; this.form.cohort = ''; this.form.stipendAmount = null; this.form.stipendNote = '';  this.form.payment = null; delete this.form.salaryStatus; this.form.salaryMax = null; },
     async load() {
       const current = ++this.generation; this.form = blankForm(); this.history = []; this.historyLoaded = false; this.historyError = ''; this.errors = {}; this.error = ''; this.loadError = ''; this.selectedLanguages = []; this.bodyImages = []; this.imageUrl = '';
       if (!this.editing) { this.loading = false; return; }
@@ -141,6 +145,8 @@ export default defineComponent({
       if (this.form.type === 'EDU' && educationError(this.form)) errors.education = educationError(this.form);
       const amountError = compensationError(this.form);
       if (amountError) errors.payment = amountError;
+      if (this.form.roles?.some(role => !role.title.trim())) errors.roles = '직무 이름을 입력해 주세요.';
+      if (this.form.referenceUrls?.some(url => { try { return !['https:', 'http:'].includes(new URL(url).protocol); } catch { return true; } })) errors.references = '보조 출처는 http 또는 https 주소를 입력해 주세요.';
       const attachmentsError = announcementAttachmentError(this.form.image, this.bodyImages);
       if (attachmentsError) errors.image = attachmentsError;
       this.errors = errors; return Object.keys(errors).length === 0;
