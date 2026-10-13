@@ -65,3 +65,30 @@ test('수동 마감 공고는 지원 대신 원문 확인을 안내하고 오류
   expect(wrapper.text()).toContain('제보가 접수되었습니다');
   wrapper.unmount();
 });
+
+
+test('열어 둔 상세는 한국 시각의 시작·마감을 지나면 예정·모집 중·마감과 지원 안내를 갱신한다', async () => {
+  vi.useFakeTimers(); vi.setSystemTime(new Date('2030-11-01T00:00:00Z'));
+  axios.get.mockResolvedValue({ data: { title: '시간 경계', company: { name: 'DEMP' }, language: [],
+    startedDate: '2030-11-01T09:00:02', deadLineDate: '2030-11-01T09:00:04',
+    accessUrl: 'https://example.com/original', applicationUrl: 'https://example.com/apply' } });
+  const wrapper = mount(AnnouncementDetail, { global: { mocks: {
+    $store: { state: { Login: { token: 'token' } } }, $route: { params: { itemId: 71 } },
+    $router: { replace: vi.fn(), currentRoute: { value: { fullPath: '/detail/71' } } },
+  } } });
+  try {
+    await flushPromises();
+    expect(wrapper.get('[aria-label="현재 모집 상태"]').text()).toBe('모집 예정');
+    expect(wrapper.get('.apply-bar a').text()).toBe('원문 확인');
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(wrapper.get('[aria-label="현재 모집 상태"]').text()).toBe('모집 중');
+    expect(wrapper.get('.apply-bar a').text()).toBe('지원하기');
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(wrapper.get('[aria-label="현재 모집 상태"]').text()).toBe('모집 중');
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(wrapper.get('[aria-label="현재 모집 상태"]').text()).toBe('모집 마감');
+    expect(wrapper.get('.apply-bar a').attributes('href')).toBe('https://example.com/original');
+    expect(wrapper.get('.apply-bar a').text()).toBe('원문 확인');
+    expect(axios.get).toHaveBeenCalledTimes(1);
+  } finally { wrapper.unmount(); vi.useRealTimers(); }
+});

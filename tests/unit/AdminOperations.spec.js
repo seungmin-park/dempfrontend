@@ -200,7 +200,7 @@ it('앱 달력은 기존 선택 날짜로 열리고 월 이동·날짜 선택 �
   expect(document.activeElement).toBe(dialog.get('[aria-label="2026년 10월 7일"]').element);
   await dialog.get('[aria-label="다음 달"]').trigger('click');
   await dialog.get('[aria-label="2026년 11월 1일"]').trigger('click');
-  expect(wrapper.get('#admin-startedDate').element.value).toBe('2026-11-01T17:56');
+  expect(wrapper.get('#admin-startedDate').element.value).toBe('2026-11-01T17:56:53');
   expect(wrapper.find('[role="dialog"]').exists()).toBe(false);
   expect(wrapper.vm.form.deadLineDate).toBe('2026-10-31T18:30:45');
   wrapper.unmount();
@@ -227,11 +227,11 @@ it('달력은 윤년 2월 29일을 선택하고 저장 중에는 날짜 입력�
   const wrapper = mount(AdminAnnouncementEditor, options({ id: '7' })); await flushPromises();
   await wrapper.get('button[aria-label="모집 시작 달력 열기"]').trigger('click');
   await wrapper.get('[aria-label="2028년 2월 29일"]').trigger('click');
-  expect(wrapper.get('#admin-startedDate').element.value).toBe('2028-02-29T09:15');
+  expect(wrapper.get('#admin-startedDate').element.value).toBe('2028-02-29T09:15:30');
   await wrapper.get('form').trigger('submit');
   expect(wrapper.get('#admin-startedDate').element.disabled).toBe(true);
   expect(wrapper.get('button[aria-label="모집 시작 달력 열기"]').element.disabled).toBe(true);
-  expect(axios.patch.mock.calls[0][1].get('startedDate')).toBe('2028-02-29T09:15');
+  expect(axios.patch.mock.calls[0][1].get('startedDate')).toBe('2028-02-29T09:15:30');
   finish({ data: { cleanupPending: false } }); await flushPromises(); wrapper.unmount();
 });
 
@@ -343,13 +343,13 @@ it('변경 이력은 원래 순서와 모든 표시 값을 보존하고 날짜·
   wrapper.unmount();
 });
 
-it('기존 초를 입력 화면에서는 숨기고 날짜를 바꾸지 않은 저장에서는 보존한다', async () => {
+it('기존 초를 입력 화면에 표시하고 저장에서도 보존한다', async () => {
   axios.get.mockResolvedValue({ data: datedAnnouncement() });
   axios.patch.mockResolvedValue({ data: { cleanupPending: false } });
   const wrapper = mount(AdminAnnouncementEditor, options({ id: '7' }));
   await flushPromises();
-  expect(wrapper.get('#admin-startedDate').element.value).toBe('2026-10-07T17:56');
-  expect(wrapper.get('#admin-deadLineDate').element.value).toBe('2026-10-31T18:30');
+  expect(wrapper.get('#admin-startedDate').element.value).toBe('2026-10-07T17:56:53');
+  expect(wrapper.get('#admin-deadLineDate').element.value).toBe('2026-10-31T18:30:45');
   expect(wrapper.get('#admin-startedDate').element.validity.stepMismatch).toBe(false);
   await wrapper.get('form').trigger('submit');
   await flushPromises();

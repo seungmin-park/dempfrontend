@@ -61,7 +61,7 @@ for (const width of widths) {
         await page.getByRole('button', { name: '필터 열기' }).click();
         await expectGap(page.getByRole('button', { name: '검색', exact: true }), page.getByRole('button', { name: '필터 열기' }), 8);
       }
-      expect.soft((await page.getByLabel('모집 상태').boundingBox()).width, '필터의 선택 값이 읽히는 폭').toBeGreaterThanOrEqual(150);
+      expect.soft((await page.getByRole('button', { name: '모집 상태', exact: true }).boundingBox()).width, '필터의 선택 값이 읽히는 폭').toBeGreaterThanOrEqual(150);
       const controls = page.locator('.filter-trigger');
       await expect(controls).toHaveCount(4);
       for (const control of await controls.all()) {

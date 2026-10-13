@@ -184,3 +184,25 @@ test('스크롤 요청 실패는 자동 반복하지 않고 재시도 버튼으�
   expect(axios.get.mock.calls.slice(1).map(([, options]) => options.params.page)).toEqual([1, 1]);
   expect(wrapper.findAll('.notice-title').map(card => card.text())).toEqual(['첫 공고', '복구 공고']);
 });
+
+
+test('열어 둔 모집 중 필터는 재조회로 시작된 공고를 반영하고 재조회 실패에도 기존 목록을 보존한다', async () => {
+  vi.useFakeTimers(); vi.setSystemTime(new Date('2030-11-01T00:00:00Z'));
+  const item = { id: 91, title: '자동 전환 공고', startedDate: '2030-11-01T09:00:01', deadLineDate: '2030-11-01T09:02:00' };
+  axios.get.mockReset(); axios.get.mockResolvedValueOnce({ data: { content: [], last: true } })
+    .mockResolvedValueOnce({ data: { content: [item], last: true } }).mockRejectedValueOnce(new Error('network'));
+  const wrapper = mount(AnnouncementList, { global: { mocks: {
+    emitter: { on: vi.fn(), off: vi.fn() }, $route: { query: { status: 'OPEN', q: '자동' } },
+    $store: { state: { Login: { token: 'token' } } }, $router: { push: vi.fn() },
+  } } });
+  try {
+    await flushPromises();
+    await vi.advanceTimersByTimeAsync(30000); await flushPromises();
+    expect(wrapper.text()).toContain('자동 전환 공고');
+    expect(wrapper.get('[aria-label="현재 모집 상태"]').text()).toBe('모집 중');
+    expect(axios.get.mock.lastCall[1].params).toMatchObject({ recruitmentStatus: 'OPEN', title: '자동', page: 0 });
+    await vi.advanceTimersByTimeAsync(30000); await flushPromises();
+    expect(wrapper.text()).toContain('자동 전환 공고');
+    expect(wrapper.text()).toContain('최신 모집 상태를 확인하지 못했습니다');
+  } finally { wrapper.unmount(); vi.useRealTimers(); }
+});
