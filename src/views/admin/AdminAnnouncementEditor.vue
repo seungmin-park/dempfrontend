@@ -9,19 +9,19 @@
         <div class="form-grid">
           <div v-for="field in textFields" :key="field.key" class="field"><label :for="`admin-${field.key}`">{{ field.label }}</label><input :id="`admin-${field.key}`" v-model="form[field.key]" type="text" required :disabled="saving" :aria-invalid="Boolean(errors[field.key])" /><p v-if="errors[field.key]" class="field-error">{{ errors[field.key] }}</p></div>
           <div class="field"><label for="admin-type">공고 종류</label><select id="admin-type" v-model="form.type" @change="changeType" required :disabled="saving"><option value="EMP">채용</option><option value="EDU">교육·부트캠프</option></select></div>
-          <div class="field"><label for="admin-position">분야</label><select id="admin-position" v-model="form.position" required :disabled="saving"><option value="">분야 선택</option><option v-for="position in positions" :key="position" :value="position">{{ formatPosition(position) }}</option></select><p v-if="errors.position" class="field-error">{{ errors.position }}</p></div>
+          <div class="field"><label for="admin-position">분야</label><select id="admin-position" v-model="form.position" :required="requiresCompleteInformation" :disabled="saving"><option value="">분야 선택</option><option v-for="position in positions" :key="position" :value="position">{{ formatPosition(position) }}</option></select><p v-if="errors.position" class="field-error">{{ errors.position }}</p></div>
         </div>
         <TechnologySelector :key="String($route.params.id || 'new')" v-model="selectedLanguages" :disabled="saving" :error="errors.language || ''" />
       </fieldset>
 
       <fieldset class="announcement-form-section">
         <legend>모집 조건·일정</legend>
-        <p class="section-help">모집 대상과 고용 형태는 별개입니다. 일정은 날짜와 시·분까지 입력하세요.</p>
+        <p class="section-help">모집 대상과 고용 형태는 별개입니다. 확인한 일정은 시·분·초까지 입력하세요. 초안에서는 미확인 분야·기술·일정을 비워 둘 수 있습니다.</p>
         <div class="form-grid">
           <div v-if="form.type === 'EMP'" class="field"><label for="admin-audience">모집 대상</label><select id="admin-audience" aria-label="모집 대상" v-model="form.recruitmentAudience" :disabled="saving" @change="changeAudience"><option :value="null">미확인 (기존 경력 범위 사용)</option><option value="NEW">신입</option><option value="EXPERIENCED">경력</option><option value="ANY">경력 무관</option><option value="MIXED">신입·경력</option></select></div>
           <div v-if="form.type === 'EMP'" class="field"><label for="admin-employment">고용 형태</label><select id="admin-employment" aria-label="고용 형태" v-model="form.employmentType" :disabled="saving"><option :value="null">미확인</option><option v-for="(label, value) in employmentTypeLabels" :key="value" :value="value">{{ label }}</option></select></div>
           <div v-for="field in numberFields" :key="field.key" class="field"><label :for="`admin-${field.key}`">{{ field.label }}</label><input :id="`admin-${field.key}`" v-model.number="form[field.key]" type="number" min="0" step="1" required :disabled="saving" /><p v-if="errors[field.key]" class="field-error">{{ errors[field.key] }}</p></div>
-          <div v-for="field in dateFields" :key="field.key" class="field"><RecruitmentDateTimeField :id="`admin-${field.key}`" :label="field.label" v-model="form[field.key]" :disabled="saving" /><p v-if="errors[field.key]" class="field-error">{{ errors[field.key] }}</p></div>
+          <div v-for="field in dateFields" :key="field.key" class="field"><RecruitmentDateTimeField :id="`admin-${field.key}`" :label="field.label" v-model="form[field.key]" :required="requiresCompleteInformation" :disabled="saving" /><p v-if="errors[field.key]" class="field-error">{{ errors[field.key] }}</p></div>
         </div>
         <CompensationFields id="admin-payment" :type="form.type" v-model:payment="form.payment" v-model:salary-status="form.salaryStatus" v-model:salary-max="form.salaryMax" :disabled="saving" /><p v-if="errors.payment" class="field-error">{{ errors.payment }}</p>
         <EducationFields v-if="form.type === 'EDU'" id="admin-education-" :model-value="form" @update:model-value="Object.assign(form, $event)" :disabled="saving" />
@@ -100,7 +100,7 @@ export default defineComponent({
     dateFields: [{ key: 'startedDate', label: '모집 시작' }, { key: 'deadLineDate', label: '모집 마감' }] as const,
     numberFields: [{ key: 'minCareer', label: '최소 경력 (년)' }, { key: 'maxCareer', label: '최대 경력 (년, 무관은 0)' }] as const,
   }),
-  computed: { editing(): boolean { return Boolean(this.$route.params.id); } },
+  computed: { requiresCompleteInformation(): boolean { return this.form.publicationStatus === 'PUBLISHED' || this.form.publicationStatus === 'REVIEW'; }, editing(): boolean { return Boolean(this.$route.params.id); } },
   mounted() { this.load(); }, beforeUnmount() { this.generation++; },
   watch: { '$route.params.id': 'load', 'form.accessUrl'() { this.form.sourceVerified = false; }, selectedLanguages(values: Language[]) { if (values.length) delete this.errors.language; } },
   methods: {
@@ -132,10 +132,10 @@ export default defineComponent({
       try { if (!['http:','https:'].includes(new URL(this.form.accessUrl).protocol)) throw new Error(); } catch { errors.accessUrl = 'http 또는 https 주소를 입력해 주세요.'; }
       if (this.form.applicationUrl) { try { if (!['http:','https:'].includes(new URL(this.form.applicationUrl).protocol)) throw new Error(); } catch { errors.applicationUrl = 'http 또는 https 주소를 입력해 주세요.'; } }
       if (!hasTextContent(this.form.content)) errors.content = '본문 내용을 입력해 주세요.';
-      if (!this.form.position) errors.position = '분야를 선택해 주세요.';
-      if (!this.selectedLanguages.length) errors.language = '기술 스택을 하나 이상 선택해 주세요.';
-      if (!this.form.startedDate) errors.startedDate = '모집 시작을 입력해 주세요.';
-      if (!this.form.deadLineDate || (this.form.startedDate && this.form.deadLineDate < this.form.startedDate)) errors.deadLineDate = '마감은 모집 시작보다 빠를 수 없습니다.';
+      if (this.requiresCompleteInformation && !this.form.position) errors.position = '분야를 선택해 주세요.';
+      if (this.requiresCompleteInformation && !this.selectedLanguages.length) errors.language = '기술 스택을 하나 이상 선택해 주세요.';
+      if (this.requiresCompleteInformation && !this.form.startedDate) errors.startedDate = '모집 시작을 입력해 주세요.';
+      if ((this.requiresCompleteInformation && !this.form.deadLineDate) || (this.form.startedDate && this.form.deadLineDate && this.form.deadLineDate < this.form.startedDate)) errors.deadLineDate = '마감은 모집 시작보다 빠를 수 없습니다.';
       for (const field of ['minCareer','maxCareer'] as const) if (!Number.isInteger(this.form[field]) || this.form[field] < 0) errors[field] = '0 이상의 정수를 입력해 주세요.';
       if (this.form.maxCareer && this.form.minCareer > this.form.maxCareer) errors.maxCareer = '최대 경력은 최소 경력보다 작을 수 없습니다.';
       if (this.form.type === 'EDU' && educationError(this.form)) errors.education = educationError(this.form);
