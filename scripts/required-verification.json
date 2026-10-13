@@ -48,7 +48,8 @@
     "tests/unit/test-environment.spec.js",
     "tests/unit/VueWarningGate.spec.js",
     "tests/unit/TypeSafetyLint.spec.js",
-    "tests/unit/questionApi.spec.js"
+    "tests/unit/questionApi.spec.js",
+    "tests/unit/MyPage.spec.js"
   ],
   "unitAssertions": [
     {
@@ -500,6 +501,14 @@
     {
       "file": "community.spec.js",
       "title": "로그인 제한은 대기 시간을 표시하고 입력을 보존해 재시도한다"
+    },
+    {
+      "file": "member-account.spec.js",
+      "title": "마이페이지는 닉네임 실패 입력을 보존하고 저장 재조회 및 비밀번호 변경 후 재로그인을 안내한다"
+    },
+    {
+      "file": "member-account.spec.js",
+      "title": "비로그인 마이페이지 진입은 로그인 후 돌아올 경로를 보존한다"
     }
   ],
   "browserWarningAttachment": "vue-warnings",
