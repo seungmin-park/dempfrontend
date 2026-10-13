@@ -11,7 +11,7 @@
       <div class="field"><label for="deadLineDate">모집 마감</label><Field id="deadLineDate" name="deadLineDate" type="datetime-local" v-model="deadLineDate" rules="required" :disabled="saving" /><ErrorMessage name="deadLineDate" class="field-error">모집 마감일을 입력해 주세요.</ErrorMessage></div>
       <div class="field"><label for="minCareer">최소 경력 (년)</label><Field id="minCareer" name="minCareer" type="number" min="0" v-model="minCareer" rules="required|min_value:0" :disabled="saving" /><ErrorMessage name="minCareer" class="field-error">0 이상의 경력을 입력해 주세요.</ErrorMessage></div>
       <div class="field"><label for="maxCareer">최대 경력 (년)</label><Field id="maxCareer" name="maxCareer" type="number" min="0" v-model="maxCareer" rules="required|min_value:0" :disabled="saving" /><ErrorMessage name="maxCareer" class="field-error">0 이상의 경력을 입력해 주세요.</ErrorMessage></div>
-      <CompensationFields id="payment" :type="type" v-model:payment="payment" v-model:salary-status="salaryStatus" v-model:salary-max="salaryMax" :disabled="saving" />
+      <CompensationFields id="payment" :type="type" v-model:payment="payment" v-model:salary-status="salaryStatus" v-model:salary-max="salaryMax" v-model:salary-period="salaryPeriod" :disabled="saving" />
       <div class="field"><label for="announce_img">대표 이미지 (선택)</label><input id="announce_img" name="announce_img" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" ref="announceImg" :disabled="saving" @change="uploadImg" /><p class="field-hint">JPEG 또는 PNG 파일을 선택하세요.</p></div>
     </div>
     <EducationFields v-if="type === 'EDU'" id="education-" v-model="education" :disabled="saving" />
@@ -69,6 +69,7 @@ export default defineComponent({
       positions: positions,
       position: "" as AnnouncementForm["position"],
       payment: null as number | null,
+      salaryPeriod: 'YEAR' as NonNullable<AnnouncementForm['salaryPeriod']>,
       salaryStatus: undefined as AnnouncementForm['salaryStatus'],
       salaryMax: null as number | null,
       image: null as File | null,
@@ -79,7 +80,7 @@ export default defineComponent({
   },
   methods: {
     formatPosition,
-    changeType() { this.payment = null; this.salaryStatus = undefined; this.salaryMax = null; },
+    changeType() { this.salaryPeriod = 'YEAR'; this.payment = null; this.salaryStatus = undefined; this.salaryMax = null; },
     isRequired(value: unknown) {
       if (typeof value === 'string' && value.trim()) {
         return true;
@@ -111,6 +112,7 @@ export default defineComponent({
         maxCareer: this.maxCareer,
         language: this.language,
         payment: this.payment,
+        salaryPeriod: this.salaryPeriod,
         ...(this.type === 'EMP' && this.salaryStatus ? { salaryStatus: this.salaryStatus } : {}), salaryMax: this.type === 'EMP' ? this.salaryMax : null,
         position: this.position,
         content: this.content,

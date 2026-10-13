@@ -7,9 +7,16 @@ export function toAnnouncementFormData(announcement: AnnouncementForm) {
   const fields = [
     'title', 'company', 'type', 'position', 'minCareer', 'maxCareer',
     'recruitmentClosed', 'recruitmentAudience', 'publicationStatus', 'sourceName', 'sourceIdentifier', 'applicationUrl', 'sourceVerified',
+    'salaryPeriod', 'workPeriod', 'conversionNote',
     'startedDate', 'deadLineDate', 'content', 'accessUrl', 'payment', 'salaryStatus', 'salaryMax',
   ] as const;
   fields.forEach(field => { if (announcement[field] != null && announcement[field] !== '') form.append(field, String(announcement[field])); });
+  announcement.referenceUrls?.forEach((url, index) => form.append(`referenceUrls[${index}]`, url));
+  if (announcement.type === 'EMP') announcement.roles?.forEach((role, index) => {
+    for (const key of ['title', 'position', 'location', 'qualifications', 'requiredSkills', 'preferredSkills', 'usedTechnologies'] as const) {
+      if (role[key] != null && role[key] !== '') form.append(`roles[${index}].${key}`, role[key]);
+    }
+  });
   if (announcement.type === 'EMP' && announcement.employmentType) form.append('employmentType', announcement.employmentType);
   if (announcement.type === 'EDU') {
     for (const key of [...educationFields.map(field => field.key), 'learningStartDate', 'learningEndDate', 'cohort', 'stipendAmount', 'stipendNote'] as const) {

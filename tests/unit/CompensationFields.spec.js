@@ -14,7 +14,7 @@ it('교육비 빈 값과 명시적인 무료를 구분하여 전송한다', asyn
 });
 it('협의 선택은 기존 범위를 지우며 공개 금액은 역전 범위를 거절한다', async () => {
   const wrapper = mount(CompensationFields, { props: { id: 'salary', type: 'EMP', payment: 4000, salaryMax: 6000, salaryStatus: 'DISCLOSED' } });
-  await wrapper.get('select').setValue('NEGOTIABLE');
+  await wrapper.get('#salary-salary-status').setValue('NEGOTIABLE');
   expect(wrapper.emitted('update:payment')).toEqual([[null]]);
   expect(wrapper.emitted('update:salaryMax')).toEqual([[null]]);
   expect(compensationError({ type: 'EMP', payment: 6000, salaryMax: 4000, salaryStatus: 'DISCLOSED' })).toContain('상한');

@@ -5,11 +5,13 @@ import type { Technology } from '@/data/technologies';
 export type EntityId = number | string;
 export type JobPosition = typeof positions[number];
 export type Language = Technology;
+export type SalaryPeriod = 'YEAR' | 'MONTH';
+export interface RecruitmentRole { title: string; position?: JobPosition | '' | null; location?: string | null; qualifications?: string | null; requiredSkills?: string | null; preferredSkills?: string | null; usedTechnologies?: string | null }
 export type SalaryStatus = 'UNDISCLOSED' | 'NEGOTIABLE' | 'DISCLOSED';
 export type PublicationStatus = 'DRAFT' | 'REVIEW' | 'PUBLISHED' | 'HIDDEN';
 export type RecruitmentAudience = 'NEW' | 'EXPERIENCED' | 'ANY' | 'MIXED';
 export type EmploymentType = 'REGULAR' | 'CONTRACT' | 'CONVERSION_INTERNSHIP' | 'EXPERIENTIAL_INTERNSHIP';
-export interface PublicationInfo { employmentType?: EmploymentType | null; recruitmentClosed?: boolean; recruitmentAudience?: RecruitmentAudience | null; cohort?: string | null; stipendAmount?: number | null; stipendNote?: string | null; publicationStatus?: PublicationStatus; sourceName?: string | null; sourceIdentifier?: string | null; applicationUrl?: string | null; sourceVerifiedAt?: string | null; sourceVerified?: boolean }
+export interface PublicationInfo { salaryPeriod?: SalaryPeriod; workPeriod?: string | null; conversionNote?: string | null; roles?: RecruitmentRole[]; referenceUrls?: string[]; employmentType?: EmploymentType | null; recruitmentClosed?: boolean; recruitmentAudience?: RecruitmentAudience | null; cohort?: string | null; stipendAmount?: number | null; stipendNote?: string | null; publicationStatus?: PublicationStatus; sourceName?: string | null; sourceIdentifier?: string | null; applicationUrl?: string | null; sourceVerifiedAt?: string | null; sourceVerified?: boolean }
 export interface PublicationRevision { actor: string; changedAt: string; status: PublicationStatus; title: string; sourceUrl: string }
 export type AnnouncementType = 'EMP' | 'EDU';
 export interface Slice<T> { content: T[]; last: boolean; number: number }

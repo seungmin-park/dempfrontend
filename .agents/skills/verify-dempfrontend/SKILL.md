@@ -5,6 +5,14 @@ description: Verify DEMP Vue reaction flow, official documentation versions, and
 
 # Verify DEMP frontend
 
+## Restored announcement registration and time transitions
+
+Use the existing admin editor, public detail and filtered list paths. Draft save/reload must preserve null position/dates and empty technologies; attempting PUBLISHED/REVIEW must identify missing required information without losing inputs. Verify `16:59:59` remains after calendar reselection. Check YEAR/MONTH in both admin and legacy write paths, role required/preferred/used conditions, work period, conversion notes and separate reference links. Secondary roles must survive multipart binding and a fresh backend read, not just local component state.
+
+`recruitmentState` owns display rules and `useRecruitmentTime` owns its one-second clock/listener lifecycle. The list owns 30-second/visibility refresh with unchanged filters and loaded range; a failed refresh keeps previous results, and stale responses must not overwrite a new filter. Exact start and deadline are included in OPEN; manual close overrides time. Existing unit tests exercise these boundaries and error/race paths. The headed verifier covers development and production with API fixtures; it does not prove real DB behavior.
+
+In the actual caller cmux/Spring browser, create a separate synthetic public record with a future start and near deadline. Leave detail and OPEN-filtered list open and assert state, action button and `.job-grid` card entry/exit using real elapsed time. Requery dates and manual flag before explicit manual close/unclose tests. Preserve screenshots and command assertions. At 320/390/1440px check added role selects >=44px and no horizontal overflow in admin/public views; Chromium passing alone does not cover cmux WebKit. Follow the backend announcement HTTP contract verifier for schema/auth/header/persistence evidence, and distinguish external employer schedule updates from registered-date transitions.
+
 Read [feature map](../../../docs/engineering/feature-map.md), [architecture](../../../docs/engineering/architecture.md), [official docs](../../../docs/engineering/official-docs.md), and this repository's `AGENTS.md`. The backend is a separate Git repository with its own verification skill.
 
 ## Doctor and automated checks

@@ -315,3 +315,19 @@ test('초안은 공개 상세에서 숨기고 검토 후 게시하며 수동 마
   await page.getByRole('button', { name: '변경 저장', exact: true }).click(); await expect(page).toHaveURL(/\/admin\/announcements$/);
   await page.goto(`/detail/${id}`); await expect(page.getByRole('link', { name: '원문 확인', exact: true })).toBeVisible();
 });
+
+
+for (const width of [320, 390, 1440]) {
+  test(`추가 직무의 분야 선택은 ${width}px에서도 44px 조작 높이를 보장한다`, async ({ page }) => {
+    const state = await adminFixture(page);
+    state.items = [{ id: 10, title: '여러 직무', company: { name: 'DEMP' }, announcementType: 'EMP', publicationStatus: 'DRAFT',
+      language: [], content: '조건 복원 중', minCareer: 0, maxCareer: 0, accessUrl: 'https://example.test/job',
+      roles: [{ title: 'AI-OCR', position: 'AI', requiredSkills: 'Python 또는 PyTorch' }] }];
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/admin/announcements/10');
+    const field = page.getByLabel('직무 1 분야', { exact: true });
+    await expect(field).toHaveValue('AI');
+    expect((await field.boundingBox()).height).toBeGreaterThanOrEqual(44);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
+}
