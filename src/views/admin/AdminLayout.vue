@@ -4,6 +4,7 @@
     <AsyncState :loading="loading" :error="error" @retry="verifyAccess" />
     <template v-if="identity">
       <nav class="admin-nav" aria-label="관리자 메뉴"><router-link to="/admin" exact-active-class="is-active">운영 현황</router-link><router-link to="/admin/announcements">공고·부트캠프</router-link><router-link to="/admin/announcement-reports">오류 제보</router-link><router-link to="/admin/questions">질문</router-link><router-link to="/admin/answers">답변</router-link></nav>
+      <p class="admin-account-note">개인 정보와 비밀번호는 <router-link to="/mypage">내 계정 관리</router-link>에서 변경할 수 있습니다.</p>
       <router-view />
     </template>
   </section>
