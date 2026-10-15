@@ -13,8 +13,8 @@ export interface AdminMutationResult { cleanupPending: boolean }
 export type PostKind = 'questions' | 'answers';
 export type CollectionKind = 'announcements' | PostKind;
 export const fetchAdminOverview = async () => (await apiClient.get<AdminOverview>('/api/admin/overview')).data;
-export const fetchAdminAnnouncements = async (title: string, announcementType: string, page: number) =>
-  (await apiClient.get<AdminPage<AnnouncementSummary>>('/api/admin/announcements', { params: { title, announcementType, page } })).data;
+export const fetchAdminAnnouncements = async (title: string, announcementType: string, page: number, publicationStatus = '') =>
+  (await apiClient.get<AdminPage<AnnouncementSummary>>('/api/admin/announcements', { params: { title, announcementType, page, ...(publicationStatus ? { publicationStatus } : {}) } })).data;
 export const fetchAdminPosts = async (kind: PostKind, q: string, page: number) =>
   (await apiClient.get<AdminPage<AdminPost>>(`/api/admin/${kind}`, { params: { q, page } })).data;
 export const fetchAdminPost = async (kind: PostKind, id: EntityId) => (await apiClient.get<AdminPost>(`/api/admin/${kind}/${id}`)).data;
