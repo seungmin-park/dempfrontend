@@ -56,3 +56,8 @@
 - [마감 임박순 기본 정렬](../plans/deadline-first-announcements.md): 기본 DEADLINE을 URL·선택 표시·API에 일치시키고 명시적 LATEST를 보존한다.
 
 - [운영 필터 즉시 적용](../plans/admin-filter-auto-apply.md): 공고 종류·게시 상태 change가 기존 search → URL → API 조회로 연결된다. 첫 페이지 복귀·다른 조건 유지·늦은 응답 무시는 AdminFilterAutoApply에서, 선택·새로고침·전체 해제는 admin E2E에서 확인한다.
+
+
+## 수시 모집 마감 방식
+
+RecruitPeriod/DeadlineMode는 FIXED/UNTIL_FILLED/ALWAYS_OPEN/UNKNOWN을 구분한다. 일시 지정만 정확한 마감 일시를 요구하고 비지정 방식은 가상 날짜 없이 수동 종료를 반영한다. 기존 NULL의 날짜 유무를 보존하며 새 미확인 공개는 거절한다. RecruitmentDeadlineServiceTest, 기존 전체 검증 및 frontend RecruitmentDeadlineMode/recruitment-deadline-modes E2E로 검증한다.
