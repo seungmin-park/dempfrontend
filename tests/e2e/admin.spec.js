@@ -389,17 +389,14 @@ test('운영 목록의 게시 상태 선택은 조회·새로고침·전체 해�
   ];
   await page.goto('/admin/announcements');
   await page.getByLabel('게시 상태 필터').selectOption('DRAFT');
-  await page.getByRole('button', { name: '검색', exact: true }).click();
   await expect(page.getByRole('link', { name: '초안 은행 공고', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: '공개 은행 공고', exact: true })).toHaveCount(0);
   await page.reload();
   await expect(page.getByLabel('게시 상태 필터')).toHaveValue('DRAFT');
   await page.getByLabel('게시 상태 필터').selectOption('PUBLISHED');
-  await page.getByRole('button', { name: '검색', exact: true }).click();
   await expect(page.getByRole('link', { name: '공개 은행 공고', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: '초안 은행 공고', exact: true })).toHaveCount(0);
   await page.getByLabel('게시 상태 필터').selectOption('');
-  await page.getByRole('button', { name: '검색', exact: true }).click();
   await expect(page.getByRole('link', { name: '초안 은행 공고', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: '공개 은행 공고', exact: true })).toBeVisible();
 });
