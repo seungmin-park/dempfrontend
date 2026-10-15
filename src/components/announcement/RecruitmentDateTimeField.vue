@@ -2,13 +2,17 @@
   <div ref="root" class="recruitment-datetime">
     <label :for="id">{{ label }}</label>
     <div class="datetime-input-row">
-      <input :id="id" type="datetime-local" :value="modelValue" step="1" :required="required ?? true" :disabled="disabled"
-        @input="emit('update:modelValue', ($event.target as HTMLInputElement).value || null)" />
+      <input :id="id" type="date" :value="dateInput" :required="(required ?? true) || Boolean(timeInput)" :disabled="disabled"
+        @input="updateDate(($event.target as HTMLInputElement).value)" />
+      <input :id="`${id}-time`" type="time" :aria-label="`${label} 시각`" :value="timeInput" step="1" :required="(required ?? true) || Boolean(dateInput)" :disabled="disabled"
+        @input="updateTime(($event.target as HTMLInputElement).value)" />
       <button ref="trigger" type="button" class="calendar-trigger" :aria-label="`${label} 달력 열기`"
         :aria-expanded="open" :aria-controls="`${id}-calendar`" :disabled="disabled" @click="toggleCalendar">
         <span aria-hidden="true">달력</span>
       </button>
     </div>
+    <button v-if="endOfDay" type="button" class="end-of-day" :aria-label="`${label} 23:59로 설정`" :disabled="disabled" @click="updateTime('23:59:00')">23:59</button>
+    <p class="datetime-help">날짜와 시각을 각각 입력하세요. 한국 시간 기준입니다.</p>
     <div v-if="open" :id="`${id}-calendar`" role="dialog" :aria-label="`${label} 날짜 선택`" class="recruitment-calendar" :data-placement="above ? 'above' : 'below'" :style="{ maxHeight: calendarMaxHeight === undefined ? undefined : `${calendarMaxHeight}px` }"
       @keydown.esc.stop.prevent="closeCalendar" @keydown="moveFocus">
       <div class="calendar-heading">
@@ -31,8 +35,20 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-const props = defineProps<{ id: string; label: string; modelValue: string | null | undefined; disabled?: boolean; required?: boolean }>();
+const props = defineProps<{ id: string; label: string; modelValue: string | null | undefined; disabled?: boolean; required?: boolean; endOfDay?: boolean }>();
 const emit = defineEmits<{ 'update:modelValue': [value: string | null] }>();
+const dateInput = ref(props.modelValue?.slice(0, 10) || '');
+const timeInput = ref(props.modelValue?.slice(11) || '');
+watch(() => props.modelValue, value => {
+  if ((dateInput.value && timeInput.value ? `${dateInput.value}T${timeInput.value}` : null) === value) return;
+  dateInput.value = value?.slice(0, 10) || ''; timeInput.value = value?.slice(11) || '';
+});
+function emitCompleteValue() {
+  if (dateInput.value && timeInput.value) emit('update:modelValue', `${dateInput.value}T${timeInput.value}`);
+  else if (props.modelValue) emit('update:modelValue', null);
+}
+function updateDate(value: string) { if (!props.disabled) { dateInput.value = value; emitCompleteValue(); } }
+function updateTime(value: string) { if (!props.disabled) { timeInput.value = value; emitCompleteValue(); } }
 const root = ref<HTMLElement>();
 const trigger = ref<HTMLButtonElement>();
 const open = ref(false);
@@ -45,7 +61,7 @@ const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
 const pad = (value: number) => String(value).padStart(2, '0');
 const localDate = (value: Date) => `${String(value.getFullYear()).padStart(4, '0')}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`;
 const today = localDate(new Date());
-const selectedDate = computed(() => props.modelValue?.slice(0, 10));
+const selectedDate = computed(() => dateInput.value);
 const monthDate = (day: number) => {
   const date = new Date(0);
   date.setFullYear(year.value, month.value, day);
@@ -78,7 +94,7 @@ function closeCalendar() { open.value = false; trigger.value?.focus(); }
 async function toggleCalendar() {
   if (open.value) { closeCalendar(); return; }
   if (props.disabled) return;
-  const parts = /^(\d{4})-(\d{2})-(\d{2})/.exec(props.modelValue || today);
+  const parts = /^(\d{4})-(\d{2})-(\d{2})/.exec(dateInput.value || today);
   year.value = Number(parts?.[1]) || new Date().getFullYear();
   month.value = Number(parts?.[2] || 1) - 1;
   focusedDay.value = Number(parts?.[3]) || 1;
@@ -87,8 +103,7 @@ async function toggleCalendar() {
 }
 function selectDate(day: number) {
   if (props.disabled) return;
-  const time = props.modelValue?.slice(11) || '00:00';
-  emit('update:modelValue', `${dateValue(day)}T${time}`);
+  updateDate(dateValue(day));
   closeCalendar();
 }
 async function moveMonth(delta: number) {
@@ -127,7 +142,10 @@ onBeforeUnmount(() => { document.removeEventListener('pointerdown', onOutsidePoi
 .recruitment-datetime { position: relative; min-width: 0; }
 .recruitment-datetime > label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
 .datetime-input-row { display: flex; gap: 8px; }
-.datetime-input-row input { min-width: 0; width: 100%; flex: 1; }
+.datetime-input-row { flex-wrap: wrap; }
+.datetime-input-row input { min-width: 0; width: 100%; flex: 1 1 135px; }
+.end-of-day { margin-top: 8px; min-height: 36px; border: 1px solid var(--line); border-radius: 8px; background: var(--primary-soft); color: var(--primary); padding: 4px 12px; }
+.datetime-help { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
 .datetime-input-row input::-webkit-calendar-picker-indicator { display: none; }
 .calendar-trigger { flex-shrink: 0; min-height: 44px; padding: 0 12px; background: var(--primary-soft); color: var(--primary); border: 1px solid var(--line); border-radius: 8px; font-weight: 600; }
 .recruitment-calendar { position: absolute; top: 100%; left: 0; z-index: 12; width: min(310px, 100%); box-sizing: border-box; max-height: calc(100vh - 32px); overflow: auto; padding: 14px; margin-top: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 32px #0f172a18; }

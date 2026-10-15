@@ -1,3 +1,4 @@
+import { reactive } from 'vue';
 import { mount, flushPromises } from '@vue/test-utils';
 import axios from 'axios';
 import AdminDashboard from '@/views/admin/AdminDashboard.vue';
@@ -200,7 +201,8 @@ it('앱 달력은 기존 선택 날짜로 열리고 월 이동·날짜 선택 �
   expect(document.activeElement).toBe(dialog.get('[aria-label="2026년 10월 7일"]').element);
   await dialog.get('[aria-label="다음 달"]').trigger('click');
   await dialog.get('[aria-label="2026년 11월 1일"]').trigger('click');
-  expect(wrapper.get('#admin-startedDate').element.value).toBe('2026-11-01T17:56:53');
+  expect(wrapper.get('#admin-startedDate').element.value).toBe('2026-11-01');
+  expect(wrapper.get('#admin-startedDate-time').element.value).toBe('17:56:53');
   expect(wrapper.find('[role="dialog"]').exists()).toBe(false);
   expect(wrapper.vm.form.deadLineDate).toBe('2026-10-31T18:30:45');
   wrapper.unmount();
@@ -227,7 +229,8 @@ it('달력은 윤년 2월 29일을 선택하고 저장 중에는 날짜 입력�
   const wrapper = mount(AdminAnnouncementEditor, options({ id: '7' })); await flushPromises();
   await wrapper.get('button[aria-label="모집 시작 달력 열기"]').trigger('click');
   await wrapper.get('[aria-label="2028년 2월 29일"]').trigger('click');
-  expect(wrapper.get('#admin-startedDate').element.value).toBe('2028-02-29T09:15:30');
+  expect(wrapper.get('#admin-startedDate').element.value).toBe('2028-02-29');
+  expect(wrapper.get('#admin-startedDate-time').element.value).toBe('09:15:30');
   await wrapper.get('form').trigger('submit');
   expect(wrapper.get('#admin-startedDate').element.disabled).toBe(true);
   expect(wrapper.get('button[aria-label="모집 시작 달력 열기"]').element.disabled).toBe(true);
@@ -348,8 +351,10 @@ it('기존 초를 입력 화면에 표시하고 저장에서도 보존한다', a
   axios.patch.mockResolvedValue({ data: { cleanupPending: false } });
   const wrapper = mount(AdminAnnouncementEditor, options({ id: '7' }));
   await flushPromises();
-  expect(wrapper.get('#admin-startedDate').element.value).toBe('2026-10-07T17:56:53');
-  expect(wrapper.get('#admin-deadLineDate').element.value).toBe('2026-10-31T18:30:45');
+  expect(wrapper.get('#admin-startedDate').element.value).toBe('2026-10-07');
+  expect(wrapper.get('#admin-startedDate-time').element.value).toBe('17:56:53');
+  expect(wrapper.get('#admin-deadLineDate').element.value).toBe('2026-10-31');
+  expect(wrapper.get('#admin-deadLineDate-time').element.value).toBe('18:30:45');
   expect(wrapper.get('#admin-startedDate').element.validity.stepMismatch).toBe(false);
   await wrapper.get('form').trigger('submit');
   await flushPromises();
@@ -362,7 +367,8 @@ it('시각을 직접 바꾸면 입력한 분 단위를 저장하고 다른 날�
   axios.patch.mockResolvedValue({ data: { cleanupPending: false } });
   const wrapper = mount(AdminAnnouncementEditor, options({ id: '7' }));
   await flushPromises();
-  await wrapper.get('#admin-startedDate').setValue('2026-10-08T09:15');
+  await wrapper.get('#admin-startedDate').setValue('2026-10-08');
+  await wrapper.get('#admin-startedDate-time').setValue('09:15');
   await wrapper.get('form').trigger('submit');
   await flushPromises();
   expect(axios.patch.mock.calls[0][1].get('startedDate')).toBe('2026-10-08T09:15');
@@ -410,5 +416,21 @@ it('월급과 근무 조건 및 여러 직무의 필수·우대를 구분해 복
   expect(body.get('roles[0].requiredSkills')).toBe('Python 또는 PyTorch');
   expect(body.get('roles[1].title')).toBe('플랫폼 개발');
   expect(body.get('referenceUrls[0]')).toBe('https://linkareer.com/activity/345218');
+  wrapper.unmount();
+});
+
+it('편집에서 신규 등록으로 이동하면 미완성 날짜·시각은 다른 공고에 섞이지 않는다', async () => {
+  axios.get.mockResolvedValue({ data: { ...datedAnnouncement(), publicationStatus: 'DRAFT', startedDate: null, deadLineDate: null } });
+  const config = options({ id: '7' });
+  const route = reactive({ params: { id: '7' }, query: {} }); config.global.mocks.$route = route;
+  const wrapper = mount(AdminAnnouncementEditor, config); await flushPromises();
+  await wrapper.get('#admin-deadLineDate').setValue('2026-09-01');
+  expect(wrapper.get('#admin-deadLineDate').element.value).toBe('2026-09-01');
+  expect(wrapper.vm.form.deadLineDate).toBeNull();
+  route.params = {}; await flushPromises();
+  expect(wrapper.get('#admin-deadLineDate').element.value).toBe('');
+  expect(wrapper.get('#admin-deadLineDate-time').element.value).toBe('');
+  await wrapper.get('#admin-deadLineDate-time').setValue('23:59');
+  expect(wrapper.vm.form.deadLineDate).toBeNull();
   wrapper.unmount();
 });
