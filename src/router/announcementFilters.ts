@@ -20,7 +20,7 @@ export function filtersFromQuery(query: LocationQuery = {}): AnnouncementFilters
   }
   return {
     ...education,
-    ...(orderBy === 'DEADLINE' || orderBy === 'VIEWS' ? { orderBy } : {}),
+    orderBy: orderBy === 'LATEST' || orderBy === 'VIEWS' ? orderBy : 'DEADLINE',
     announcementType: type === 'EMP' || type === 'EDU' ? type : '',
     positions: [...new Set(positions.filter(item => values(query.positions).includes(item)))],
     languages: [...new Set(languages.filter(item => values(query.languages).includes(item)))],
@@ -33,7 +33,7 @@ export function filtersFromQuery(query: LocationQuery = {}): AnnouncementFilters
 }
 export function filtersToQuery(filters: AnnouncementFilters): LocationQueryRaw {
   const query: LocationQueryRaw = {};
-  if (filters.orderBy && filters.orderBy !== 'LATEST') query.orderBy = filters.orderBy;
+  if (filters.orderBy && filters.orderBy !== 'DEADLINE') query.orderBy = filters.orderBy;
   if (filters.announcementType) query.type = filters.announcementType;
   if (filters.positions.length) query.positions = filters.positions.join(',');
   if (filters.languages?.length) query.languages = filters.languages.join(',');

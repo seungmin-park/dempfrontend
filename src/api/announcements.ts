@@ -59,7 +59,7 @@ export function getAnnouncements(condition: AnnouncementSearchCondition) {
       positions: condition.positions.join(','),
       career: condition.career,
       title: condition.title,
-      ...(condition.orderBy && condition.orderBy !== 'LATEST' ? { orderBy: condition.orderBy } : {}),
+      orderBy: condition.orderBy || 'DEADLINE',
       ...(condition.languages?.length ? { languages: condition.languages.join(',') } : {}),
       ...(condition.recruitmentStatus ? { recruitmentStatus: condition.recruitmentStatus } : {}),
       ...(condition.tuition ? { tuition: condition.tuition } : {}),

@@ -133,3 +133,17 @@ for (const width of [390, 1440]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 }
+
+test('기본 마감 임박순과 명시적 최신순은 API·새로고침·필터 변경에서 유지된다', async ({ page }) => {
+  const requests = await announcements(page);
+  await page.goto('/');
+  await expect(page.getByLabel('공고 정렬')).toHaveValue('DEADLINE');
+  await expect.poll(() => requests.at(-1)?.orderBy).toBe('DEADLINE');
+  await page.getByLabel('공고 정렬').selectOption('LATEST');
+  await expect.poll(() => requests.at(-1)?.orderBy).toBe('LATEST');
+  await expect(page).toHaveURL(/orderBy=LATEST/);
+  await page.reload(); await expect(page.getByLabel('공고 정렬')).toHaveValue('LATEST');
+  await page.getByRole('button', { name: '기술 스택', exact: true }).click();
+  await page.getByRole('checkbox', { name: 'Java', exact: true }).check();
+  await expect.poll(() => requests.at(-1)).toMatchObject({ orderBy: 'LATEST', languages: 'JAVA', page: '0' });
+});

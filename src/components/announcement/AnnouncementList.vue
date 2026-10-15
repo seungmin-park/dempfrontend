@@ -2,7 +2,7 @@
   <div class="results-heading">
     <h2>공고 목록 <span>{{ notices.length }}</span></h2>
     <label class="announcement-order">정렬
-      <select aria-label="공고 정렬" :value="announcementSearchCondition.orderBy || 'LATEST'" @change="changeOrder">
+      <select aria-label="공고 정렬" :value="announcementSearchCondition.orderBy || 'DEADLINE'" @change="changeOrder">
         <option value="LATEST">최신 등록순</option><option value="DEADLINE">마감 임박순</option><option value="VIEWS">조회 많은 순</option>
       </select>
     </label>
