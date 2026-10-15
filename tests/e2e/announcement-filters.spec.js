@@ -107,3 +107,29 @@ test('경력은 20년 URL·정확한 연차·오류·빠른 선택·해제를 �
   await expect(page).not.toHaveURL(/career=/);
   await expect(page.locator('#career-filter-value')).toHaveText('조건 없음');
 });
+
+for (const width of [390, 1440]) {
+  test(`공고 로고는 ${width}px 목록·상세·추천에서 잘리지 않고 여백 안에 들어간다`, async ({ page }) => {
+    const image = '/fixture-wide-logo.svg';
+    const item = { id: 1, title: '가로 로고 검증', company: 'DEMP', announcementType: 'EMP', publicationStatus: 'PUBLISHED', position: 'BACKEND', language: [], image, content: '<p>본문</p>', accessUrl: 'https://example.test/job' };
+    await page.addInitScript(() => localStorage.setItem('vuex', JSON.stringify({ Login: { username: 'fixture', token: 'fixture-token', roles: ['ROLE_ADMIN'] } })));
+    await page.route('**/fixture-wide-logo.svg', route => route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="80"><rect width="400" height="80" fill="navy"/><text x="10" y="50" font-size="40" fill="white">FULL COMPANY LOGO</text></svg>' }));
+    await page.route('/api/**', route => {
+      const path = new URL(route.request().url()).pathname;
+      if (path === '/api/announce/detail/1') return route.fulfill({ json: { ...item, company: { name: 'DEMP' } } });
+      if (path === '/api/announce/scroll') return route.fulfill({ json: [{ ...item, company: { name: 'DEMP' } }] });
+      if (path === '/api/admin/me') return route.fulfill({ json: { username: 'fixture', roles: ['ROLE_ADMIN'] } });
+      return route.fulfill({ json: { content: [item], last: true, number: 0 } });
+    });
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto('/');
+    const logo = page.locator('.item-image-box img'); await expect(logo).toBeVisible();
+    await expect(logo).toHaveCSS('object-fit', 'contain');
+    await expect.poll(() => logo.evaluate(img => img.complete && img.naturalWidth === 400)).toBe(true);
+    await page.getByRole('link', { name: '가로 로고 검증', exact: true }).click();
+    const detail = page.locator('.company-logo img'); await expect(detail).toBeVisible();
+    await expect(detail).toHaveCSS('object-fit', 'contain');
+    await expect(page.locator('.anncoucement-scroll-items-img img')).toHaveCSS('object-fit', 'contain');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
+}

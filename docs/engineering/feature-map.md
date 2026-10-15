@@ -44,3 +44,5 @@
 `/mypage` → `MyPage` → `useMemberAccount` → `members` API. 로그인 아이디/회원 구분 조회, 닉네임 수정 및 현재 비밀번호 확인 후 변경. 실패 입력 유지, 사용자별 닉네임 초안 복귀, 이전 응답 폐기, 비밀번호 성공 시 비밀 입력/세션 삭제. `MyPage.spec.js`, `member-account.spec.js`를 공용 verify에서 실행한다. 실제 Spring/H2 저장 검증은 별도 cmux 흐름으로 확인한다.
 
 관리자 진입은 App의 기존 useAdminAccess 검증 결과를 Header props로 전달한다. 헤더는 권한을 판단하거나 별도 API를 호출하지 않는다. 일반 회원은 마이페이지, 서버 확인된 관리자는 별도 `/admin` 링크와 기존 운영 화면을 사용한다. AppAdminAccess와 admin E2E에서 일반 회원/위조 localStorage/로그아웃/지연 응답을 확인한다.
+
+- 2026-10-15: [잘리지 않는 공고 로고](../plans/uncropped-announcement-thumbnails.md). CompanyImage가 원본 비율·전체 표시·중앙 정렬·흰 배경·6px 여백을 소유하고 부모는 영역 크기를 소유한다. 목록 cover 설정을 제거한다. 390/1440px 실제 브라우저에서 목록·상세·추천의 가로 로고 로딩과 표시를 검증한다.
