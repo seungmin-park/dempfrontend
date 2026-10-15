@@ -23,10 +23,10 @@ it('정렬을 URL에서 복원하고 변경해도 기존 필터를 보존하며 
   expect(axios.get.mock.lastCall[1].params).toMatchObject({ orderBy: 'DEADLINE', page: 0 });
   wrapper.unmount();
 });
-it('잘못된 정렬 URL과 기본 최신순은 호환되는 기본 검색 요청으로 복원한다', async () => {
+it('잘못된 정렬 URL은 기본 마감 임박순으로 복원한다', async () => {
   const { wrapper } = await setup('/?orderBy=INVALID');
-  expect(wrapper.get('[aria-label="공고 정렬"]').element.value).toBe('LATEST');
-  expect(axios.get.mock.lastCall[1].params.orderBy).toBeUndefined();
+  expect(wrapper.get('[aria-label="공고 정렬"]').element.value).toBe('DEADLINE');
+  expect(axios.get.mock.lastCall[1].params.orderBy).toBe('DEADLINE');
   wrapper.unmount();
 });
 it('확장된 직무와 기술 값은 기존 값과 함께 URL·첫 검색 요청·표시에 보존된다', async () => {
@@ -142,4 +142,19 @@ it('교육 상세 조건은 URL에서 복원되어 실제 검색 API에 전달�
   await wrapper.get('#emp').setValue(true); await flushPromises();
   expect(router.currentRoute.value.query.commitment).toBeUndefined();
   expect(axios.get.mock.lastCall[1].params.fundingType).toBeUndefined();
+});
+
+it('첫 방문은 마감 임박순이고 최신순을 명시하면 URL·API·필터 변경에 유지한다', async () => {
+  const { wrapper, router } = await setup('/');
+  const select = wrapper.get('[aria-label="공고 정렬"]');
+  expect(select.element.value).toBe('DEADLINE');
+  expect(axios.get.mock.lastCall[1].params.orderBy).toBe('DEADLINE');
+  await select.setValue('LATEST'); await flushPromises();
+  expect(router.currentRoute.value.query.orderBy).toBe('LATEST');
+  expect(axios.get.mock.lastCall[1].params.orderBy).toBe('LATEST');
+  await wrapper.get('button[aria-label="기술 스택"]').trigger('click');
+  await wrapper.get('input[value=JAVA]').setValue(true); await flushPromises();
+  expect(router.currentRoute.value.query.orderBy).toBe('LATEST');
+  expect(axios.get.mock.lastCall[1].params.orderBy).toBe('LATEST');
+  wrapper.unmount();
 });
