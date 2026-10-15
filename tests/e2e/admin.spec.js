@@ -360,6 +360,27 @@ test('관리자 상단 메뉴는 320px에서도 글자를 한 줄로 읽고 각 
   }
 });
 
+test('게시 상태 필터와 별도 시각 입력으로 기술 없는 공고를 저장·재조회한다', async ({ page }) => {
+  const state = await adminFixture(page);
+  state.items = [{ id: 10, title: '기술 미기재 은행 공고', company: { name: '은행' }, announcementType: 'EMP', publicationStatus: 'DRAFT', language: [], content: '<p>채용 안내</p>', minCareer: 0, maxCareer: 0, position: 'BACKEND', accessUrl: 'https://example.test/job', startedDate: '2026-08-25T09:00:00', deadLineDate: '2026-09-01T18:00:45' },
+    { id: 11, title: '공개 은행 공고', company: { name: '은행' }, announcementType: 'EMP', publicationStatus: 'PUBLISHED', language: [] }];
+  await page.goto('/admin/announcements');
+  await page.getByLabel('게시 상태 필터').selectOption('DRAFT');
+  await page.getByRole('button', { name: '검색', exact: true }).click();
+  await expect(page.getByText('공개 은행 공고', { exact: true })).toHaveCount(0);
+  await page.reload(); await expect(page.getByLabel('게시 상태 필터')).toHaveValue('DRAFT');
+  await page.getByRole('link', { name: '기술 미기재 은행 공고', exact: true }).click();
+  await page.getByRole('button', { name: '모집 마감 23:59로 설정', exact: true }).click();
+  await page.getByLabel('게시 상태', { exact: true }).selectOption('PUBLISHED');
+  await page.getByRole('button', { name: '변경 저장', exact: true }).click();
+  await expect(page).toHaveURL(/\/admin\/announcements$/);
+  expect(state.items.find(item => item.id === 10).language).toEqual([]);
+  expect(state.items.find(item => item.id === 10).deadLineDate).toBe('2026-09-01T23:59:00');
+  await page.goto('/admin/announcements/10');
+  await expect(page.getByLabel('모집 마감 시각', { exact: true })).toHaveValue(/^23:59(?::00)?$/);
+  await expect(page.getByLabel('게시 상태', { exact: true })).toHaveValue('PUBLISHED');
+});
+
 test('운영 목록의 게시 상태 선택은 조회·새로고침·전체 해제에 적용된다', async ({ page }) => {
   const state = await adminFixture(page);
   state.items = [

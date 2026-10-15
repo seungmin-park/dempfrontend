@@ -119,23 +119,15 @@ it('저장 중에는 선택 요약에서도 해제를 막아 제출한 값을 �
   finish({ data: {} }); await flushPromises(); wrapper.unmount();
 });
 
-it('기술을 모두 해제한 저장은 요청하지 않고 고칠 곳으로 초점을 옮기며 선택 즉시 오류를 지운다', async () => {
+it('기술이 명시되지 않은 공개 공고는 빈 기술로 저장한다', async () => {
   axios.get.mockResolvedValue({ data: datedAnnouncement() });
-  axios.patch.mockResolvedValue({ data: { cleanupPending: false } });
-  const wrapper = mount(AdminAnnouncementEditor, { ...options({ id: '7' }), attachTo: document.body }); await flushPromises();
+  axios.patch.mockResolvedValue({ data: {} });
+  const wrapper = mount(AdminAnnouncementEditor, options({ id: '7' })); await flushPromises();
   await wrapper.get('[aria-label="Java 선택 해제"]').trigger('click');
-  wrapper.get('button[type=submit]').element.focus();
   await wrapper.get('form').trigger('submit'); await flushPromises();
-  const search = wrapper.get('[aria-label="관리자 기술 스택 검색"]');
-  expect(axios.patch).not.toHaveBeenCalled();
-  expect(document.activeElement).toBe(search.element);
-  expect(search.attributes('aria-invalid')).toBe('true');
-  expect(wrapper.get('#admin-technology-error').text()).toContain('하나 이상');
-  await wrapper.get('input[value=KOTLIN]').setValue(true);
+  expect(axios.patch).toHaveBeenCalledTimes(1);
+  expect(axios.patch.mock.lastCall[1].getAll('language')).toEqual([]);
   expect(wrapper.find('#admin-technology-error').exists()).toBe(false);
-  expect(search.attributes('aria-invalid')).toBe('false');
-  await wrapper.get('form').trigger('submit'); await flushPromises();
-  expect(axios.patch.mock.lastCall[1].getAll('language')).toEqual(['KOTLIN']);
   wrapper.unmount();
 });
 
