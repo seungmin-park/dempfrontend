@@ -26,6 +26,7 @@ async function isolatedCommunity(page) {
     const request = route.request();
     const url = new URL(request.url());
     const path = url.pathname;
+    if (path === '/api/member/me/bookmarks/status') return route.fulfill({ json: { savedIds: [] } });
     const method = request.method();
     state.requests.push({ path, method, search: url.search, token: request.headers()['x-auth-token'] });
     const reply = (status, body) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });

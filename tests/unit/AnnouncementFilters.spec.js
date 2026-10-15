@@ -1,9 +1,13 @@
+import { config } from '@vue/test-utils';
+beforeEach(() => { config.global.mocks.$store = { state: { Login: { token: '', username: '' } } }; });
+afterEach(() => { delete config.global.mocks.$store; delete config.global.mocks.$route; });
 import { mount, flushPromises } from '@vue/test-utils';
 import { createRouter, createMemoryHistory } from 'vue-router';
 import axios from 'axios';
 import AnnouncementHeader from '@/components/announcement/AnnouncementHeader.vue';
 import AnnouncementList from '@/components/announcement/AnnouncementList.vue';
 vi.mock('axios');
+vi.mock('@/api/bookmarks', () => ({ getBookmarkStatus: vi.fn().mockResolvedValue({ data: { savedIds: [] } }), setAnnouncementSaved: vi.fn() }));
 it('정렬을 URL에서 복원하고 변경해도 기존 필터를 보존하며 뒤로 가기에 첫 페이지를 다시 요청한다', async () => {
   const { wrapper, router } = await setup('/?type=EMP&positions=SRE&languages=KOTLIN&q=운영&orderBy=DEADLINE');
   const select = wrapper.get('[aria-label="공고 정렬"]');

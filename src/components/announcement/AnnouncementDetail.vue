@@ -1,7 +1,9 @@
 <template>
+  <BookmarkScope :ids="!loading && !error ? [Number($route.params.itemId)] : []" :token="$store.state.Login.token" :username="$store.state.Login.username" :intent-id="!loading && !error ? queryText($route?.query?.saveAnnouncement) : ''" @login="loginToSave" @consume-intent="consumeSaveIntent" v-slot="bookmarks">
   <AsyncState :loading="loading" :error="error" @retry="loadAnnouncementDetail" />
   <article v-if="!loading && !error" class="job-detail">
     <header class="job-detail-heading"><div class="company-logo"><CompanyImage :src="announcement.image" /></div><AnnouncementAudience :announcement="announcement" /><h1>{{ announcement.title }}</h1><p>{{ announcement.company }}</p><p v-if="typeof announcement.hits === 'number'" class="job-view-count" aria-label="공고 조회수">조회 {{ announcement.hits.toLocaleString() }}</p></header>
+    <BookmarkButton :saved="bookmarks.saved(Number($route.params.itemId))" :busy="bookmarks.busy(Number($route.params.itemId))" :enabled="bookmarks.enabled(Number($route.params.itemId))" :error="bookmarks.error(Number($route.params.itemId))" @toggle="bookmarks.toggle(Number($route.params.itemId))" />
     <p aria-label="현재 모집 상태" aria-live="polite">{{ recruitmentLabels[currentRecruitmentState] }}</p>
     <div class="detail-facts">
       <p>회사명 : {{ announcement.company }}</p>
@@ -22,8 +24,13 @@
     <div class="apply-bar"><span v-if="applicationUrl" class="field-hint">{{ currentRecruitmentState === 'CLOSED' ? '모집이 종료되었습니다. 원문에서 최신 상태를 확인하세요.' : currentRecruitmentState === 'OPEN' ? '원문 공고에서 상세 내용을 확인하고 지원하세요. 새 탭으로 열립니다.' : '모집 시작 전이거나 일정 확인이 필요합니다. 원문을 확인하세요.' }}</span><a v-if="applicationUrl" :href="applicationUrl" class="button button-primary" target="_blank" rel="noopener noreferrer">{{ currentRecruitmentState === 'OPEN' ? '지원하기' : '원문 확인' }}</a><span v-else class="field-hint">지원 링크가 없습니다.</span></div>
     <AnnouncementReportForm :key="String($route.params.itemId)" :id="String($route.params.itemId)" />
   </article>
+  </BookmarkScope>
 </template>
 <script lang="ts">
+import BookmarkScope from './BookmarkScope.vue';
+import BookmarkButton from './BookmarkButton.vue';
+import { bookmarkReturnPath } from '@/router/authReturn';
+import { queryText } from '@/router/query';
 import { useRecruitmentTime } from '@/composables/useRecruitmentTime';
 import { recruitmentState, recruitmentLabels, formatDeadline } from '@/presentation/recruitment';
 import AnnouncementReportForm from './AnnouncementReportForm.vue';
@@ -43,7 +50,7 @@ import { formatLanguages, formatRecruitDate } from '@/presentation/announcement'
 
 export default defineComponent({
   setup() { return { ...useRecruitmentTime(), recruitmentLabels }; },
-  components: { AnnouncementReportForm, AnnouncementAudience, AsyncState, SafeHtml, CompanyImage },
+  components: { BookmarkScope, BookmarkButton, AnnouncementReportForm, AnnouncementAudience, AsyncState, SafeHtml, CompanyImage },
   created(){
     if (this.$store.state.Login.token == "") {
       this.$router.replace({
@@ -65,6 +72,9 @@ export default defineComponent({
 
   },
   methods: {
+    queryText,
+    loginToSave(id: number) { this.$router.push({ path: '/login', query: { redirect: bookmarkReturnPath(this.$route?.fullPath || '/', id) } }); },
+    consumeSaveIntent() { const query = { ...this.$route.query }; delete query.saveAnnouncement; this.$router.replace({ path: this.$route.path, query }); },
     educationLabel, formatSalary, formatTuition, formatPosition, formatDeadline,
     formatLanguages,
     formatRecruitDate,

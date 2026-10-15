@@ -36,3 +36,12 @@ test.each(['new-account-token', ''])('이전 토큰 요청의 늦은 401은 변�
   await expect(pending).rejects.toMatchObject({ response: { status: 401 } });
   expect(onUnauthorized).not.toHaveBeenCalled();
 });
+
+
+test.each([71,-1])('관심 공고 %s 저장의 401은 선택한 공고 ID를 인증 복구에 전달한다', async id => {
+  const onUnauthorized=vi.fn();
+  const client=createApiClient({baseURL:'https://api.example',getToken:()=> 'expired-token',onUnauthorized});
+  const adapter=async config=>{throw new AxiosError('unauthorized',undefined,config,undefined,{status:401,statusText:'Unauthorized',data:{},headers:{},config});};
+  await expect(client.put(`/api/member/me/bookmarks/${id}`,{saved:true},{adapter})).rejects.toMatchObject({response:{status:401}});
+  expect(onUnauthorized).toHaveBeenCalledWith(id);
+});

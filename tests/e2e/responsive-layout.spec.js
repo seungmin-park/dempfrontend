@@ -7,6 +7,7 @@ async function layoutFixture(page, authenticated = true) {
   if (authenticated) await page.addInitScript(() => localStorage.setItem('vuex', JSON.stringify({ Login: { username: '화면폭검증회원이름'.repeat(8), token: 'layout-fixture', roles: ['ROLE_ADMIN'] } })));
   await page.route('/api/**', route => {
     const path = new URL(route.request().url()).pathname;
+    if (path === '/api/member/me/bookmarks/status') return route.fulfill({ json: { savedIds: [] } });
     const summary = { id: 71, title: longText, company: longText, announcementType: 'EMP', publicationStatus: 'PUBLISHED', language: ['JAVA', 'SPRING'], position: 'BACKEND', deadLineDate: '2026-12-31T18:00:00' };
     const detail = { ...summary, company: { name: longText }, recruitmentAudience: 'NEW', minCareer: 0, maxCareer: 0, startedDate: '2026-09-01T09:00:00', content: '<p>화면 비율과 무관하게 읽을 수 있는 공고 본문입니다.</p>', accessUrl: 'https://example.test/original' };
     let body;

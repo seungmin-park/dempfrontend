@@ -1,5 +1,6 @@
 <template>
   <section class="page account-page">
+    <router-link to="/saved" class="button button-secondary">내 관심 공고 보기</router-link>
     <div class="page-heading"><span class="eyebrow">MY ACCOUNT</span><h1>마이페이지</h1><p>내 정보를 확인하고 계정을 관리하세요.</p></div>
     <section v-if="passwordChanged" class="account-panel" role="status"><h2>비밀번호를 변경했습니다.</h2><p>모든 기기의 기존 로그인이 만료됐습니다. 새 비밀번호로 다시 로그인해 주세요.</p><router-link class="button button-primary" :to="{ path: '/login', query: { redirect: '/mypage' } }">다시 로그인</router-link></section>
     <p v-else-if="loading" role="status">회원 정보를 불러오는 중입니다.</p>

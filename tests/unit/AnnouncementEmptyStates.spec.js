@@ -1,7 +1,11 @@
+import { config } from '@vue/test-utils';
+beforeEach(() => { config.global.mocks.$store = { state: { Login: { token: '', username: '' } } }; });
+afterEach(() => { delete config.global.mocks.$store; delete config.global.mocks.$route; });
 import { mount, flushPromises } from '@vue/test-utils';
 import axios from 'axios';
 import AnnouncementList from '@/components/announcement/AnnouncementList.vue';
 vi.mock('axios');
+vi.mock('@/api/bookmarks', () => ({ getBookmarkStatus: vi.fn().mockResolvedValue({ data: { savedIds: [] } }), setAnnouncementSaved: vi.fn() }));
 afterEach(() => vi.clearAllMocks());
 function setup(query = {}) {
   const push = vi.fn();

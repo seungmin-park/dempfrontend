@@ -1,8 +1,12 @@
+import { config } from '@vue/test-utils';
+beforeEach(() => { config.global.mocks.$store = { state: { Login: { token: '', username: '' } } }; config.global.mocks.$route = { path: '/', fullPath: '/', query: {} }; });
+afterEach(() => { delete config.global.mocks.$store; delete config.global.mocks.$route; });
 import { mount, flushPromises } from '@vue/test-utils';
 import axios from 'axios';
 import AnnouncementList from '@/components/announcement/AnnouncementList.vue';
 import AnnouncementDetail from '@/components/announcement/AnnouncementDetail.vue';
 vi.mock('axios');
+vi.mock('@/api/bookmarks', () => ({ getBookmarkStatus: vi.fn().mockResolvedValue({ data: { savedIds: [] } }), setAnnouncementSaved: vi.fn() }));
 afterEach(() => vi.clearAllMocks());
 
 it('공고 카드는 회사와 직무를 제목보다 먼저 보여주고 모집 조건을 제목 다음에 읽게 한다', async () => {

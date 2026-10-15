@@ -51,7 +51,10 @@
     "tests/unit/questionApi.spec.js",
     "tests/unit/MyPage.spec.js",
     "tests/unit/AppAdminAccess.spec.js",
-    "tests/unit/RecruitmentDeadlineMode.spec.js"
+    "tests/unit/RecruitmentDeadlineMode.spec.js",
+    "tests/unit/SavedAnnouncementsFeature.spec.js",
+    "tests/unit/SavedAnnouncementList.spec.js",
+    "tests/unit/useAnnouncementBookmarks.spec.js"
   ],
   "unitAssertions": [
     {
@@ -519,6 +522,22 @@
     {
       "file": "recruitment-deadline-modes.spec.js",
       "title": "수시 채용의 마감 방식은 가상 날짜 없이 표시하고 지원 경로를 유지한다"
+    },
+    {
+      "file": "saved-announcements.spec.js",
+      "title": "비로그인 저장은 가입과 로그인을 거쳐 검색 조건으로 복귀하고 저장·재조회·실패 복구·해제로 이어진다"
+    },
+    {
+      "file": "saved-announcements.spec.js",
+      "title": "목록과 상세의 저장 상태는 재조회로 일치하고 상태 조회 실패를 복구한다"
+    },
+    {
+      "file": "saved-announcements.spec.js",
+      "title": "수시 채용의 채용 시 마감과 상시 모집은 가상 날짜 없이 목록·상세에 표시된다"
+    },
+    {
+      "file": "saved-announcements.spec.js",
+      "title": "저장 도중 세션이 만료돼도 재로그인 후 선택한 공고 저장을 이어간다"
     }
   ],
   "browserWarningAttachment": "vue-warnings",

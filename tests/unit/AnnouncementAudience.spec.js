@@ -1,9 +1,13 @@
+import { config } from '@vue/test-utils';
+beforeEach(() => { config.global.mocks.$store = { state: { Login: { token: '', username: '' } } }; config.global.mocks.$route = { path: '/', fullPath: '/', query: {} }; });
+afterEach(() => { delete config.global.mocks.$store; delete config.global.mocks.$route; });
 import { mount, flushPromises } from '@vue/test-utils';
 import axios from 'axios';
 import AnnouncementList from '@/components/announcement/AnnouncementList.vue';
 import AnnouncementDetail from '@/components/announcement/AnnouncementDetail.vue';
 import AnnouncementScroll from '@/components/announcement/AnnouncementScroll.vue';
 vi.mock('axios');
+vi.mock('@/api/bookmarks', () => ({ getBookmarkStatus: vi.fn().mockResolvedValue({ data: { savedIds: [] } }), setAnnouncementSaved: vi.fn() }));
 afterEach(() => vi.clearAllMocks());
 
 const cases = [
