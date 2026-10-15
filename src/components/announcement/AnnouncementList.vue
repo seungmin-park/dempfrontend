@@ -237,7 +237,6 @@ export default defineComponent({
   border-radius: 8px;
   background: var(--canvas);
 }
-.item-image-box :deep(img) { width: 100%; height: 100%; object-fit: cover; }
 .item-image-box :deep(.job-image-fallback) { font-size: 15px; letter-spacing: -.5px; }
 .job-card-identity { min-width: 0; overflow-wrap: anywhere; }
 .job-company { margin: 0; font-size: 16px; font-weight: 650; line-height: 1.45; color: var(--ink); }
