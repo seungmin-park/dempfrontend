@@ -50,7 +50,8 @@
     "tests/unit/TypeSafetyLint.spec.js",
     "tests/unit/questionApi.spec.js",
     "tests/unit/MyPage.spec.js",
-    "tests/unit/AppAdminAccess.spec.js"
+    "tests/unit/AppAdminAccess.spec.js",
+    "tests/unit/RecruitmentDeadlineMode.spec.js"
   ],
   "unitAssertions": [
     {
@@ -514,6 +515,10 @@
     {
       "file": "admin.spec.js",
       "title": "관리자 상단 메뉴는 320px에서도 글자를 한 줄로 읽고 각 링크를 누를 수 있다"
+    },
+    {
+      "file": "recruitment-deadline-modes.spec.js",
+      "title": "수시 채용의 마감 방식은 가상 날짜 없이 표시하고 지원 경로를 유지한다"
     }
   ],
   "browserWarningAttachment": "vue-warnings",

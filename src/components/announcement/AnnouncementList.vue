@@ -30,7 +30,7 @@
           <span v-if="typeof notice.hits === 'number'" class="job-view-count" aria-label="공고 조회수">조회 {{ notice.hits.toLocaleString() }}</span>
           <span v-if="notice.announcementType === 'EDU'">{{ formatTuition(notice.payment) }}</span>
           <span aria-label="현재 모집 상태">{{ recruitmentLabels[recruitmentState(notice, recruitmentNow)] }}</span>
-          <span v-if="!notice.recruitmentClosed && notice.deadLineDate">{{ formatRecruitDate(notice.deadLineDate).slice(0,10) }} 마감</span>
+          <span v-if="!notice.recruitmentClosed" aria-label="모집 마감">{{ formatDeadline(notice) }}{{ notice.deadLineDate ? ' 마감' : '' }}</span>
         </div>
       </div>
     </article>
@@ -56,7 +56,7 @@
 </template>
 <script lang="ts">
 import { useRecruitmentTime } from '@/composables/useRecruitmentTime';
-import { recruitmentState, recruitmentLabels } from '@/presentation/recruitment';
+import { recruitmentState, recruitmentLabels, formatDeadline } from '@/presentation/recruitment';
 import { educationLabel } from '@/data/education';
 import { formatTuition } from '@/presentation/compensation';
 import type { AnnouncementSummary, AnnouncementFilters, JobPosition } from '@/types/api';
@@ -119,7 +119,7 @@ export default defineComponent({
 
   computed: { emptyState() { return announcementEmptyState(this.announcementSearchCondition); } },
   methods: {
-    educationLabel, formatTuition, recruitmentState,
+    educationLabel, formatTuition, recruitmentState, formatDeadline,
     onVisibilityChange() { if (document.visibilityState === 'visible') this.refreshRecruitment(); },
     async refreshRecruitment() {
       if (this.loading || this.refreshing) return;

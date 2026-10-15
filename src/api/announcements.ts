@@ -8,7 +8,7 @@ export function toAnnouncementFormData(announcement: AnnouncementForm) {
     'title', 'company', 'type', 'position', 'minCareer', 'maxCareer',
     'recruitmentClosed', 'recruitmentAudience', 'publicationStatus', 'sourceName', 'sourceIdentifier', 'applicationUrl', 'sourceVerified',
     'salaryPeriod', 'workPeriod', 'conversionNote',
-    'startedDate', 'deadLineDate', 'content', 'accessUrl', 'payment', 'salaryStatus', 'salaryMax',
+    'deadlineMode', 'startedDate', 'deadLineDate', 'content', 'accessUrl', 'payment', 'salaryStatus', 'salaryMax',
   ] as const;
   fields.forEach(field => { if (announcement[field] != null && announcement[field] !== '') form.append(field, String(announcement[field])); });
   announcement.referenceUrls?.forEach((url, index) => form.append(`referenceUrls[${index}]`, url));

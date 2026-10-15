@@ -7,7 +7,7 @@
       <p>회사명 : {{ announcement.company }}</p>
       <p v-if="announcement.type === 'EDU'">{{ formatTuition(announcement.payment) }}</p>
       <p v-if="announcement.type === 'EMP'">{{ formatSalary(announcement) }}</p>
-      <p>지원기간 : {{ formatRecruitDate(announcement.startedDate) }} ~ {{ formatRecruitDate(announcement.deadLineDate) }}</p>
+      <p>지원기간 : {{ formatRecruitDate(announcement.startedDate) }} ~ {{ formatDeadline(announcement) }}</p>
       <p>포지션 : {{ formatPosition(announcement.position) }}</p>
       <p>기술 스택 : <span aria-label="기술 스택">{{ formatLanguages(announcement.language) }}</span></p>
 
@@ -25,7 +25,7 @@
 </template>
 <script lang="ts">
 import { useRecruitmentTime } from '@/composables/useRecruitmentTime';
-import { recruitmentState, recruitmentLabels } from '@/presentation/recruitment';
+import { recruitmentState, recruitmentLabels, formatDeadline } from '@/presentation/recruitment';
 import AnnouncementReportForm from './AnnouncementReportForm.vue';
 import { educationFields, educationLabel } from '@/data/education';
 import { formatSalary, formatTuition } from '@/presentation/compensation';
@@ -65,7 +65,7 @@ export default defineComponent({
 
   },
   methods: {
-    educationLabel, formatSalary, formatTuition, formatPosition,
+    educationLabel, formatSalary, formatTuition, formatPosition, formatDeadline,
     formatLanguages,
     formatRecruitDate,
     async loadAnnouncementDetail() {
