@@ -8,8 +8,8 @@ async function fillRegistration(password) {
   axios.get.mockResolvedValue({ data: true });
   axios.post.mockResolvedValue({ data: { id: 1, username: 'member' } });
   const push = vi.fn();
-  const wrapper = mount(AccountForm, { global: { mocks: {
-    $store: { state: { Login: { token: '' } } }, $router: { push },
+  const wrapper = mount(AccountForm, { global: { stubs: { RouterLink: true }, mocks: {
+    $route: { query: {} }, $store: { state: { Login: { token: '' } } }, $router: { push },
   } } });
   await wrapper.get('#username').setValue('member');
   await wrapper.get('button[type="button"]').trigger('click');

@@ -1,9 +1,13 @@
 import { vi } from 'vitest';
+import { config } from '@vue/test-utils';
+beforeEach(() => { config.global.mocks.$route = { path: '/', fullPath: '/', query: {} }; });
+afterEach(() => { delete config.global.mocks.$route; });
 import { flushPromises, mount } from '@vue/test-utils';
 import axios from 'axios';
 import AnnouncementList from '@/components/announcement/AnnouncementList.vue';
 
 vi.mock('axios');
+vi.mock('@/api/bookmarks', () => ({ getBookmarkStatus: vi.fn().mockResolvedValue({ data: { savedIds: [] } }), setAnnouncementSaved: vi.fn() }));
 
 afterEach(() => vi.clearAllMocks());
 
@@ -24,7 +28,7 @@ test('공고 더보기는 제목과 직군 조건을 유지한 다음 페이지�
     announcementType: 'EMP', positions: ['BACKEND'], career: 0, payment: 0, title: 'Java',
   });
   await flushPromises();
-  await wrapper.get('button').trigger('click');
+  await wrapper.get('[data-test="load-more"]').trigger('click');
   await flushPromises();
 
   expect(axios.get).toHaveBeenNthCalledWith(2, '/api/announce', { params: {
@@ -61,8 +65,8 @@ test('더보기를 연속 클릭해도 진행 중인 페이지는 한 번만 요
     $store: { state: { Login: { token: 'token' } } }, $router: { push: vi.fn() },
   } } });
   await flushPromises();
-  await wrapper.get('button').trigger('click');
-  await wrapper.get('button').trigger('click');
+  await wrapper.get('[data-test="load-more"]').trigger('click');
+  await wrapper.get('[data-test="load-more"]').trigger('click');
   expect(axios.get).toHaveBeenCalledTimes(2);
   finishPage({ data: { content: [], last: true } });
   await flushPromises();

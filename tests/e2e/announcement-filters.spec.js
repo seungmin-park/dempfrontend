@@ -116,6 +116,7 @@ for (const width of [390, 1440]) {
     await page.route('**/fixture-wide-logo.svg', route => route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="80"><rect width="400" height="80" fill="navy"/><text x="10" y="50" font-size="40" fill="white">FULL COMPANY LOGO</text></svg>' }));
     await page.route('/api/**', route => {
       const path = new URL(route.request().url()).pathname;
+    if (path === '/api/member/me/bookmarks/status') return route.fulfill({ json: { savedIds: [] } });
       if (path === '/api/announce/detail/1') return route.fulfill({ json: { ...item, company: { name: 'DEMP' } } });
       if (path === '/api/announce/scroll') return route.fulfill({ json: [{ ...item, company: { name: 'DEMP' } }] });
       if (path === '/api/admin/me') return route.fulfill({ json: { username: 'fixture', roles: ['ROLE_ADMIN'] } });

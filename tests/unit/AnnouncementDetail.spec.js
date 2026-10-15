@@ -4,6 +4,7 @@ import axios from 'axios';
 import AnnouncementDetail from '@/components/announcement/AnnouncementDetail.vue';
 
 vi.mock('axios');
+vi.mock('@/api/bookmarks', () => ({ getBookmarkStatus: vi.fn().mockResolvedValue({ data: { savedIds: [] } }), setAnnouncementSaved: vi.fn() }));
 
 afterEach(() => {
   vi.clearAllMocks();

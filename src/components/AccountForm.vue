@@ -51,7 +51,7 @@
       <p v-if="error" class="form-error" role="alert">{{ error }}</p>
       <div class="auth-actions">
         <div class="col">
-          <button type="reset" class="button button-secondary">취소</button>
+          <router-link class="button button-secondary" :to="{ path: '/login', query: $route?.query?.redirect ? { redirect: safeReturnPath($route.query.redirect) } : {} }">취소</router-link>
         </div>
         <div class="col">
           <button type="submit" :disabled="saving" class="button button-primary">회원가입</button>
@@ -61,6 +61,7 @@
   </div>
 </template>
 <script lang="ts">
+import { safeReturnPath } from '@/router/authReturn';
 import { validateRegistrationPassword } from '@/validation/registrationPassword';
 import { defineComponent } from "vue";
 import { register, checkUsername } from '@/api/members';
@@ -100,6 +101,7 @@ export default defineComponent({
       });
     }},
   methods: {
+    safeReturnPath,
     validateRegistrationPassword,
     registerAccount() {
       if (this.saving) return;
@@ -114,7 +116,7 @@ export default defineComponent({
       form.append("password", this.password);
       register(form)
         .then(() => {
-          this.$router.push("/login");
+          this.$router.push(this.$route?.query?.redirect ? { path: '/login', query: { redirect: safeReturnPath(this.$route.query.redirect) } } : '/login');
         }).catch(() => { this.error = "가입하지 못했습니다. 입력한 내용을 확인하고 다시 시도해 주세요."; }).finally(() => { this.saving = false; });
     },
     validUsername(){

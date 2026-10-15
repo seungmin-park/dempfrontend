@@ -1,4 +1,5 @@
 <template>
+  <BookmarkScope :ids="notices.map(notice => notice.id)" :token="$store.state.Login.token" :username="$store.state.Login.username" :intent-id="queryText($route?.query?.saveAnnouncement)" @login="loginToSave" @consume-intent="consumeSaveIntent" v-slot="bookmarks">
   <div class="results-heading">
     <h2>공고 목록 <span>{{ notices.length }}</span></h2>
     <label class="announcement-order">정렬
@@ -17,6 +18,7 @@
             <span class="job-position">{{ formatPosition(notice.position) }}</span>
           </div>
         </div>
+        <BookmarkButton :saved="bookmarks.saved(notice.id)" :busy="bookmarks.busy(notice.id)" :enabled="bookmarks.enabled(notice.id)" :error="bookmarks.error(notice.id)" @toggle="bookmarks.toggle(notice.id)" />
         <h2 class="notice-title">{{ notice.title }}</h2>
         <AnnouncementAudience :announcement="notice" />
         <p class="job-stack" aria-label="기술 스택">{{ formatLanguages(notice.language) }}</p>
@@ -53,8 +55,13 @@
       <button v-else-if="emptyState.action === 'browse'" class="button button-secondary" data-test="empty-browse" @click="$router.push({ path: '/', query: {} })">전체 공고 보기</button>
     </div>
   </div>
+  </BookmarkScope>
 </template>
 <script lang="ts">
+import BookmarkScope from './BookmarkScope.vue';
+import BookmarkButton from './BookmarkButton.vue';
+import { bookmarkReturnPath } from '@/router/authReturn';
+import { queryText } from '@/router/query';
 import { useRecruitmentTime } from '@/composables/useRecruitmentTime';
 import { recruitmentState, recruitmentLabels, formatDeadline } from '@/presentation/recruitment';
 import { educationLabel } from '@/data/education';
@@ -74,7 +81,7 @@ import CompanyImage from '@/components/common/CompanyImage.vue';
 export default defineComponent({
   name: "demp-announcement",
   setup() { return { ...useRecruitmentTime(), recruitmentLabels }; },
-  components: { AppIcon, AnnouncementAudience, CompanyImage },
+  components: { BookmarkScope, BookmarkButton, AppIcon, AnnouncementAudience, CompanyImage },
   mounted() {
     this.announcementSearchCondition = { ...filtersFromQuery(this.$route?.query), page: 0 };
     this.emitter.on("announcementSearchCondition", this.onSearchCondition);
@@ -119,6 +126,9 @@ export default defineComponent({
 
   computed: { emptyState() { return announcementEmptyState(this.announcementSearchCondition); } },
   methods: {
+    queryText,
+    loginToSave(id: number) { this.$router.push({ path: '/login', query: { redirect: bookmarkReturnPath(this.$route?.fullPath || '/', id) } }); },
+    consumeSaveIntent() { const query = { ...this.$route.query }; delete query.saveAnnouncement; this.$router.replace({ path: this.$route.path, query }); },
     educationLabel, formatTuition, recruitmentState, formatDeadline,
     onVisibilityChange() { if (document.visibilityState === 'visible') this.refreshRecruitment(); },
     async refreshRecruitment() {
@@ -208,7 +218,7 @@ export default defineComponent({
     },
   },
   watch: {
-    '$route.query': { handler() { this.onSearchCondition(filtersFromQuery(this.$route.query)); } },
+    '$route.query': { handler(query, previous) { if (JSON.stringify(filtersFromQuery(query)) !== JSON.stringify(filtersFromQuery(previous))) this.onSearchCondition(filtersFromQuery(query)); } },
   },
 });
 </script>

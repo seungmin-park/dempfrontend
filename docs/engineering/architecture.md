@@ -69,6 +69,12 @@ QuestionDetail/Answer → ContentReactionControl → useContentReaction → reac
 `validationComponents.ts`는 VeeValidate의 기존 컴포넌트에 타입이 있는 네이티브 HTML 속성을 보완하는 외부 라이브러리 경계다. runtime wrapper·추가 상태·새 검증 규칙을 만들지 않는다. 원래 props/event 타입을 유지하며 잘못된 속성 이름과 필드 이름 타입도 검사한다. 이를 모든 Vue 컴포넌트의 무제한 속성 허용으로 확대하지 않는다.
 
 
-## 수시 모집 마감 방식
+## 관심 공고 소유권
 
-RecruitPeriod/DeadlineMode는 FIXED/UNTIL_FILLED/ALWAYS_OPEN/UNKNOWN을 구분한다. 일시 지정만 정확한 마감 일시를 요구하고 비지정 방식은 가상 날짜 없이 수동 종료를 반영한다. 기존 NULL의 날짜 유무를 보존하며 새 미확인 공개는 거절한다. RecruitmentDeadlineServiceTest, 기존 전체 검증 및 frontend RecruitmentDeadlineMode/recruitment-deadline-modes E2E로 검증한다.
+```text
+BookmarkButton → useAnnouncementBookmarks → api/bookmarks → AnnouncementBookmarkController
+SavedAnnouncements → useSavedAnnouncements ────────────────┘          ↓
+AnnouncementBookmarkService → AnnouncementBookmarkRepository / MemberRepository / AnnouncementRepository
+```
+
+회원 ID는 principal만 사용한다. 동일 회원 저장은 회원 행 잠금과 UNIQUE로 직렬화한다. 공고 삭제 후 이용 불가 항목을 보존하므로 공고 ID에는 FK를 두지 않으며 내용은 공개 조회 시점에만 조립한다. 회원 FK는 회원 삭제 시 cascade한다. RecruitPeriod는 마감 방식과 일시의 모순을 거절하고 공개 검증은 확인된 마감 방식을 요구한다. 모집 상태 조회와 화면은 시작 전·수동 종료 우선 규칙을 공유한다.

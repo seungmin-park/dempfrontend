@@ -37,7 +37,7 @@
           <button type="submit" :disabled="saving" class="button button-primary">로그인</button>
         </div>
         <div class="col">
-          <router-link class="button button-secondary" :to="{ path: '/account' }">
+          <router-link class="button button-secondary" :to="{ path: '/account', query: redirect ? { redirect } : {} }">
             회원가입
           </router-link>
         </div>
@@ -47,6 +47,7 @@
 </template>
 <script lang="ts">
 import { queryText } from '@/router/query';
+import { safeReturnPath } from '@/router/authReturn';
 import { defineComponent } from "vue";
 import { login, getLoginRateLimit } from '@/api/members';
 import { ValidationForm, Field, ErrorMessage } from '@/components/common/validationComponents';
@@ -78,7 +79,7 @@ export default defineComponent({
       });
     }},
   mounted() {
-    this.redirect = queryText(this.$route.query.redirect);
+    this.redirect = this.$route.query.redirect ? safeReturnPath(queryText(this.$route.query.redirect)) : "";
   },
   methods: {
     loginMethod() {
@@ -94,7 +95,7 @@ export default defineComponent({
           if (!this.redirect) {
             this.$router.push("/");
           } else {
-            this.$router.push({path: this.redirect});
+            this.$router.push(this.redirect.includes('?') || this.redirect.includes('#') ? this.redirect : { path: this.redirect });
           }
         }).catch((error: unknown) => {
           const limit = getLoginRateLimit(error);

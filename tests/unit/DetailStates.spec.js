@@ -8,6 +8,7 @@ import AnnouncementList from '@/components/announcement/AnnouncementList.vue';
 import AnnouncementScroll from '@/components/announcement/AnnouncementScroll.vue';
 import { router } from '@/router';
 vi.mock('axios');
+vi.mock('@/api/bookmarks', () => ({ getBookmarkStatus: vi.fn().mockResolvedValue({ data: { savedIds: [] } }), setAnnouncementSaved: vi.fn() }));
 beforeEach(() => axios.get.mockReset());
 afterEach(() => vi.clearAllMocks());
 const record = title => ({ id: 1, answerId: '1', title, content: title, username: 'member', hits: 1, recommend: 0, dislike: 0, hashtags: [], language: ['JAVA'], company: { name: '회사' }, minCareer: 0, maxCareer: 3 });

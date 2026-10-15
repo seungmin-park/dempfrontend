@@ -5,6 +5,7 @@ async function accountFixture(page) {
   await page.addInitScript(() => { if (!localStorage.getItem('vuex')) localStorage.setItem('vuex', JSON.stringify({ Login: { username: 'member', token: 'account-token' } })); });
   await page.route('/api/**', async route => {
     const path = new URL(route.request().url()).pathname;
+    if (path === '/api/member/me/bookmarks/status') return route.fulfill({ json: { savedIds: [] } });
     const method = route.request().method();
     const reply = (status, data) => route.fulfill({ status, contentType: 'application/json', body: status === 204 ? '' : JSON.stringify(data) });
     if (path === '/api/admin/me') return reply(403, {});

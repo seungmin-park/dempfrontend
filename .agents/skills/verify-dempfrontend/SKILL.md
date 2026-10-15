@@ -59,3 +59,10 @@ Employment type is separate from recruitment audience: unknown/null, regular, co
 ## Member account
 
 At `/mypage`, use the actual caller cmux Spring browser to save nickname, reload, reject wrong current password, correct and change it, then sign in with the new password. Login ID remains fixed. Check old token 401 with the backend contract and that password inputs are cleared only after success or leaving the account session. Nickname failure/re-auth draft stays per user; passwords must never enter session/local storage. The fixture suite covers retry, persisted requery presentation, mobile layout and login return, separately from real DB evidence.
+
+
+## Saved announcements and deadline modes
+
+Run the existing full verifier. In the caller cmux workspace, save from a filtered list while anonymous, follow registration/login and confirm the original query returns and the selected announcement is saved once. Reload, enter `/saved`, open detail, remove and reload. Confirm failed lookup/save/remove can retry without losing confirmed state; old account/page responses cannot overwrite the new context. A target beyond the first loaded page must still resume saving.
+
+Check an owned synthetic UNTIL_FILLED and ALWAYS_OPEN posting: null deadline, explicit label, OPEN after confirmed start; manual close overrides. FIXED requires exact date/time; UNKNOWN is not interpreted as ongoing and cannot be newly published. Verify migration SQL on an isolated schema; do not modify production. Backend and frontend fixture tests are separate from actual Spring persistence/browser evidence.
