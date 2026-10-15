@@ -22,7 +22,7 @@ async function adminFixture(page, role = 'admin') {
       return reply(204);
     }
     if (path === '/api/admin/overview') return reply(200, { announcements: state.items.length, bootcamps: 0, questions: 1, answers: 0, members: 2 });
-    if (path === '/api/admin/announcements' && method === 'GET') return reply(200, { content: state.items.map(item => ({ ...item, company: item.company.name })), last: true, number: 0 });
+    if (path === '/api/admin/announcements' && method === 'GET') return reply(200, { content: state.items.filter(item => !url.searchParams.get('publicationStatus') || item.publicationStatus === url.searchParams.get('publicationStatus')).map(item => ({ ...item, company: item.company.name })), last: true, number: 0 });
     const history = path.match(/\/announcements\/(\d+)\/history$/);
     if (history) return reply(200, state.histories[Number(history[1])] || []);
     if (path.includes('/announcements') && ['POST','PATCH'].includes(method)) {
@@ -358,4 +358,27 @@ test('관리자 상단 메뉴는 320px에서도 글자를 한 줄로 읽고 각 
       expect(box.x + box.width).toBeLessThanOrEqual(320);
     }
   }
+});
+
+test('운영 목록의 게시 상태 선택은 조회·새로고침·전체 해제에 적용된다', async ({ page }) => {
+  const state = await adminFixture(page);
+  state.items = [
+    { id: 10, title: '초안 은행 공고', company: { name: '은행' }, publicationStatus: 'DRAFT', language: [] },
+    { id: 11, title: '공개 은행 공고', company: { name: '은행' }, publicationStatus: 'PUBLISHED', language: [] },
+  ];
+  await page.goto('/admin/announcements');
+  await page.getByLabel('게시 상태 필터').selectOption('DRAFT');
+  await page.getByRole('button', { name: '검색', exact: true }).click();
+  await expect(page.getByRole('link', { name: '초안 은행 공고', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: '공개 은행 공고', exact: true })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByLabel('게시 상태 필터')).toHaveValue('DRAFT');
+  await page.getByLabel('게시 상태 필터').selectOption('PUBLISHED');
+  await page.getByRole('button', { name: '검색', exact: true }).click();
+  await expect(page.getByRole('link', { name: '공개 은행 공고', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: '초안 은행 공고', exact: true })).toHaveCount(0);
+  await page.getByLabel('게시 상태 필터').selectOption('');
+  await page.getByRole('button', { name: '검색', exact: true }).click();
+  await expect(page.getByRole('link', { name: '초안 은행 공고', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: '공개 은행 공고', exact: true })).toBeVisible();
 });
