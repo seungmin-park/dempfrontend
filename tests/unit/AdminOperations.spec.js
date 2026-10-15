@@ -427,14 +427,14 @@ it('편집에서 신규 등록으로 이동하면 미완성 날짜·시각은 �
   wrapper.unmount();
 });
 
-it('운영 목록은 URL 게시 상태를 서버에 전달하고 검색 시 첫 페이지로 돌아간다', async () => {
+it('운영 목록은 URL 게시 상태를 서버에 전달하고 선택 즉시 첫 페이지로 돌아간다', async () => {
   axios.get.mockResolvedValue({ data: { content: [], last: true } });
   const config = options(); config.global.mocks.$route.query = { q: '은행', type: 'EMP', publicationStatus: 'DRAFT', page: '2' };
   const wrapper = mount(AdminAnnouncements, config); await flushPromises();
   expect(axios.get).toHaveBeenCalledWith('/api/admin/announcements', expect.objectContaining({ params: { title: '은행', announcementType: 'EMP', publicationStatus: 'DRAFT', page: 2 } }));
   const filter = wrapper.get('[aria-label="게시 상태 필터"]');
   expect(filter.element.value).toBe('DRAFT');
-  await filter.setValue('PUBLISHED'); await wrapper.get('form').trigger('submit');
+  await filter.setValue('PUBLISHED');
   expect(config.global.mocks.$router.push).toHaveBeenCalledWith({ path: '/admin/announcements', query: { q: '은행', type: 'EMP', publicationStatus: 'PUBLISHED', page: '0' } });
   wrapper.unmount();
 });

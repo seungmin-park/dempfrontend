@@ -54,3 +54,5 @@
 - 2026-10-15: [기술 미기재 공고 저장](../plans/optional-announcement-technologies.md). 공고에 기술이 없으면 빈 선택을 유지한다. 프런트 검증·DTO·도메인의 기술 필수 조건만 제거한다. 분야·본문·출처·모집 일정 조건과 권한 검증은 유지한다. 공채 분류나 추정 기술을 추가하지 않는다.
 
 - [마감 임박순 기본 정렬](../plans/deadline-first-announcements.md): 기본 DEADLINE을 URL·선택 표시·API에 일치시키고 명시적 LATEST를 보존한다.
+
+- [운영 필터 즉시 적용](../plans/admin-filter-auto-apply.md): 공고 종류·게시 상태 change가 기존 search → URL → API 조회로 연결된다. 첫 페이지 복귀·다른 조건 유지·늦은 응답 무시는 AdminFilterAutoApply에서, 선택·새로고침·전체 해제는 admin E2E에서 확인한다.
