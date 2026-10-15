@@ -53,7 +53,7 @@ test('위·아래 모두 좁고 위가 넓으면 위쪽 실제 공간으로 높�
 test('달력에서 같은 날짜와 다른 날짜를 선택해도 원문의 초를 보존한다', async () => {
   const wrapper = await openAt(100);
   await wrapper.setProps({ modelValue: '2030-11-01T16:59:59' });
-  expect(wrapper.get('input').element.value).toBe('2030-11-01T16:59:59');
+  expect(wrapper.get('input[type=time]').element.value).toBe('16:59:59');
   await wrapper.get('[data-day="1"]').trigger('click');
   expect(wrapper.emitted('update:modelValue').at(-1)).toEqual(['2030-11-01T16:59:59']);
   await wrapper.get('button.calendar-trigger').trigger('click');
@@ -66,4 +66,23 @@ test('원문 마감의 59초는 상세 날짜 표시에서도 사라지지 않�
   const { formatRecruitDate } = await import('@/presentation/announcement');
   expect(formatRecruitDate('2030-11-01T16:59:59')).toBe('2030.11.01 16:59:59');
   expect(formatRecruitDate('2030-11-01T17:00:00')).toBe('2030.11.01 17:00');
+});
+
+test('날짜와 시각을 따로 입력하고 마감 23:59를 한 번에 적용한다', async () => {
+  const wrapper = mount(RecruitmentDateTimeField, { props: { id: 'deadline', label: '모집 마감', modelValue: '2026-09-01T18:30:45', endOfDay: true } });
+  await wrapper.get('input[type=time]').setValue('23:59:45');
+  expect(wrapper.emitted('update:modelValue').at(-1)).toEqual(['2026-09-01T23:59:45']);
+  await wrapper.get('input[type=date]').setValue('2026-09-02');
+  expect(wrapper.emitted('update:modelValue').at(-1)).toEqual(['2026-09-02T23:59:45']);
+  await wrapper.get('[aria-label="모집 마감 23:59로 설정"]').trigger('click');
+  expect(wrapper.emitted('update:modelValue').at(-1)).toEqual(['2026-09-02T23:59:00']);
+  wrapper.unmount();
+});
+test('시각을 먼저 입력해도 날짜 선택 후 보존하고 날짜만으로 임의 시각을 만들지 않는다', async () => {
+  const wrapper = mount(RecruitmentDateTimeField, { props: { id: 'deadline', label: '모집 마감', modelValue: null, required: false, endOfDay: true } });
+  await wrapper.get('input[type=time]').setValue('23:59');
+  expect(wrapper.emitted('update:modelValue')).toBeUndefined();
+  await wrapper.get('input[type=date]').setValue('2026-09-01');
+  expect(wrapper.emitted('update:modelValue').at(-1)).toEqual(['2026-09-01T23:59']);
+  wrapper.unmount();
 });

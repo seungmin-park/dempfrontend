@@ -46,3 +46,5 @@
 관리자 진입은 App의 기존 useAdminAccess 검증 결과를 Header props로 전달한다. 헤더는 권한을 판단하거나 별도 API를 호출하지 않는다. 일반 회원은 마이페이지, 서버 확인된 관리자는 별도 `/admin` 링크와 기존 운영 화면을 사용한다. AppAdminAccess와 admin E2E에서 일반 회원/위조 localStorage/로그아웃/지연 응답을 확인한다.
 
 - 2026-10-15: [잘리지 않는 공고 로고](../plans/uncropped-announcement-thumbnails.md). CompanyImage가 원본 비율·전체 표시·중앙 정렬·흰 배경·6px 여백을 소유하고 부모는 영역 크기를 소유한다. 목록 cover 설정을 제거한다. 390/1440px 실제 브라우저에서 목록·상세·추천의 가로 로고 로딩과 표시를 검증한다.
+
+- 2026-10-15: [날짜·시간 분리 입력](../plans/recruitment-date-and-time-entry.md). 날짜와 시각은 별도 입력으로 받고 완성된 값만 부모에 전달한다. 날짜 변경은 기존 초를 보존하고 마감 버튼은 명시적으로 23:59:00을 선택한다. 일부 입력은 유지하면서 남은 칸을 required로 안내한다. 기존 JSON/DB 시간 필드는 유지한다.
