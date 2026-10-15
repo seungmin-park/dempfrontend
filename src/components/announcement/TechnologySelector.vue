@@ -1,7 +1,7 @@
 <template>
   <fieldset class="field technology-selector">
     <legend>기술 스택 <span class="technology-selection-count">{{ modelValue.length }}개 선택</span></legend>
-    <p id="technology-selection-help" class="technology-help">공고에 쓰인 기술을 선택하세요. 여러 분야를 함께 선택할 수 있습니다.</p>
+    <p id="technology-selection-help" class="technology-help">공고에 명시된 기술만 선택하세요. 기술 정보가 없으면 선택하지 않아도 저장·공개할 수 있습니다.</p>
     <div class="technology-search">
       <input ref="searchInput" v-model="search" aria-label="관리자 기술 스택 검색" :aria-describedby="error ? 'technology-selection-help admin-technology-error' : 'technology-selection-help'" :aria-invalid="Boolean(error)" type="search" placeholder="기술 이름으로 찾기" :disabled="disabled" />
       <button v-if="search" type="button" aria-label="기술 검색어 지우기" :disabled="disabled" @click="clearSearch">지우기</button>

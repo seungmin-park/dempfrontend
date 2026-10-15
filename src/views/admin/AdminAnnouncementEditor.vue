@@ -16,7 +16,7 @@
 
       <fieldset class="announcement-form-section">
         <legend>모집 조건·일정</legend>
-        <p class="section-help">모집 대상과 고용 형태는 별개입니다. 확인한 일정은 시·분·초까지 입력하세요. 초안에서는 미확인 분야·기술·일정을 비워 둘 수 있습니다.</p>
+        <p class="section-help">모집 대상과 고용 형태는 별개입니다. 확인한 일정은 시·분·초까지 입력하세요. 기술 스택은 선택 사항입니다. 초안에서는 미확인 분야·일정도 비워 둘 수 있습니다.</p>
         <div class="form-grid">
           <div v-if="form.type === 'EMP'" class="field"><label for="admin-audience">모집 대상</label><select id="admin-audience" aria-label="모집 대상" v-model="form.recruitmentAudience" :disabled="saving" @change="changeAudience"><option :value="null">미확인 (기존 경력 범위 사용)</option><option value="NEW">신입</option><option value="EXPERIENCED">경력</option><option value="ANY">경력 무관</option><option value="MIXED">신입·경력</option></select></div>
           <div v-if="form.type === 'EMP'" class="field"><label for="admin-employment">고용 형태</label><select id="admin-employment" aria-label="고용 형태" v-model="form.employmentType" :disabled="saving"><option :value="null">미확인</option><option v-for="(label, value) in employmentTypeLabels" :key="value" :value="value">{{ label }}</option></select></div>
@@ -137,7 +137,6 @@ export default defineComponent({
       if (this.form.applicationUrl) { try { if (!['http:','https:'].includes(new URL(this.form.applicationUrl).protocol)) throw new Error(); } catch { errors.applicationUrl = 'http 또는 https 주소를 입력해 주세요.'; } }
       if (!hasTextContent(this.form.content)) errors.content = '본문 내용을 입력해 주세요.';
       if (this.requiresCompleteInformation && !this.form.position) errors.position = '분야를 선택해 주세요.';
-      if (this.requiresCompleteInformation && !this.selectedLanguages.length) errors.language = '기술 스택을 하나 이상 선택해 주세요.';
       if (this.requiresCompleteInformation && !this.form.startedDate) errors.startedDate = '모집 시작을 입력해 주세요.';
       if ((this.requiresCompleteInformation && !this.form.deadLineDate) || (this.form.startedDate && this.form.deadLineDate && this.form.deadLineDate < this.form.startedDate)) errors.deadLineDate = '마감은 모집 시작보다 빠를 수 없습니다.';
       for (const field of ['minCareer','maxCareer'] as const) if (!Number.isInteger(this.form[field]) || this.form[field] < 0) errors[field] = '0 이상의 정수를 입력해 주세요.';
