@@ -25,6 +25,14 @@ it('마이페이지에서 관심 공고와 계정 설정을 같은 화면의 섹
  expect(wrapper.find('.page-heading .eyebrow').exists()).toBe(false);
  expect(wrapper.find('.page-heading .button').exists()).toBe(false);
 });
+it('계정 설정은 하나의 카드에서 회원 정보와 비밀번호 변경을 세로로 표시한다', async () => {
+ const { wrapper } = page(); await flushPromises();
+ const panels = wrapper.findAll('.account-panel');
+ expect(panels).toHaveLength(1);
+ expect(panels[0].findAll('h2').map(heading => heading.text())).toEqual(['회원 정보', '비밀번호 변경']);
+ expect(panels[0].find('[data-test=nickname-form]').exists()).toBe(true);
+ expect(panels[0].find('[data-test=password-form]').exists()).toBe(true);
+});
 it('관심 공고 섹션은 저장 목록을 마이페이지 안에 표시하고 계정 설정으로 돌아온다', async () => {
  const { wrapper, router } = page();
  bookmarks.getBookmarks.mockResolvedValue({ data: { content: [{ announcementId: 71, available: true, savedAt: '2026-10-15T12:00:00', announcement: { id: 71, title: '저장한 채용', company: 'DEMP', language: [] } }], hasNext: false, number: 0 } });
