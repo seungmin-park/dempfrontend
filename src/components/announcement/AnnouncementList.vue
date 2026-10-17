@@ -52,6 +52,7 @@
       <AppIcon :name="emptyState.action === 'reset' ? 'search' : 'briefcase'" :size="32" />
       <h2>{{ emptyState.title }}</h2><p>{{ emptyState.description }}</p>
       <button v-if="emptyState.action === 'reset'" class="button button-secondary" data-test="empty-reset" @click="resetSearch">검색·필터 해제</button>
+      <button v-else-if="emptyState.action === 'showAll'" class="button button-secondary" data-test="empty-show-all" @click="showAllRecruitment">마감 포함 전체 보기</button>
       <button v-else-if="emptyState.action === 'browse'" class="button button-secondary" data-test="empty-browse" @click="$router.push({ path: '/', query: {} })">전체 공고 보기</button>
     </div>
   </div>
@@ -127,6 +128,7 @@ export default defineComponent({
   computed: { emptyState() { return announcementEmptyState(this.announcementSearchCondition); } },
   methods: {
     queryText,
+    showAllRecruitment() { this.$router.push({ path: '/', query: filtersToQuery({ ...this.announcementSearchCondition, recruitmentStatus: '' }) }); },
     loginToSave(id: number) { this.$router.push({ path: '/login', query: { redirect: bookmarkReturnPath(this.$route?.fullPath || '/', id) } }); },
     consumeSaveIntent() { const query = { ...this.$route.query }; delete query.saveAnnouncement; this.$router.replace({ path: this.$route.path, query }); },
     educationLabel, formatTuition, recruitmentState, formatDeadline,

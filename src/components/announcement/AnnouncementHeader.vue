@@ -73,7 +73,7 @@ import { languages, filtersFromQuery, filtersToQuery } from '@/router/announceme
 import { formatLanguages } from '@/presentation/announcement';
 import { formatPosition } from '@/presentation/positions';
 type FilterKey = 'positions' | 'languages' | 'status' | 'career';
-const recruitmentStatuses = { '': '전체', OPEN: '모집 중', UPCOMING: '모집 예정', CLOSED: '모집 마감' };
+const recruitmentStatuses = { ACTIVE: '모집 중·예정', '': '전체', OPEN: '모집 중', UPCOMING: '모집 예정', CLOSED: '모집 마감' };
 export default defineComponent({
   components: { AppIcon },
   data() {
@@ -89,7 +89,7 @@ export default defineComponent({
     chips() {
       const chips = this.filters.positions.map(item => ({ key: `position:${item}`, label: formatPosition(item) }));
       for (const item of this.filters.languages ?? []) chips.push({ key: `language:${item}`, label: formatLanguages([item]) });
-      if (this.filters.recruitmentStatus) chips.push({ key: 'status', label: recruitmentStatuses[this.filters.recruitmentStatus] });
+      if (this.filters.recruitmentStatus && this.filters.recruitmentStatus !== 'ACTIVE') chips.push({ key: 'status', label: recruitmentStatuses[this.filters.recruitmentStatus] });
       if (this.filters.tuition) chips.push({ key: 'tuition', label: this.filters.tuition === 'FREE' ? '무료' : '유료' });
       if (this.filters.career) chips.push({ key: 'career', label: `경력 ${this.filters.career}년` });
       if (this.filters.announcementType === 'EDU') {
@@ -137,7 +137,7 @@ export default defineComponent({
     removeChip(key: string) {
       if (key.startsWith('position:')) this.filters.positions = this.filters.positions.filter(item => item !== key.slice(9));
       else if (key.startsWith('language:')) this.filters.languages = (this.filters.languages ?? []).filter(item => item !== key.slice(9));
-      else if (key === 'status') this.filters.recruitmentStatus = '';
+      else if (key === 'status') this.filters.recruitmentStatus = 'ACTIVE';
       else if (key === 'tuition') this.filters.tuition = '';
       else if (key === 'career') this.filters.career = 0;
       else if (key === 'payment') this.filters.payment = 0;

@@ -24,7 +24,7 @@ export function filtersFromQuery(query: LocationQuery = {}): AnnouncementFilters
     announcementType: type === 'EMP' || type === 'EDU' ? type : '',
     positions: [...new Set(positions.filter(item => values(query.positions).includes(item)))],
     languages: [...new Set(languages.filter(item => values(query.languages).includes(item)))],
-    recruitmentStatus: status === 'OPEN' || status === 'UPCOMING' || status === 'CLOSED' ? status : '',
+    recruitmentStatus: status === 'ALL' ? '' : status === 'OPEN' || status === 'UPCOMING' || status === 'CLOSED' ? status : 'ACTIVE',
     tuition: type === 'EDU' && (tuition === 'FREE' || tuition === 'PAID') ? tuition : '',
     career: type === 'EDU' ? 0 : positive(query.career),
     payment: 0,
@@ -37,7 +37,8 @@ export function filtersToQuery(filters: AnnouncementFilters): LocationQueryRaw {
   if (filters.announcementType) query.type = filters.announcementType;
   if (filters.positions.length) query.positions = filters.positions.join(',');
   if (filters.languages?.length) query.languages = filters.languages.join(',');
-  if (filters.recruitmentStatus) query.status = filters.recruitmentStatus;
+  if (filters.recruitmentStatus === '') query.status = 'ALL';
+  else if (filters.recruitmentStatus && filters.recruitmentStatus !== 'ACTIVE') query.status = filters.recruitmentStatus;
   if (filters.announcementType === 'EDU') { if (filters.tuition) query.tuition = filters.tuition; }
   else {
     if (filters.career) query.career = String(filters.career);

@@ -62,7 +62,7 @@ export interface AnnouncementFilters extends EducationInfo {
   startAfter?: string;
   startBefore?: string;
   languages?: Language[];
-  recruitmentStatus?: 'OPEN' | 'UPCOMING' | 'CLOSED' | '';
+  recruitmentStatus?: 'ACTIVE' | 'OPEN' | 'UPCOMING' | 'CLOSED' | '';
   tuition?: 'FREE' | 'PAID' | '';
   announcementType: AnnouncementType | '';
   positions: JobPosition[];

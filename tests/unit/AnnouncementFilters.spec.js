@@ -65,6 +65,25 @@ async function setup(url) {
   await flushPromises();
   return { wrapper, router };
 }
+it('상태가 없는 목록은 모집 중·예정으로 요청하고 전체 선택은 URL과 서버 요청에 복원한다', async () => {
+  const { wrapper, router } = await setup('/?type=EMP');
+  expect(wrapper.get('#status-filter-value').text()).toBe('모집 중·예정');
+  expect(axios.get.mock.lastCall[1].params.recruitmentStatus).toBe('ACTIVE');
+  await wrapper.get('button[aria-label="모집 상태"]').trigger('click');
+  await wrapper.get('input[name="recruitment-status"][value=""]').setValue(true);
+  await flushPromises();
+  expect(router.currentRoute.value.query.status).toBe('ALL');
+  expect(axios.get.mock.lastCall[1].params.recruitmentStatus).toBeUndefined();
+  await router.replace('/?type=EMP&status=ALL');
+  await flushPromises();
+  expect(wrapper.get('#status-filter-value').text()).toBe('전체');
+  expect(axios.get.mock.lastCall[1].params.recruitmentStatus).toBeUndefined();
+  await wrapper.get('button[aria-label="전체 조건 초기화"]').trigger('click');
+  await flushPromises();
+  expect(router.currentRoute.value.query.status).toBeUndefined();
+  expect(axios.get.mock.lastCall[1].params.recruitmentStatus).toBe('ACTIVE');
+  wrapper.unmount();
+});
 it('URL에서 교육·분야·기술·모집상태·비용·검색을 복원해 첫 서버 요청에 전달한다', async () => {
   const { wrapper } = await setup('/?type=EDU&positions=BACKEND&languages=JAVA,SPRING&status=OPEN&tuition=FREE&q=스쿨');
   expect(axios.get.mock.calls[0][1].params).toMatchObject({ announcementType: 'EDU', positions: 'BACKEND', languages: 'JAVA,SPRING', recruitmentStatus: 'OPEN', tuition: 'FREE', title: '스쿨', page: 0 });

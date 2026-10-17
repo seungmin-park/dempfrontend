@@ -65,5 +65,5 @@ it('빈 검색 결과와 다음 페이지의 끝을 구분한다', async () => {
   axios.get.mockResolvedValue({ data: { content: [], last: true } });
   const wrapper = mount(AnnouncementList, options());
   await flushPromises();
-  expect(wrapper.text()).toContain('아직 등록된 공고가 없습니다');
+  expect(wrapper.text()).toContain('현재 모집 중이거나 예정된 공고가 없습니다');
 });
