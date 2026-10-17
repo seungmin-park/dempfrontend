@@ -9,12 +9,12 @@
     <SavedAnnouncements v-else-if="selectedTab === 'saved'" embedded />
     <p v-else-if="loading" role="status">회원 정보를 불러오는 중입니다.</p>
     <div v-else-if="loadError" role="alert"><p>{{ loadError }}</p><button class="button" data-test="retry-profile" @click="load">다시 시도</button></div>
-    <div v-else-if="profile" class="account-grid">
+    <div v-else-if="profile" class="account-settings">
       <section class="account-panel"><h2>회원 정보</h2><dl class="account-facts"><div><dt>아이디</dt><dd>{{ profile.username }}</dd></div><div><dt>회원 구분</dt><dd>{{ profile.admin ? '관리자' : '일반 회원' }}</dd></div></dl>
         <form data-test="nickname-form" @submit.prevent="saveNickname"><label for="nickname">닉네임</label><input id="nickname" v-model="nickname" maxlength="30" autocomplete="nickname" placeholder="사용할 닉네임을 입력하세요" :disabled="busy" aria-describedby="nickname-help nickname-result" @input="storeDraft"><p id="nickname-help" class="field-help">1~30자. 로그인 아이디는 변경되지 않습니다.</p><p id="nickname-result" :role="nicknameError ? 'alert' : 'status'">{{ nicknameError || nicknameMessage }}</p><button class="button button-primary" :disabled="busy">닉네임 저장</button></form>
-      </section>
-      <section class="account-panel"><h2>비밀번호 변경</h2><p>변경 후 모든 기기에서 다시 로그인해야 합니다.</p>
+        <div class="password-settings"><h2>비밀번호 변경</h2><p>변경 후 모든 기기에서 다시 로그인해야 합니다.</p>
         <form data-test="password-form" @submit.prevent="savePassword"><label for="current-password">현재 비밀번호</label><input id="current-password" v-model="currentPassword" type="password" autocomplete="current-password" :disabled="busy"><label for="new-password">새 비밀번호</label><input id="new-password" v-model="newPassword" type="password" autocomplete="new-password" :disabled="busy" aria-describedby="password-help"><p id="password-help" class="field-help">8자 이상, UTF-8 기준 72바이트 이하 (한글은 보통 1자당 3바이트)</p><label for="confirm-password">새 비밀번호 확인</label><input id="confirm-password" v-model="confirmPassword" type="password" autocomplete="new-password" :disabled="busy"><p v-if="passwordError" role="alert">{{ passwordError }}</p><button class="button button-primary" :disabled="busy">비밀번호 변경</button></form>
+        </div>
       </section>
     </div>
   </section>
@@ -39,7 +39,8 @@ const { profile, loading, loadError, nickname, nicknameError, nicknameMessage, c
 .account-section-nav { display: flex; flex-wrap: wrap; gap: 24px; margin-bottom: 28px; border-bottom: 1px solid var(--line); }
 .account-section-nav a { display: inline-flex; align-items: center; min-height: 48px; border-bottom: 3px solid transparent; color: var(--muted); font-weight: 650; }
 .account-section-nav a[aria-current="page"] { color: var(--primary); border-bottom-color: var(--primary); }
-.account-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+.account-settings { max-width: 640px; }
+.password-settings { margin-top: 32px; padding-top: 32px; border-top: 1px solid var(--border, #e1e5ea); }
 .account-panel { min-width: 0; padding: 28px; border: 1px solid var(--border, #e1e5ea); border-radius: 16px; background: var(--surface, #fff); }
 .account-panel h2 { margin-top: 0; }
 .account-panel form { display: grid; gap: 12px; }
@@ -51,5 +52,5 @@ const { profile, loading, loadError, nickname, nicknameError, nicknameMessage, c
 .account-facts dt, .field-help { color: #586579; font-size: .875rem; }
 .account-facts dd { margin: 0; overflow-wrap: anywhere; }
 .field-help { margin: 0; }
-@media (max-width: 700px) { .account-grid { grid-template-columns: 1fr; } .account-panel { padding: 20px; } }
+@media (max-width: 700px) { .account-panel { padding: 20px; } }
 </style>
