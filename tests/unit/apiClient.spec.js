@@ -45,3 +45,11 @@ test.each([71,-1])('관심 공고 %s 저장의 401은 선택한 공고 ID를 인
   await expect(client.put(`/api/member/me/bookmarks/${id}`,{saved:true},{adapter})).rejects.toMatchObject({response:{status:401}});
   expect(onUnauthorized).toHaveBeenCalledWith(id);
 });
+
+test("비로그인 공개 요청의 401은 로그인 화면으로 보내지 않는다", async () => {
+  const onUnauthorized = vi.fn();
+  const client = createApiClient({ baseURL: "https://api.example", getToken: () => "", onUnauthorized });
+  const adapter = async config => { throw new AxiosError("unauthorized", undefined, config, undefined, { status: 401, statusText: "Unauthorized", data: {}, headers: {}, config }); };
+  await expect(client.get("/api/announce", { adapter })).rejects.toMatchObject({ response: { status: 401 } });
+  expect(onUnauthorized).not.toHaveBeenCalled();
+});

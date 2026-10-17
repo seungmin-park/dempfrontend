@@ -19,7 +19,7 @@ export function createApiClient({ baseURL, getToken, onUnauthorized }: ApiClient
   client.interceptors.response.use(response => response, (error: unknown) => {
     if (axios.isAxiosError(error) && error.response?.status === 401 && error.config) {
       const issuedToken = error.config.headers.get('X-AUTH-TOKEN') ?? '';
-      if (issuedToken === getToken()) {
+      if (issuedToken && issuedToken === getToken()) {
         const match = error.config.method === 'put' ? error.config.url?.match(/^\/api\/member\/me\/bookmarks\/(-?[1-9]\d*)$/) : null;
         let desired: unknown;
         try { desired = typeof error.config.data === 'string' ? JSON.parse(error.config.data) : error.config.data; } catch { desired = null; }
@@ -42,5 +42,5 @@ export const apiClient = createApiClient({
 export function clearExpiredSession(pendingBookmarkId?: number) {
   store.commit('Login/logout');
   const current = router.currentRoute.value;
-  if (current.path !== '/login') router.replace({ path: '/login', query: { redirect: pendingBookmarkId ? bookmarkReturnPath(current.fullPath, pendingBookmarkId) : current.fullPath } });
+  if (current.path !== '/login' && (current.matched.some(record => record.meta.requiresAuth) || pendingBookmarkId != null)) router.replace({ path: '/login', query: { redirect: pendingBookmarkId ? bookmarkReturnPath(current.fullPath, pendingBookmarkId) : current.fullPath } });
 }

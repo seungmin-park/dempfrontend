@@ -36,3 +36,16 @@ test('401 처리 뒤 토큰과 사용자 이름이 모두 비워지고 원래 �
 test('이전 공고 등록 주소는 관리자 등록으로 연결한다', () => {
   expect(router.resolve('/addAnnounce').matched.at(-1).redirect).toBe('/admin/announcements/new');
 });
+
+test("만료 토큰으로 공개 메인에 접속하면 세션만 비우고 메인에 머문다", async () => {
+  store.commit("Login/setToken", "expired");
+  store.commit("Login/setUsername", "member");
+  await router.push("/");
+  await router.isReady();
+  await expect(apiClient.get("/api/admin/me", {
+    adapter: async config => { throw new AxiosError("unauthorized", undefined, config, undefined, { status: 401, statusText: "Unauthorized", data: {}, headers: {}, config }); },
+  })).rejects.toMatchObject({ response: { status: 401 } });
+  await flushPromises();
+  expect(store.state.Login).toMatchObject({ token: "", username: "" });
+  expect(router.currentRoute.value.path).toBe("/");
+});
