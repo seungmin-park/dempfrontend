@@ -13,7 +13,7 @@ export function createAuthGuard(authStore: { state: RootState }): NavigationGuar
 }
 
 const routes = [
-  { path: '/saved', meta: { requiresAuth: true }, component: () => import('@/views/member/SavedAnnouncements.vue') },
+  { path: '/saved', meta: { requiresAuth: true }, redirect: { path: '/mypage', query: { tab: 'saved' } } },
   { path: '/mypage', meta: { requiresAuth: true }, component: () => import('@/views/member/MyPage.vue') },
   { path: "/admin", meta: { requiresAuth: true }, component: () => import("@/views/admin/AdminLayout.vue"), children: [
     { path: '', component: () => import('@/views/admin/AdminDashboard.vue') },

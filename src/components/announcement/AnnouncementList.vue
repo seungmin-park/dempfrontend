@@ -209,12 +209,8 @@ export default defineComponent({
       }
     },
     openAnnouncementDetail(id: number){
-      if (this.$store.state.Login.token != ""){
-        const query = this.$route?.query;
-        this.$router.push(query && Object.keys(query).length ? { path: `/detail/${id}`, query } : `/detail/${id}`);
-      }else {
-        alert("로그인이 필요한 서비스 입니다.");
-      }
+      const query = this.$route?.query;
+      this.$router.push(query && Object.keys(query).length ? { path: `/detail/${id}`, query } : `/detail/${id}`);
     },
   },
   watch: {
