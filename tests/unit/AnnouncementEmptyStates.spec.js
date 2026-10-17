@@ -15,9 +15,10 @@ function setup(query = {}) {
   return { wrapper, push };
 }
 it.each([
-  [{}, '아직 등록된 공고가 없습니다.', '새 공고가 등록되면 이곳에서 확인할 수 있습니다.'],
-  [{ type: 'EMP' }, '아직 등록된 채용 공고가 없습니다.', '전체 공고에서 부트캠프·교육과정도 둘러보세요.'],
-  [{ type: 'EDU' }, '아직 등록된 부트캠프·교육과정이 없습니다.', '전체 공고에서 채용 기회도 둘러보세요.'],
+  [{}, '현재 모집 중이거나 예정된 공고가 없습니다.', '마감된 공고도 확인할 수 있습니다.'],
+  [{ type: 'EMP' }, '현재 모집 중이거나 예정된 채용 공고가 없습니다.', '마감된 공고도 확인할 수 있습니다.'],
+  [{ type: 'EDU' }, '현재 모집 중이거나 예정된 부트캠프·교육과정이 없습니다.', '마감된 공고도 확인할 수 있습니다.'],
+  [{ status: 'ALL' }, '아직 등록된 공고가 없습니다.', '새 공고가 등록되면 이곳에서 확인할 수 있습니다.'],
   [{ q: '없는 회사' }, '“없는 회사”에 해당하는 공고가 없습니다.', '검색어의 철자를 확인하거나 더 짧은 단어로 검색해 보세요.'],
   [{ languages: 'JAVA', career: '3' }, '선택한 조건에 맞는 공고가 없습니다.', '직무·기술 스택·경력 등 선택한 조건을 줄여보세요.'],
   [{ type: 'EDU', deliveryMode: 'ONLINE' }, '선택한 조건에 맞는 부트캠프·교육과정이 없습니다.', '수업 방식·지역·일정·교육비 등 선택한 조건을 줄여보세요.'],
@@ -36,11 +37,11 @@ it('빈 검색에서 조건 해제는 현재 교육 탭만 남기고 URL 조건�
   await wrapper.get('[data-test="empty-reset"]').trigger('click');
   expect(push).toHaveBeenCalledWith({ path: '/', query: { type: 'EDU' } });
 });
-it('등록된 교육이 없는 경우 전체 공고로 이동할 수 있다', async () => {
+it('기본 목록이 비면 종류를 보존하고 마감 포함 전체 공고로 이동한다', async () => {
   axios.get.mockResolvedValue({ data: { content: [], last: true } });
   const { wrapper, push } = setup({ type: 'EDU' }); await flushPromises();
-  await wrapper.get('[data-test="empty-browse"]').trigger('click');
-  expect(push).toHaveBeenCalledWith({ path: '/', query: {} });
+  await wrapper.get('[data-test="empty-show-all"]').trigger('click');
+  expect(push).toHaveBeenCalledWith({ path: '/', query: { type: 'EDU', status: 'ALL' } });
 });
 it('첫 요청 중에는 로딩 안내만 표시하고 빈 결과나 실패로 단정하지 않는다', async () => {
   let resolve; axios.get.mockImplementationOnce(() => new Promise(done => { resolve = done; }));

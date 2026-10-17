@@ -1,5 +1,37 @@
 import { test, expect } from './fixtures';
 
+test('기본 목록은 마감 제외 조건을 보내고 전체·마감 선택을 새로고침과 뒤로 가기에 복원한다', async ({ page }) => {
+  const requests = await announcements(page);
+  await page.goto('/');
+  await expect(page.locator('#status-filter-value')).toHaveText('모집 중·예정');
+  await expect.poll(() => requests.at(-1)?.recruitmentStatus).toBe('ACTIVE');
+  await page.getByRole('button', { name: '모집 상태', exact: true }).click();
+  await page.getByRole('group', { name: '모집 상태 선택' }).getByRole('radio', { name: '전체', exact: true }).click();
+  await expect(page).toHaveURL(/status=ALL/);
+  await expect.poll(() => requests.at(-1)?.recruitmentStatus).toBeUndefined();
+  await page.reload();
+  await expect(page.locator('#status-filter-value')).toHaveText('전체');
+  await page.getByRole('button', { name: '모집 상태', exact: true }).click();
+  await page.getByRole('radio', { name: '모집 마감', exact: true }).click();
+  await expect.poll(() => requests.at(-1)?.recruitmentStatus).toBe('CLOSED');
+  await page.goBack();
+  await expect(page.locator('#status-filter-value')).toHaveText('전체');
+  await expect.poll(() => requests.at(-1)?.recruitmentStatus).toBeUndefined();
+});
+
+test('현재 모집 공고가 비면 마감 포함 전체 보기로 원래 공고 종류를 유지한다', async ({ page }) => {
+  const requests = [];
+  await page.route('/api/announce*', route => {
+    requests.push(Object.fromEntries(new URL(route.request().url()).searchParams));
+    return route.fulfill({ json: { content: [], number: 0, last: true } });
+  });
+  await page.goto('/?type=EDU');
+  await expect(page.getByRole('heading', { name: '현재 모집 중이거나 예정된 부트캠프·교육과정이 없습니다.' })).toBeVisible();
+  await page.getByRole('button', { name: '마감 포함 전체 보기' }).click();
+  await expect(page).toHaveURL(/type=EDU&status=ALL/);
+  await expect.poll(() => requests.at(-1)?.recruitmentStatus).toBeUndefined();
+});
+
 test('확장 항목과 정렬은 URL·서버 요청·새로고침·뒤로 가기에 복원된다', async ({ page }) => {
   const requests = await announcements(page);
   await page.goto('/?type=EMP&positions=SRE&languages=KOTLIN&orderBy=DEADLINE');
