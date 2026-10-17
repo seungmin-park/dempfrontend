@@ -2,13 +2,11 @@ import { vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import axios from 'axios';
 import { createStore } from 'vuex';
-import { router } from '@/router';
+import SavedAnnouncements from '@/views/member/SavedAnnouncements.vue';
 vi.mock('axios');
 afterEach(() => vi.clearAllMocks());
 async function screen() {
-  const route = router.resolve('/saved');
-  const component = await route.matched[0].components.default();
-  return mount(component.default, { global: { provide: { store: createStore({state:{Login:{token:'token',username:'member'}}}) }, mocks: {
+  return mount(SavedAnnouncements, { props: { embedded: true }, global: { provide: { store: createStore({state:{Login:{token:'token',username:'member'}}}) }, mocks: {
     $store: { state: { Login: { token: 'token', username: 'member' } } },
     $router: { push: vi.fn() }, $route: { path: '/saved', fullPath: '/saved', query: {} },
   }, stubs: { RouterLink: { props:['to'], template:'<a><slot /></a>' } } } });

@@ -90,11 +90,7 @@ export default defineComponent({
       }
     },
     openQuestionDetail(questionId: number) {
-      if (this.$store.state.Login.token != "") {
-        this.$router.push(`/questions/${questionId}`)
-      }else {
-        alert("로그인이 필요한 서비스 입니다.");
-      }
+      this.$router.push(`/questions/${questionId}`)
     },
   },
   watch: {

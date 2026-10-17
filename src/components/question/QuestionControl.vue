@@ -54,11 +54,7 @@ export default defineComponent({
       this.$router.push({ path: '/question', query: { ...this.$route.query, hashtags: this.searchTags.length ? this.searchTags : undefined } });
     },
     directQuestionWritePage(){
-      if (this.$store.state.Login.token != "") {
-        this.$router.push(`/questions/new`)
-      }else {
-        alert("로그인이 필요한 서비스 입니다.");
-      }
+      this.$router.push(`/questions/new`)
     }
   },
 });

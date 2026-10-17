@@ -49,12 +49,36 @@ test('비로그인 저장은 가입과 로그인을 거쳐 검색 조건으로 �
   await page.getByRole('button',{name:'로그인',exact:true}).last().click();
   await expect(page).toHaveURL(url=>url.pathname==='/'&&url.searchParams.get('q')==='백엔드'&&!url.searchParams.has('saveAnnouncement'));
   await expect(page.getByRole('button',{name:'관심 공고 해제',exact:true})).toHaveAttribute('aria-pressed','true');
-  await page.getByRole('link',{name:'관심 공고',exact:true}).click();await expect(page.getByRole('heading',{name:'관심 공고',exact:true})).toBeVisible();
+  await page.getByRole('link',{name:'마이페이지',exact:true}).click();
+  await page.getByRole('link',{name:'관심 공고',exact:true}).click();
+  await expect(page).toHaveURL(url=>url.pathname==='/mypage'&&url.searchParams.get('tab')==='saved');
+  await expect(page.getByRole('heading',{name:'관심 공고',exact:true})).toBeVisible();
   await page.reload();await expect(page.getByRole('link',{name:'관심 백엔드 채용'})).toBeVisible();
   state.failRemove=true;await page.getByRole('button',{name:'관심 공고 해제',exact:true}).click();await expect(page.getByRole('alert')).toContainText('다시');
   await expect(page.getByRole('link',{name:'관심 백엔드 채용'})).toBeVisible();
   await page.getByRole('button',{name:'관심 공고 해제',exact:true}).click();await expect(page.getByText('저장한 공고가 없습니다')).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+
+test('비로그인 공고 클릭은 기본 alert 없이 로그인으로 이어지고 원래 검색과 공고를 보존한다', async ({ page }) => {
+  await fixture(page);
+  const dialogs = [];
+  page.on('dialog', dialog => { dialogs.push(dialog.message()); void dialog.dismiss(); });
+  await page.goto('/?q=백엔드');
+  await page.locator('.job-card').click();
+  await expect(page).toHaveURL(url => url.pathname === '/login' && new URL(url.searchParams.get('redirect'), url.origin).pathname === '/detail/71' && new URL(url.searchParams.get('redirect'), url.origin).searchParams.get('q') === '백엔드');
+  expect(dialogs).toEqual([]);
+});
+
+test('이전 관심 공고 주소는 로그인 후 마이페이지의 관심 공고로 돌아온다', async ({ page }) => {
+  await fixture(page);
+  await page.goto('/saved');
+  await expect(page).toHaveURL(url => url.pathname === '/login' && new URL(url.searchParams.get('redirect'), url.origin).pathname === '/mypage' && new URL(url.searchParams.get('redirect'), url.origin).searchParams.get('tab') === 'saved');
+  await page.getByLabel('아이디', { exact: true }).fill('member');
+  await page.getByLabel('비밀번호', { exact: true }).fill('password123');
+  await page.getByRole('button', { name: '로그인', exact: true }).last().click();
+  await expect(page).toHaveURL(url => url.pathname === '/mypage' && url.searchParams.get('tab') === 'saved');
+  await expect(page.getByRole('heading', { name: '관심 공고', exact: true })).toBeVisible();
 });
 
 test('목록과 상세의 저장 상태는 재조회로 일치하고 상태 조회 실패를 복구한다',async({page})=>{

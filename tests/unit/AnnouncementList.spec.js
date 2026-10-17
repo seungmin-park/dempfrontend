@@ -56,6 +56,24 @@ test('공고 항목 클릭은 해당 상세 경로로 이동한다', async () =>
   expect(push).toHaveBeenCalledWith('/detail/71');
 });
 
+test('비로그인 공고 클릭은 검색 조건을 담은 상세 경로로 이동해 라우터의 로그인 복귀를 사용한다', async () => {
+  axios.get.mockResolvedValue({ data: { content: [{ id: 71, title: '채용 공고' }], last: true } });
+  const push = vi.fn();
+  const alert = vi.fn();
+  vi.stubGlobal('alert', alert);
+  const wrapper = mount(AnnouncementList, { global: { mocks: {
+    emitter: { on: vi.fn(), off: vi.fn() },
+    $store: { state: { Login: { token: '' } } },
+    $route: { path: '/', fullPath: '/?title=Java', query: { title: 'Java' } },
+    $router: { push },
+  } } });
+  await flushPromises();
+  await wrapper.get('.item').trigger('click');
+  expect(push).toHaveBeenCalledWith({ path: '/detail/71', query: { title: 'Java' } });
+  expect(alert).not.toHaveBeenCalled();
+  vi.unstubAllGlobals();
+});
+
 test('더보기를 연속 클릭해도 진행 중인 페이지는 한 번만 요청한다', async () => {
   let finishPage;
   axios.get.mockResolvedValueOnce({ data: { content: [{ id: 1, title: '첫 공고' }], last: false } })

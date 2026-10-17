@@ -1,19 +1,39 @@
 import { mount, flushPromises } from '@vue/test-utils';
 import { createStore } from 'vuex';
+import { createMemoryHistory, createRouter } from 'vue-router';
 import MyPage from '@/views/member/MyPage.vue';
 import { Login } from '@/store/modules/Login';
 import * as members from '@/api/members';
+import * as bookmarks from '@/api/bookmarks';
 vi.mock('@/api/members', () => ({ getMyProfile: vi.fn(), updateMyNickname: vi.fn(), changeMyPassword: vi.fn(), getLoginRateLimit: vi.fn() }));
+vi.mock('@/api/bookmarks', () => ({ getBookmarks: vi.fn(), setAnnouncementSaved: vi.fn() }));
 const profile = { id: 41, username: 'member', nickname: null, admin: false };
 let wrappers = [];
-beforeEach(() => { vi.resetAllMocks(); sessionStorage.clear(); members.getMyProfile.mockResolvedValue({ data: profile }); });
+beforeEach(() => { vi.resetAllMocks(); sessionStorage.clear(); members.getMyProfile.mockResolvedValue({ data: profile }); bookmarks.getBookmarks.mockResolvedValue({ data: { content: [], hasNext: false, number: 0 } }); });
 afterEach(() => { wrappers.forEach(w => w.unmount()); wrappers = []; });
 function page() {
  const store = createStore({ modules: { Login } });
+ const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/mypage', component: MyPage }, { path: '/:pathMatch(.*)*', component: { template: '<div />' } }] });
  store.commit('Login/setUsername', 'member'); store.commit('Login/setToken', 'token');
- const wrapper = mount(MyPage, { global: { plugins: [store], stubs: { RouterLink: true } } });
- wrappers.push(wrapper); return { wrapper, store };
+ const wrapper = mount(MyPage, { global: { plugins: [store, router] } });
+ wrappers.push(wrapper); return { wrapper, store, router };
 }
+it('마이페이지에서 관심 공고와 계정 설정을 같은 화면의 섹션으로 찾는다', async () => {
+ const { wrapper } = page(); await flushPromises();
+ expect(wrapper.findAll('.account-section-nav a').map(link => link.text())).toEqual(['관심 공고', '계정 설정']);
+ expect(wrapper.get('.page-heading').text()).toContain('마이페이지');
+ expect(wrapper.find('.page-heading .eyebrow').exists()).toBe(false);
+ expect(wrapper.find('.page-heading .button').exists()).toBe(false);
+});
+it('관심 공고 섹션은 저장 목록을 마이페이지 안에 표시하고 계정 설정으로 돌아온다', async () => {
+ const { wrapper, router } = page();
+ bookmarks.getBookmarks.mockResolvedValue({ data: { content: [{ announcementId: 71, available: true, savedAt: '2026-10-15T12:00:00', announcement: { id: 71, title: '저장한 채용', company: 'DEMP', language: [] } }], hasNext: false, number: 0 } });
+ await router.push('/mypage?tab=saved'); await flushPromises();
+ expect(wrapper.text()).toContain('저장한 채용');
+ expect(wrapper.find('#nickname').exists()).toBe(false);
+ await router.push('/mypage'); await flushPromises();
+ expect(wrapper.get('#nickname').exists()).toBe(true);
+});
 it('본인 아이디와 회원 구분을 조회하고 닉네임 저장 성공을 표시한다', async () => {
  const { wrapper } = page(); await flushPromises();
  expect(wrapper.text()).toContain('member'); expect(wrapper.text()).toContain('일반 회원');

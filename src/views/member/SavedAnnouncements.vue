@@ -1,6 +1,6 @@
 <template>
-  <section class="page saved-page">
-    <div class="page-heading"><span class="eyebrow">SAVED</span><h1>관심 공고</h1><p>저장한 공고를 다시 확인하세요. 모집이 끝난 공고도 보관됩니다.</p></div>
+  <section class="saved-page" :class="{ page: !embedded, 'saved-page-embedded': embedded }">
+    <div class="page-heading"><h2>관심 공고</h2><p>저장한 공고를 다시 확인하세요. 모집이 끝난 공고도 보관됩니다.</p></div>
     <ul class="saved-list">
       <li v-for="entry in entries" :key="entry.announcementId" class="saved-card">
         <template v-if="entry.available && entry.announcement">
@@ -20,6 +20,7 @@
   </section>
 </template>
 <script setup lang="ts">
+defineProps<{ embedded?: boolean }>();
 import { useStore } from 'vuex';
 import type { RootState } from '@/store/types';
 import { useSavedAnnouncements } from '@/composables/useSavedAnnouncements';
@@ -32,7 +33,12 @@ const { recruitmentNow } = useRecruitmentTime();
 </script>
 <style scoped>
 .saved-page { max-width: 980px; margin-inline: auto; }
+.saved-page-embedded { width: 100%; }
+.saved-page .page-heading { margin-bottom: 20px; }
 .saved-list { list-style: none; padding: 0; display: grid; gap: 16px; }
-.saved-card { border: 1px solid var(--line); padding: 24px; border-radius: 12px; background: var(--surface); }
+.saved-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 24px; align-items: start; border: 1px solid var(--line); padding: 24px; border-radius: 12px; background: var(--surface); }
+.saved-card > :not(.bookmark-control) { grid-column: 1; }
+.saved-card > .bookmark-control { grid-column: 2; grid-row: 1 / span 4; }
 .saved-card h2 { margin-top: 0; overflow-wrap: anywhere; }
+@media (max-width: 700px) { .saved-card { grid-template-columns: minmax(0, 1fr); padding: 20px; } .saved-card > .bookmark-control { grid-column: 1; grid-row: auto; margin-top: 8px; } }
 </style>

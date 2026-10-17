@@ -32,6 +32,22 @@ test('질문마다 제목과 조회·추천을 구분하고 페이지 이동을 
   wrapper.unmount();
 });
 
+test('비로그인 질문 클릭은 alert 없이 상세 경로로 이동해 로그인 복귀 경로를 남긴다', async () => {
+  axios.get.mockResolvedValue({ data: { content: [{ id: 5, title: '첫 질문' }], last: true, number: 0 } });
+  const push = vi.fn();
+  const alert = vi.fn();
+  vi.stubGlobal('alert', alert);
+  const wrapper = mount(QuestionList, { global: { mocks: {
+    $route: { query: {} }, $router: { push },
+    $store: { state: { Login: { token: '' } } }, emitter: { on: vi.fn(), off: vi.fn() },
+  } } });
+  await flushPromises();
+  await wrapper.get('.question-list-title').trigger('click');
+  expect(push).toHaveBeenCalledWith('/questions/5');
+  expect(alert).not.toHaveBeenCalled();
+  vi.unstubAllGlobals();
+});
+
 test('질문 페이지를 넘겨도 검색 조건을 유지하고 마지막 페이지에서 다음을 막는다', async () => {
   axios.get
     .mockResolvedValueOnce({ data: { content: [{ id: 5, title: 'Java 첫 질문', hits: 0, recommend: 0 }], last: false, number: 0 } })
