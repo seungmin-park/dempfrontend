@@ -91,3 +91,17 @@ test('저장 도중 세션이 만료돼도 재로그인 후 선택한 공고 저
   await expect(page.getByRole('button',{name:'관심 공고 해제',exact:true})).toHaveAttribute('aria-pressed','true');
   await expect(page).toHaveURL(url=>url.pathname==='/'&&url.searchParams.get('q')==='백엔드'&&!url.searchParams.has('saveAnnouncement'));
 });
+
+test("만료된 로그인 정보로 처음 접속해도 공개 공고 화면에 머문다", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("vuex", JSON.stringify({ Login: { token: "expired-token", username: "member" } })));
+  await page.route("/api/**", route => {
+    const path = new URL(route.request().url()).pathname;
+    if (path === "/api/announce") return route.fulfill({ json: { content: [], last: true, number: 0 } });
+    return route.fulfill({ status: 401, json: { message: "expired" } });
+  });
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: /공고 목록/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "로그인", exact: true })).toBeVisible();
+  await expect(page).toHaveURL("/");
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("vuex")).Login)).toEqual({ token: "", username: "" });
+});
