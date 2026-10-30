@@ -72,7 +72,7 @@ function clearSearch() { if (!props.disabled) { search.value = ''; searchInput.v
 .technology-options { clear: both; display: flex; flex-wrap: wrap; gap: 8px; }
 .technology-choice { min-height: 44px; padding: 9px 12px; gap: 7px; font-size: 13px; border-radius: 7px; }
 .technology-choice input { width: 15px; height: 15px; accent-color: var(--primary); }
-.technology-choice.is-selected { border-color: #a5b4fc; color: var(--primary-dark); }
+.technology-choice.is-selected { border-color: var(--muted); color: var(--primary-dark); }
 .technology-empty { margin: 0; padding: 24px; border: 1px dashed var(--line); border-radius: 12px; font-size: 14px; color: var(--muted); text-align: center; }
 .technology-selector button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .technology-selector button:disabled { opacity: .6; cursor: default; }

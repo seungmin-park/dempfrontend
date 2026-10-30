@@ -10,6 +10,6 @@ defineEmits<{ toggle: [] }>();
 </script>
 <style scoped>
 .bookmark-button { min-height: 44px; }
-.bookmark-button[aria-pressed="true"] { color: var(--accent, #4f46e5); border-color: currentColor; }
+.bookmark-button[aria-pressed="true"] { color: var(--accent, var(--primary)); border-color: currentColor; }
 .bookmark-control p { margin: 8px 0 0; font-size: 13px; }
 </style>
