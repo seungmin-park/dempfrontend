@@ -65,3 +65,7 @@
 소유자: AnnouncementBookmarkService의 인증 ID·트랜잭션, AnnouncementBookmark/UNIQUE의 회원별 저장, RecruitPeriod/DeadlineMode의 마감 규칙. 프런트 useAnnouncementBookmarks는 저장 상태·연타·응답 경쟁·인증 복귀, useSavedAnnouncements는 내 목록·페이지·해제 복구, API 모듈은 HTTP, Vue는 표현을 맡는다.
 
 검증: BookmarkHttpFlowTest의 실제 Spring/H2 HTTP·commit 재조회·동시성·회원 격리·비공개/삭제; RecruitmentDeadlineServiceTest의 validation·저장·모집 필터; AnnouncementBookmarkRestDocsTest의 MVC·인증·문서. 프런트 SavedAnnouncementsFeature/SavedAnnouncementList/useAnnouncementBookmarks/RecruitmentDeadlineMode 단위 및 saved-announcements.spec.js 개발/배포 fixture 브라우저. 실제 cmux 경로는 별도로 기록하며 테스트 파일 존재만으로 통과를 주장하지 않는다.
+
+## 탐색 랜딩과 공통 테마
+
+`/` → 히어로의 내 조건으로 찾아보기 → `#announcement-discovery`의 기존 필터/목록 → 상세 인증 복귀. `DiscoveryIntro`/`DiscoveryGuide`는 안내 표현만, URL 조건과 서버 조회·관심 저장은 기존 컴포넌트/composable/API가 소유한다. 가상 공고나 임의 집계를 사용하지 않는다. 로컬 Pretendard와 지정한 남색·파랑·회색 팔레트는 공통 CSS가 소유한다. `DiscoveryLanding.spec.js`, `discovery-landing.spec.js`가 원래 검색 `q` 유지·CTA 대상·인증 정책 안내·실제 API 경계 카드·키보드 FAQ·축소 모션·라이선스 배포와 320/390/1440px을 검사한다. 기존 전체 responsive suite도 유지한다. 실제 cmux/Spring 확인은 [작업 기록](../superpowers/plans/2026-10-30-discovery-landing-design.md)을 따른다.

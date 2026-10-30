@@ -35,8 +35,7 @@ export default defineComponent({
 .account-link { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; min-height: 44px; text-decoration: none; color: inherit; }
 .account-link span { font-size: .8rem; }
 @media (max-width: 700px) {
-  .site-header { height: auto; }
-  .header-inner { flex-wrap: wrap; gap: 8px 16px; padding: 8px 16px; }
+  .header-inner { flex-wrap: wrap; gap: 8px 16px; padding: 12px 16px; justify-content: center; }
   .primary-nav { margin-left: auto; align-self: auto; gap: 16px; }
   .primary-nav a { min-width: 40px; min-height: 44px; white-space: nowrap; justify-content: center; }
   .header-account { flex: 0 0 100%; justify-content: flex-end; gap: 12px; }

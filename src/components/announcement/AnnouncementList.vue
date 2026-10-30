@@ -230,10 +230,10 @@ export default defineComponent({
   border-radius: 10px;
   background: var(--surface);
   cursor: pointer;
-  transition: border-color .15s, box-shadow .15s;
+  transition: transform .5s cubic-bezier(.22,1,.36,1);
 }
-.job-card:hover { border-color: #b9bbf8; box-shadow: 0 6px 20px #4f46e50a; }
-.job-card:focus-visible { outline: 3px solid #818cf8; outline-offset: 3px; }
+.job-card:hover { transform: translateY(-4px); border-color: var(--muted); box-shadow: 0 6px 20px #234c6a0a; }
+.job-card:focus-visible { outline: 3px solid var(--muted); outline-offset: 3px; }
 .job-card-content { display: grid; gap: 12px; padding: 16px; }
 .job-card-heading { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
 .item-image-box {
@@ -255,4 +255,8 @@ export default defineComponent({
 .education-card-facts { margin: 0; gap: 8px 12px; overflow-wrap: anywhere; }
 .job-card-facts { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; border-top: 1px solid var(--line); padding-top: 12px; font-size: 12px; line-height: 1.5; color: var(--meta); }
 .job-card-facts:empty { display: none; }
+</style>
+
+<style scoped>
+@media (prefers-reduced-motion: reduce) { .job-card { transition: none; } .job-card:hover { transform: none; } }
 </style>

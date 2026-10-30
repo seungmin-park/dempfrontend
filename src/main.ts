@@ -6,6 +6,7 @@ import mitt from "mitt";
 import type { AppEvents } from "./types/events";
 
 import './assets/styles/main.css'
+import './assets/styles/discovery.css'
 
 const emitter = mitt<AppEvents>();
 const vue = createApp(App);
