@@ -19,6 +19,7 @@
 import { defineComponent, useId } from 'vue';
 import type { PropType } from 'vue';
 import type { HashtagInput } from '@/types/api';
+import { hashtagProblem } from '@/content/writeLimits';
 export default defineComponent({
   // eslint-disable-next-line
   name: 'Hashtags',
@@ -45,6 +46,8 @@ export default defineComponent({
       if (!this.value) { this.errorMsg = ''; return; }
       if (this.tags.some(tag => tag.value === this.value)) { this.errorMsg = '중복된 단어를 입력하셨습니다.'; return; }
       if (/[~!@#$%^&*()+|<>?:{},.="':;/-]/.test(this.value)) { this.errorMsg = '특수문자는 태그로 등록할 수 없습니다.'; return; }
+      const limitProblem = hashtagProblem(this.value, this.tags.length);
+      if (limitProblem) { this.errorMsg = limitProblem; return; }
       this.tags.push({ value: this.value, select: false });
       this.value = '';
       this.errorMsg = '';

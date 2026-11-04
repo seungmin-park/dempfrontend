@@ -39,3 +39,23 @@ test('저장 중 비활성 상태에서는 태그를 추가하거나 삭제하�
   expect(wrapper.get('input[aria-label="태그 입력"]').element.disabled).toBe(true);
   expect(wrapper.get('button[aria-label="JAVA 태그 삭제"]').element.disabled).toBe(true);
 });
+
+test('태그는 10개까지만 추가하고 11번째는 추가하지 않고 안내한다', async () => {
+  const wrapper = mount(Hashtags, { props: { initialTags: Array.from({ length: 10 }, (_, i) => `tag${i}`) } });
+  await wrapper.get('input[aria-label="태그 입력"]').setValue('tag10');
+  await wrapper.get('input[aria-label="태그 입력"]').trigger('keydown.enter');
+
+  expect(wrapper.findAll('.tag')).toHaveLength(10);
+  expect(wrapper.emitted('addHashtags')).toBeUndefined();
+  expect(wrapper.get('[role="alert"]').text()).toContain('태그는 10개까지 추가할 수 있습니다.');
+  expect(wrapper.get('input[aria-label="태그 입력"]').element.value).toBe('tag10');
+});
+
+test('30자를 넘는 태그는 추가하지 않고 길이를 안내한다', async () => {
+  const wrapper = mount(Hashtags);
+  await wrapper.get('input[aria-label="태그 입력"]').setValue('a'.repeat(31));
+  await wrapper.get('input[aria-label="태그 입력"]').trigger('keydown.enter');
+
+  expect(wrapper.findAll('.tag')).toHaveLength(0);
+  expect(wrapper.get('[role="alert"]').text()).toContain('태그는 30자 이하로 입력해 주세요.');
+});

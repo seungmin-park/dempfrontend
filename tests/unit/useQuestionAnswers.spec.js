@@ -93,3 +93,16 @@ test('저장 실패는 입력을 유지하고 인증 오류와 서버 오류를 
   expect(state.answers.value).toHaveLength(20);
   wrapper.unmount();
 });
+
+test.each([
+  ['비어 있으면', '   ', '답변 내용을 입력해 주세요.'],
+  ['서식을 포함해 20,000자를 넘으면', 'a'.repeat(20_001), '답변이 너무 깁니다.'],
+])('답변이 %s 저장 요청 없이 안내하고 작성 중인 답변을 보존한다', async (_case, body, message) => {
+  const { state } = await harness();
+  state.setBody(body);
+  await state.submitAnswer();
+
+  expect(axios.post).not.toHaveBeenCalled();
+  expect(state.saveError.value).toContain(message);
+  expect(state.body.value).toBe(body);
+});

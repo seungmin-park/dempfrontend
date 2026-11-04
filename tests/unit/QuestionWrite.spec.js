@@ -162,3 +162,27 @@ test('이전 질문의 저장이 늦게 끝나도 이동한 편집 화면에서 
   expect(wrapper.get('#question-title').element.value).toBe('다음 질문');
   expect(wrapper.get('button[type="submit"]').element.disabled).toBe(false);
 });
+
+function writeForm() {
+  return mount(QuestionWrite, { global: { stubs: { RouterLink: true }, mocks: {
+    $store: { state: { Login: { token: 'jwt', username: 'member' } } },
+    $router: { push: vi.fn(), replace: vi.fn(), currentRoute: { value: { fullPath: '/questions/new' } } },
+  } } });
+}
+
+test.each([
+  ['본문이 비었으면', '질문 제목', '', '본문을 입력해 주세요.'],
+  ['제목이 255자를 넘으면', '가'.repeat(256), '본문', '제목은 255자 이하로 입력해 주세요.'],
+  ['서식을 포함한 본문이 50,000자를 넘으면', '질문 제목', 'a'.repeat(50_001), '본문이 너무 깁니다.'],
+])('%s 저장 요청 없이 고칠 내용을 안내하고 입력을 보존한다', async (_case, title, content, message) => {
+  const wrapper = writeForm();
+  await wrapper.get('#question-title').setValue(title);
+  await wrapper.get('#content').setValue(content);
+  await wrapper.get('form').trigger('submit');
+  await flushPromises();
+
+  expect(axios.post).not.toHaveBeenCalled();
+  expect(wrapper.get('[role="alert"]').text()).toContain(message);
+  expect(wrapper.get('#question-title').element.value).toBe(title);
+  expect(wrapper.get('#content').element.value).toBe(content);
+});
