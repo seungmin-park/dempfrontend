@@ -2,7 +2,9 @@
 
 ### 조건을 비교하고, 원문으로 이동하고, 배운 것을 묻는 화면
 
-DEMP의 Vue 3·TypeScript 클라이언트입니다. 채용 공고와 교육 과정의 조건을 좁혀 살펴보고, **지원하기**에서 원본 페이지로 이동합니다. 질문·답변에서는 Markdown으로 글을 쓰고 회원별 추천·비추천을 남깁니다. 공고를 관리하는 운영 화면도 같은 앱에 있습니다.
+DEMP의 Vue 3·TypeScript 클라이언트입니다. 채용 공고와 교육 과정의 조건을 좁혀 살펴보고, **지원하기**에서 원본 페이지로 이동합니다. 질문·답변에서는 Markdown으로 글을 쓰고 회원별 추천·비추천을 남깁니다. 공고를 관리하는 운영 화면도 같은 앱에 있습니다. main에 머지되면 CI를 통과한 빌드가 운영 VM에 그대로 배포됩니다.
+
+**[서비스 바로가기 → demp-app.duckdns.org](https://demp-app.duckdns.org/)**
 
 [서비스 전체 소개](https://github.com/seungmin-park/demp) · [화면 보기](#화면과-사용-흐름) · [UI 설계](#ui에서-해결한-문제) · [실행](#로컬-실행) · [검증](#검증)
 
@@ -48,6 +50,8 @@ stateDiagram-v2
 ### 작성기와 본문 표시
 
 질문·답변은 공통 Markdown 작성기와 미리보기를 사용합니다. 기존 HTML을 다시 편집할 때는 Markdown으로 변환합니다. 공고는 Tiptap 작성기에서 표·이미지·붙여넣기를 지원합니다. 저장 전 서버가 본문을 정화하고, 화면 출력은 `SafeHtml`의 DOMPurify 허용목록을 거칩니다. Bootstrap·jQuery·Summernote CDN 의존성은 제거했습니다.
+
+서버가 거절할 글은 보내기 전에 막습니다. 제목 255자, 질문 본문 50,000자, 태그 10개·태그당 30자, 답변 20,000자를 넘거나 본문이 비어 있으면 무엇을 얼마나 줄일지 알려주고, 쓰던 제목·본문·태그는 그대로 둡니다. 본문 한도는 서버로 보내는 HTML 기준이라 서식도 포함됩니다. [#32](https://github.com/seungmin-park/dempfrontend/pull/32)
 
 이미지는 선택 업로드입니다. 외부 공고의 이미지를 자동 수집하거나 원문 전체를 대량 복제하지 않습니다. **지원하기**는 원본 또는 별도 지원 URL을 엽니다. [게시 정책](https://github.com/seungmin-park/demp/blob/main/docs/plans/curated-publication-policy.md)
 
@@ -105,8 +109,8 @@ npx playwright install chromium
 npm run verify -- --headed
 ```
 
-2026-09-29 기록에서 단위·컴포넌트 **156개**, headed Playwright **20개**가 통과했고 타입·lint·build도 성공했습니다. Playwright는 API fixture를 쓰는 화면 흐름 검증입니다. 실제 Spring/H2와 연결한 cmux 브라우저에서는 반응 저장·전환·취소 후 재조회까지 별도로 확인했습니다. [실행 명령·결과·화면 증거](https://github.com/seungmin-park/demp/blob/main/docs/verification/agent-verification-and-official-docs/README.md)
+2026-11-05 기준 단위·컴포넌트 테스트 **383개**와 Playwright E2E **254개**(production·development 빌드, CI와 같은 headless)가 통과했고 타입·lint·build도 성공했습니다. Playwright는 API fixture를 쓰는 화면 흐름 검증입니다. 실제 Spring/H2 서버와 연결한 브라우저에서는 반응 저장·전환·취소 후 재조회까지 따로 확인했습니다. [실행 명령·결과·화면 증거](https://github.com/seungmin-park/demp/blob/main/docs/verification/agent-verification-and-official-docs/README.md)
 
-현재 전체 검증은 AST 책임 경계, Vue·TS 타입, 전체 단위 테스트, lint, build와 새 production preview의 E2E를 연결합니다. 필수 계약 누락·skip·실패와 소스/빌드 변경을 거절하고 `.verification/`에 결과를 남깁니다. 로컬은 사용자가 지정한 현재 세션에서 headed로, CI는 headless로 실행합니다. main은 `DEMP frontend verify`를 요구하며 승인된 PR 작업에서 native 자동 squash 머지를 사용합니다. [CI 운영·공식 조사 근거](docs/engineering/ci-and-delivery.md)
+`npm run verify`는 AST 책임 경계, Vue·TS 타입, 전체 단위 테스트, lint, build, 새 production preview의 E2E를 차례로 실행합니다. 필수 계약이 빠지거나 skip·실패가 있거나 검증 중 소스·빌드가 바뀌면 실패로 처리하고, 결과는 `.verification/`에 남깁니다. 로컬에서는 `--headed`로 화면을 보며, CI에서는 headless로 실행합니다. main 머지에는 `DEMP frontend verify` 통과가 필요합니다. [CI 운영·공식 조사 근거](docs/engineering/ci-and-delivery.md)
 
-운영 배포와 실사용 트래픽 측정은 아직 수행하지 않았습니다. 서버 측 H2 성능 수치를 브라우저 렌더링 속도로 해석하지 않습니다. [측정 원본과 제약](https://github.com/seungmin-park/demp/blob/main/docs/verification/measured-query-performance/README.md) · [검증 스킬](.agents/skills/verify-dempfrontend/SKILL.md)
+운영 배포는 CI 산출물로 자동 진행하지만, 실사용 트래픽 측정은 아직 하지 않았습니다. 서버 측 H2 성능 수치를 브라우저 렌더링 속도로 해석하지 않습니다. [측정 원본과 제약](https://github.com/seungmin-park/demp/blob/main/docs/verification/measured-query-performance/README.md) · [검증 스킬](.agents/skills/verify-dempfrontend/SKILL.md)
