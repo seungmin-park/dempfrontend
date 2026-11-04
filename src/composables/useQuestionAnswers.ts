@@ -1,6 +1,7 @@
 import { onBeforeUnmount, readonly, ref, watch } from 'vue';
 import { createAnswer, getAnswers } from '@/api/answers';
 import { renderMarkdown } from '@/content/markdown';
+import { answerInputProblem } from '@/content/writeLimits';
 import { mutationErrorMessage, requestErrorMessage } from '@/presentation/requestError';
 import type { Answer, EntityId } from '@/types/api';
 
@@ -72,10 +73,13 @@ export function useQuestionAnswers(props: AnswerProps) {
     if (disposed || loading.value || saving.value) return;
     const requestGeneration = generation;
     const submittedBody = body.value;
+    const answerContent = renderMarkdown(submittedBody);
+    const problem = answerInputProblem(answerContent);
+    if (problem) { saveError.value = problem; return; }
     saving.value = true;
     saveError.value = '';
     try {
-      const response = await createAnswer({ username: props.username, questionId: props.questionId, answerContent: renderMarkdown(submittedBody) });
+      const response = await createAnswer({ username: props.username, questionId: props.questionId, answerContent });
       if (!isCurrent(requestGeneration)) return;
       const created = answers.value.find(answer => answer.answerId === response.data.answerId) ?? response.data;
       answers.value = [created, ...answers.value.filter(answer => answer.answerId !== created.answerId)];
