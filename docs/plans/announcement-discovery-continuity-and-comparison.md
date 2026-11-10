@@ -93,3 +93,9 @@ Red/Green/Refactor와 검증 결과는 아래에 단계별로 추가한다.
   9. 예상하지 않은 Vue 경고 0
 - 화면 근거: [목록 남은 시간](../screenshots/announcement-discovery/list-countdown.png), [복귀 포커스](../screenshots/announcement-discovery/returned-focus.png), [결과 없음 제안](../screenshots/announcement-discovery/empty-relaxation.png), [상세 지원 준비](../screenshots/announcement-discovery/detail-actions.png), [비교](../screenshots/announcement-discovery/compare.png).
 - 실제 화면에서 찾은 문제: 비교 표 첫 열 머리글의 `sr-only`는 `AnnouncementHeader`의 scoped 스타일에만 있어 화면에 그대로 보였다. 의미가 있는 머리글이라 '항목'을 보이는 머리글로 바꾸고 E2E 기대값에 넣었다. 이 수정 뒤 `npm run verify -- --headed`를 다시 실행해 성공했다(unit 429, browser 270).
+
+### 공용 화면 전용 텍스트(`sr-only`)
+
+- 실제 화면 검증에서 발견했다. `.sr-only`는 여러 컴포넌트(`AnnouncementHeader`의 legend, `AdminCollection`의 검색 label)가 쓰는데, 정의는 `AnnouncementHeader`의 scoped 스타일에만 있었다. 그래서 운영 목록의 '제목·작성자 검색' label이 화면에 그대로 보였다.
+- Red: `admin.spec.js`에서 운영 공고·질문 목록 검색 label의 면적이 1px² 이하인지 확인했다. production·development 모두 실패했다(Received 5243.75).
+- Green: 규칙을 `main.css`의 공용 utility로 옮기고 scoped 중복 정의를 지웠다. 접근성 이름(`getByLabel`)은 유지된다. `admin.spec.js`·`announcement-filters.spec.js` 64건이 통과했다. 새 E2E는 필수 목록에 등록했다.

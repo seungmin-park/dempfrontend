@@ -220,7 +220,6 @@ export default defineComponent({
 .career-quick-values button { flex: 1; min-height: 40px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--muted); font-size: 13px; }
 .career-quick-values .is-selected { border-color: var(--muted); background: var(--primary-soft); color: var(--primary-dark); }
 .career-clear { display: block; margin-top: 12px; min-height: 40px; width: 100%; border: 0; border-radius: 7px; background: transparent; color: var(--meta); font-size: 13px; text-align: left; padding: 8px 0; }
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 @media (max-width: 640px) {
   .filter-options { gap: 10px; }
   .filter-group, .filter-options > select { flex-basis: 100%; min-width: 0; }

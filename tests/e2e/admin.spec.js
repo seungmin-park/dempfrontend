@@ -400,3 +400,13 @@ test('운영 목록의 게시 상태 선택은 조회·새로고침·전체 해�
   await expect(page.getByRole('link', { name: '초안 은행 공고', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: '공개 은행 공고', exact: true })).toBeVisible();
 });
+
+test('운영 목록의 검색 이름표는 화면에서 숨기고 보조기기에는 검색 입력의 이름으로 남긴다', async ({ page }) => {
+  await adminFixture(page);
+  for (const path of ['/admin/announcements', '/admin/questions']) {
+    await page.goto(path);
+    await expect(page.getByLabel('제목·작성자 검색', { exact: true })).toBeVisible();
+    const label = await page.locator('label[for="admin-search"]').boundingBox();
+    expect(label.width * label.height, `${path} 검색 이름표는 시각적으로 숨긴다`).toBeLessThanOrEqual(1);
+  }
+});

@@ -607,6 +607,10 @@
     {
       "file": "announcement-empty-relaxation.spec.js",
       "title": "결과가 없을 때 하나만 빼면 공고가 나오는 조건을 제안하고 누르면 나머지 선택을 유지한 채 결과를 보여준다"
+    },
+    {
+      "file": "admin.spec.js",
+      "title": "운영 목록의 검색 이름표는 화면에서 숨기고 보조기기에는 검색 입력의 이름으로 남긴다"
     }
   ],
   "browserWarningAttachment": "vue-warnings",
