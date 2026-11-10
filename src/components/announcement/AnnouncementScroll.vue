@@ -1,7 +1,7 @@
 <template>
   <div class="anncoucement-scroll">
     <div class="anncoucement-scroll-header">
-      <button @click="$router.push({ path: '/', query: $route?.query })" class="anncoucement-scroll-history" aria-label="검색 결과로 돌아가기">←</button>
+      <button @click="returnToResults" class="anncoucement-scroll-history" aria-label="검색 결과로 돌아가기">←</button>
       <span>전체 공고</span>
     </div>
 
@@ -52,6 +52,13 @@ export default defineComponent({
       try { this.announcement = (await getAnnouncementScroll()).data; }
       catch (error) { this.error = requestErrorMessage(error); }
       finally { this.loading = false; }
+    },
+    /** Going back to the same list entry keeps its loaded pages and position; other entries open the list anew. */
+    returnToResults() {
+      const results = { path: '/', query: this.$route?.query ?? {} };
+      const previous: unknown = window.history.state?.back;
+      if (previous === this.$router.resolve(results).fullPath) this.$router.back();
+      else this.$router.push(results);
     },
     openDetail(id: number) {
       const query = this.$route?.query;

@@ -2,7 +2,8 @@ import { createWebHistory, createRouter } from "vue-router";
 import { store } from '@/store';
 
 import type { RootState } from '@/store/types';
-import type { NavigationGuard } from 'vue-router';
+import type { NavigationGuard, RouteLocationNormalized } from 'vue-router';
+import { compareIdsFromQuery } from '@/presentation/announcementComparison';
 
 export function createAuthGuard(authStore: { state: RootState }): NavigationGuard {
   return to => {
@@ -53,6 +54,13 @@ const routes = [
     name: "addAnnounce",
     meta: { requiresAuth: true },
     redirect: "/admin/announcements/new",
+  },
+  {
+    path: '/compare',
+    name: 'compareAnnouncements',
+    meta: { requiresAuth: true },
+    component: () => import('@/views/announcement/AnnouncementCompare.vue'),
+    props: (route: RouteLocationNormalized) => ({ ids: compareIdsFromQuery(route.query.ids) }),
   },
   {
     path: "/question",

@@ -81,3 +81,17 @@ it('수동 마감 공고 카드는 미래 날짜 대신 모집 종료로 표시�
   await flushPromises(); expect(wrapper.get('.job-card-facts').text()).toContain('모집 마감');
   expect(wrapper.get('.job-card-facts').text()).not.toContain('2027.12.31 마감'); wrapper.unmount();
 });
+it('모집 중 카드는 정확한 마감까지 남은 시간을 보여주고 임박한 공고만 강조한다', async () => {
+  vi.useFakeTimers(); vi.setSystemTime(new Date('2026-11-11T00:00:00Z'));
+  axios.get.mockResolvedValue({ data: { content: [
+    { id: 1, title: '오늘 마감', deadlineMode: 'FIXED', startedDate: '2026-11-01T00:00:00', deadLineDate: '2026-11-11T18:00:00', language: [] },
+    { id: 2, title: '여유 있음', deadlineMode: 'FIXED', startedDate: '2026-11-01T00:00:00', deadLineDate: '2026-11-25T18:00:00', language: [] },
+  ], last: true } });
+  const wrapper = mount(AnnouncementList, { global: { mocks: { emitter: { on: vi.fn(), off: vi.fn() } } } });
+  try {
+    await flushPromises();
+    const deadlines = wrapper.findAll('[aria-label="모집 마감"]');
+    expect(deadlines.map(item => item.text())).toEqual(['오늘 18:00 마감', '2026.11.25 18:00 마감 · 14일 남음']);
+    expect(deadlines.map(item => item.classes('is-urgent'))).toEqual([true, false]);
+  } finally { wrapper.unmount(); vi.useRealTimers(); }
+});

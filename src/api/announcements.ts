@@ -1,5 +1,5 @@
 import { educationFields } from '@/data/education';
-import type { AnnouncementForm, AnnouncementDetailResponse, AnnouncementDetail, AnnouncementSummary, AnnouncementSearchCondition, AnnouncementScroll, EntityId, Slice } from '@/types/api';
+import type { AnnouncementForm, AnnouncementDetailResponse, AnnouncementDetail, AnnouncementFilters, AnnouncementSummary, AnnouncementSearchCondition, AnnouncementScroll, EntityId, Slice } from '@/types/api';
 import { apiClient } from './client';
 
 export function toAnnouncementFormData(announcement: AnnouncementForm) {
@@ -52,24 +52,30 @@ export function viewAnnouncement(id: EntityId) {
   return apiClient.get<AnnouncementDetailResponse>(`/api/announce/detail/${id}`).then(response => toAnnouncementDetail(response.data));
 }
 
+function announcementQueryParams(condition: AnnouncementFilters) {
+  return {
+    announcementType: condition.announcementType,
+    positions: condition.positions.join(','),
+    career: condition.career,
+    title: condition.title,
+    orderBy: condition.orderBy || 'DEADLINE',
+    ...(condition.languages?.length ? { languages: condition.languages.join(',') } : {}),
+    ...(condition.recruitmentStatus ? { recruitmentStatus: condition.recruitmentStatus } : {}),
+    ...(condition.tuition ? { tuition: condition.tuition } : {}),
+    ...(condition.announcementType === 'EDU' ? Object.fromEntries(
+      [...educationFields.map(field => field.key), 'duration', 'startAfter', 'startBefore'].filter(key => condition[key as keyof AnnouncementFilters]).map(key => [key, condition[key as keyof AnnouncementFilters]])
+    ) : {}),
+  };
+}
+
 export function getAnnouncements(condition: AnnouncementSearchCondition) {
-  return apiClient.get<Slice<AnnouncementSummary>>('/api/announce', {
-    params: {
-      announcementType: condition.announcementType,
-      positions: condition.positions.join(','),
-      career: condition.career,
-      title: condition.title,
-      orderBy: condition.orderBy || 'DEADLINE',
-      ...(condition.languages?.length ? { languages: condition.languages.join(',') } : {}),
-      ...(condition.recruitmentStatus ? { recruitmentStatus: condition.recruitmentStatus } : {}),
-      ...(condition.tuition ? { tuition: condition.tuition } : {}),
-      ...(condition.announcementType === 'EDU' ? Object.fromEntries(
-        [...educationFields.map(field => field.key), 'duration', 'startAfter', 'startBefore'].filter(key => condition[key as keyof AnnouncementSearchCondition]).map(key => [key, condition[key as keyof AnnouncementSearchCondition]])
-      ) : {}),
-      page: condition.page,
-      size: 8,
-    },
-  });
+  return apiClient.get<Slice<AnnouncementSummary>>('/api/announce', { params: { ...announcementQueryParams(condition), page: condition.page, size: 8 } });
+}
+
+/** One-row existence check for a search condition; it never changes the visible list. */
+export function hasMatchingAnnouncements(filters: AnnouncementFilters): Promise<boolean> {
+  return apiClient.get<Slice<AnnouncementSummary>>('/api/announce', { params: { ...announcementQueryParams(filters), page: 0, size: 1 } })
+    .then(response => response.data.content.length > 0);
 }
 
 export function getAnnouncementScroll() {

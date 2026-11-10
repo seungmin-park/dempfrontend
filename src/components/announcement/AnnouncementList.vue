@@ -1,15 +1,15 @@
 <template>
   <BookmarkScope :ids="notices.map(notice => notice.id)" :token="$store.state.Login.token" :username="$store.state.Login.username" :intent-id="queryText($route?.query?.saveAnnouncement)" @login="loginToSave" @consume-intent="consumeSaveIntent" v-slot="bookmarks">
   <div class="results-heading">
-    <h2>공고 목록 <span>{{ notices.length }}</span></h2>
+    <h2>공고 목록 <span>{{ last ? '전체' : '지금까지' }} {{ notices.length.toLocaleString() }}개</span></h2>
     <label class="announcement-order">정렬
       <select aria-label="공고 정렬" :value="announcementSearchCondition.orderBy || 'DEADLINE'" @change="changeOrder">
         <option value="LATEST">최신 등록순</option><option value="DEADLINE">마감 임박순</option><option value="VIEWS">조회 많은 순</option>
       </select>
     </label>
   </div>
-  <div class="job-grid" :aria-busy="loading">
-    <article v-for="notice in notices" :key="notice.id" class="item job-card" tabindex="0" role="link" :aria-label="notice.title ?? '공고 상세'" @click="openAnnouncementDetail(notice.id)" @keydown.enter="openAnnouncementDetail(notice.id)">
+  <div ref="grid" class="job-grid" :aria-busy="loading">
+    <article v-for="notice in notices" :key="notice.id" class="item job-card" :data-announcement-id="notice.id" tabindex="0" role="link" :aria-label="notice.title ?? '공고 상세'" @click="openAnnouncementDetail(notice.id)" @keydown.enter="openAnnouncementDetail(notice.id)">
       <div class="job-card-content">
         <div class="job-card-heading">
           <div class="item-image-box"><CompanyImage :src="notice.image" /></div>
@@ -32,7 +32,7 @@
           <span v-if="typeof notice.hits === 'number'" class="job-view-count" aria-label="공고 조회수">조회 {{ notice.hits.toLocaleString() }}</span>
           <span v-if="notice.announcementType === 'EDU'">{{ formatTuition(notice.payment) }}</span>
           <span aria-label="현재 모집 상태">{{ recruitmentLabels[recruitmentState(notice, recruitmentNow)] }}</span>
-          <span v-if="!notice.recruitmentClosed" aria-label="모집 마감">{{ formatDeadline(notice) }}{{ notice.deadLineDate ? ' 마감' : '' }}</span>
+          <span v-if="!notice.recruitmentClosed" aria-label="모집 마감" class="job-deadline" :class="{ 'is-urgent': deadlineSummary(notice, recruitmentNow).urgent }">{{ deadlineSummary(notice, recruitmentNow).text }}</span>
         </div>
       </div>
     </article>
@@ -51,6 +51,10 @@
     <div v-if="last && !notices.length && !loading && !error" class="empty-state" role="status" aria-live="polite">
       <AppIcon :name="emptyState.action === 'reset' ? 'search' : 'briefcase'" :size="32" />
       <h2>{{ emptyState.title }}</h2><p>{{ emptyState.description }}</p>
+      <div v-if="emptyState.action === 'reset' && relaxedSuggestions.length" class="empty-relaxations">
+        <p>조건을 하나만 빼면 볼 수 있는 공고가 있어요.</p>
+        <button v-for="suggestion in relaxedSuggestions" :key="suggestion.key" type="button" class="button button-secondary" data-test="empty-relax" @click="applyRelaxation(suggestion.filters)">{{ suggestion.label }}</button>
+      </div>
       <button v-if="emptyState.action === 'reset'" class="button button-secondary" data-test="empty-reset" @click="resetSearch">검색·필터 해제</button>
       <button v-else-if="emptyState.action === 'showAll'" class="button button-secondary" data-test="empty-show-all" @click="showAllRecruitment">마감 포함 전체 보기</button>
       <button v-else-if="emptyState.action === 'browse'" class="button button-secondary" data-test="empty-browse" @click="$router.push({ path: '/', query: {} })">전체 공고 보기</button>
@@ -63,15 +67,18 @@ import BookmarkScope from './BookmarkScope.vue';
 import BookmarkButton from './BookmarkButton.vue';
 import { bookmarkReturnPath } from '@/router/authReturn';
 import { queryText } from '@/router/query';
+import { rememberListReturn, takeListReturn, type ListReturnPoint } from '@/router/listReturn';
 import { useRecruitmentTime } from '@/composables/useRecruitmentTime';
-import { recruitmentState, recruitmentLabels, formatDeadline } from '@/presentation/recruitment';
+import { recruitmentState, recruitmentLabels, deadlineSummary } from '@/presentation/recruitment';
 import { educationLabel } from '@/data/education';
 import { formatTuition } from '@/presentation/compensation';
 import type { AnnouncementSummary, AnnouncementFilters, JobPosition } from '@/types/api';
 import { defineComponent } from "vue";
+import type { DeepReadonly } from "vue";
 import { markRaw } from "vue";
 import { getAnnouncements } from "@/api/announcements";
 import { announcementEmptyState } from '@/presentation/announcementStates';
+import { useRelaxedSearchSuggestions } from '@/composables/useRelaxedSearchSuggestions';
 import AppIcon from '@/components/common/AppIcon.vue';
 import { filtersFromQuery, filtersToQuery } from '@/router/announcementFilters';
 import { formatPosition } from '@/presentation/positions';
@@ -81,18 +88,19 @@ import AnnouncementAudience from './AnnouncementAudience.vue';
 import CompanyImage from '@/components/common/CompanyImage.vue';
 export default defineComponent({
   name: "demp-announcement",
-  setup() { return { ...useRecruitmentTime(), recruitmentLabels }; },
+  setup() { return { ...useRecruitmentTime(), ...useRelaxedSearchSuggestions(), recruitmentLabels }; },
   components: { BookmarkScope, BookmarkButton, AppIcon, AnnouncementAudience, CompanyImage },
   mounted() {
     this.announcementSearchCondition = { ...filtersFromQuery(this.$route?.query), page: 0 };
     this.emitter.on("announcementSearchCondition", this.onSearchCondition);
     if (typeof IntersectionObserver !== "undefined") {
       this.pageObserver = markRaw(new IntersectionObserver(entries => {
-        if (entries.some(entry => entry.isIntersecting) && !this.error) this.loadNextPage();
+        if (entries.some(entry => entry.isIntersecting) && !this.error && !this.restoringPosition) this.loadNextPage();
       }, { rootMargin: "200px" }));
       this.pageObserver.observe(this.$refs.listEnd as Element);
     }
-    this.loadNextPage();
+    const returnPoint = takeListReturn(this.$route?.fullPath ?? '/');
+    if (returnPoint) this.restoreReturnPoint(returnPoint); else this.loadNextPage();
     this.refreshTimer = setInterval(this.refreshRecruitment, 30000);
     document.addEventListener("visibilitychange", this.onVisibilityChange);
   },
@@ -122,6 +130,7 @@ export default defineComponent({
       error:null as string | null,
       requestGeneration:0,
       pageObserver:null as IntersectionObserver | null,
+      restoringPosition:false,
     };
   },
 
@@ -131,7 +140,7 @@ export default defineComponent({
     showAllRecruitment() { this.$router.push({ path: '/', query: filtersToQuery({ ...this.announcementSearchCondition, recruitmentStatus: '' }) }); },
     loginToSave(id: number) { this.$router.push({ path: '/login', query: { redirect: bookmarkReturnPath(this.$route?.fullPath || '/', id) } }); },
     consumeSaveIntent() { const query = { ...this.$route.query }; delete query.saveAnnouncement; this.$router.replace({ path: this.$route.path, query }); },
-    educationLabel, formatTuition, recruitmentState, formatDeadline,
+    educationLabel, formatTuition, recruitmentState, deadlineSummary,
     onVisibilityChange() { if (document.visibilityState === 'visible') this.refreshRecruitment(); },
     async refreshRecruitment() {
       if (this.loading || this.refreshing) return;
@@ -163,6 +172,7 @@ export default defineComponent({
       if (orderBy !== 'LATEST' && orderBy !== 'DEADLINE' && orderBy !== 'VIEWS') return;
       this.$router.push({ path: '/', query: filtersToQuery({ ...this.announcementSearchCondition, orderBy }) });
     },
+    applyRelaxation(filters: DeepReadonly<AnnouncementFilters>) { this.$router.push({ path: '/', query: filtersToQuery(filters) }); },
     resetSearch() {
       const type = this.announcementSearchCondition.announcementType;
       this.$router.push({ path: '/', query: type ? { type } : {} });
@@ -176,6 +186,7 @@ export default defineComponent({
       this.refreshError = '';
       this.requestGeneration++;
       this.loading = false;
+      this.clearRelaxedSearches();
       this.loadNextPage();
     },
     async loadNextPage(){
@@ -196,6 +207,9 @@ export default defineComponent({
           this.announcementSearchCondition.page ++;
         }
         this.last = result.data.last || result.data.content.length === 0;
+        if (this.last && !this.notices.length && this.emptyState.action === 'reset') {
+          this.checkRelaxedSearches(this.announcementSearchCondition);
+        }
       }
       catch {
         if (generation === this.requestGeneration) this.error = this.notices.length ? "다음 공고를 불러오지 못했습니다." : "공고를 불러오지 못했습니다.";
@@ -210,7 +224,31 @@ export default defineComponent({
         }
       }
     },
+    async restoreReturnPoint(point: ListReturnPoint) {
+      const condition = this.announcementSearchCondition;
+      this.restoringPosition = true;
+      try {
+        while (this.announcementSearchCondition === condition && condition.page < point.pages && !this.last && !this.error) {
+          const before = condition.page;
+          await this.loadNextPage();
+          if (condition.page === before) break;
+        }
+        if (this.announcementSearchCondition !== condition) return;
+        await this.$nextTick();
+        const card = (this.$refs.grid as HTMLElement | undefined)?.querySelector<HTMLElement>(`[data-announcement-id="${point.id}"]`);
+        card?.scrollIntoView?.({ block: 'center' });
+        card?.focus({ preventScroll: true });
+      } finally {
+        this.restoringPosition = false;
+        // Observe again so automatic loading reflects the restored scroll position, not the one before it.
+        if (this.pageObserver && !this.last && !this.error) {
+          this.pageObserver.unobserve(this.$refs.listEnd as Element);
+          this.pageObserver.observe(this.$refs.listEnd as Element);
+        }
+      }
+    },
     openAnnouncementDetail(id: number){
+      rememberListReturn(this.$route?.fullPath ?? '/', { pages: this.announcementSearchCondition.page, id });
       const query = this.$route?.query;
       this.$router.push(query && Object.keys(query).length ? { path: `/detail/${id}`, query } : `/detail/${id}`);
     },
@@ -255,6 +293,7 @@ export default defineComponent({
 .education-card-facts { margin: 0; gap: 8px 12px; overflow-wrap: anywhere; }
 .job-card-facts { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; border-top: 1px solid var(--line); padding-top: 12px; font-size: 12px; line-height: 1.5; color: var(--meta); }
 .job-card-facts:empty { display: none; }
+.job-deadline.is-urgent { color: var(--danger); font-weight: 650; }
 </style>
 
 <style scoped>

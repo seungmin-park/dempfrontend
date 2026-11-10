@@ -12,7 +12,7 @@ vi.mock('@/api/bookmarks', () => ({ getBookmarkStatus: vi.fn().mockResolvedValue
 beforeEach(() => axios.get.mockReset());
 afterEach(() => vi.clearAllMocks());
 const record = title => ({ id: 1, answerId: '1', title, content: title, username: 'member', hits: 1, recommend: 0, dislike: 0, hashtags: [], language: ['JAVA'], company: { name: '회사' }, minCareer: 0, maxCareer: 3 });
-function options(route = reactive({ params: { itemId: '1', questionId: '1' }, query: {} })) { return { global: { stubs: { RouterLink: true }, mocks: { $route: route, $store: { state: { Login: { token: 'jwt', username: 'member' } } }, $router: { push: vi.fn() }, emitter: { on: vi.fn(), off: vi.fn() } } } }; }
+function options(route = reactive({ params: { itemId: '1', questionId: '1' }, query: {} })) { return { global: { stubs: { RouterLink: true }, mocks: { $route: route, $store: { state: { Login: { token: 'jwt', username: 'member' } } }, $router: { push: vi.fn(), back: vi.fn(), resolve: vi.fn(location => ({ fullPath: `${location.path}${Object.keys(location.query ?? {}).length ? `?${new URLSearchParams(location.query)}` : ''}` })) }, emitter: { on: vi.fn(), off: vi.fn() } } } }; }
 it.each([[AnnouncementDetail, false], [QuestionDetail, false], [QuestionAnswer, true]])('상세와 답변은 이전 경로 응답을 버리고 새 경로를 표시한다', async (component, array) => {
   let finishOld;
   axios.get.mockImplementationOnce(() => new Promise(resolve => { finishOld = resolve; })).mockResolvedValueOnce({ data: array ? {content:[record('새 내용')],nextCursor:null,hasNext:false} : record('새 내용') });

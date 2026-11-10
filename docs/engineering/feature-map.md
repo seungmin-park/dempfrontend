@@ -13,6 +13,9 @@
 | 기술 스택·변경 이력 | 전체 선택 칩 클릭 → 저장/재조회, 이력 보기 → 날짜/작성자/상태·제목 | 기존 native checkbox와 관리자 editor; history는 서버 순서 그대로 표현 | 단위·CI 반응형 회귀 + cmux 320/390/1440px 치수/화면 |
 | 공고 검색 필터 | `/` → 직무/기술 검색·선택 → 모집 상태/정확한 경력 → 조건 해제·뒤로 이동 | route query가 적용 조건의 원본, Header가 검색/연차 초안·단일 패널을 소유 | `AnnouncementFilters`/`AnnouncementFilterPanels` + development/production CI + 실제 cmux/Spring 결과·6개 폭 |
 | 공고 카드 밀도·회사/직무 | 목록 → 회사/직무·제목·모집/고용·기술/마감 → click/Enter 상세 → 목록 복귀 | `AnnouncementList` 기존 조회/페이지/상세 이동, card scoped CSS 표현 | `AnnouncementPresentation` + 6개 폭 CI/실제 cmux의 56px 이미지·글자 크기·간격·자연 줄바꿈; [기록](../announcement-card-density.md) |
+| 목록 복귀·남은 시간·결과 없음 | 목록 스크롤 → 상세 → 뒤로/검색 결과로 돌아가기 → 같은 페이지·공고 포커스; 마감 '오늘 18:00'·'N일 남음'; 빈 결과의 '○○ 빼고 보기' | `router/listReturn`(history 항목별 기록), `AnnouncementList` 복원, `deadlineSummary`, `useRelaxedSearchSuggestions`(size 1 확인·요청 세대) | 단위 + `announcement-return`·`announcement-empty-relaxation` E2E; [기록](../plans/announcement-discovery-continuity-and-comparison.md) |
+| 상세 지원 준비·최근 본 공고 | 상세 핵심 조건 `<dl>`·따라오는 지원 바·링크 복사·마감 `.ics`·기술 태그 면접 질문 → 목록 위 최근 본 공고 | `AnnouncementDetail` 표시, `deadlineCalendar`, `RelatedQuestionLinks`, `useRecentAnnouncements`(계정별 localStorage) | 단위 + `announcement-detail-actions`·`announcement-return` E2E |
+| 관심 공고 비교 | `/mypage?tab=saved` → 비교에 담기(최대 4) → `/compare?ids=` → 새로고침·열 빼기·돌아가기 | MyPage가 `?compare=` 소유, `SavedAnnouncements` props/event, `useAnnouncementComparison`(열별 조회·404/실패 구분), `comparisonRows` | 단위 + `announcement-compare` E2E |
 | 반응형 간격·텍스트 표시 | 공고 목록·상세, 질문 목록·상세·작성, 인증, 관리자 목록·등록 | 공통 CSS + MarkdownEditor 내부 CSS | `responsive-layout.spec.js` + Codex 실제 로컬 화면 |
 
 ## 답변 페이지·저장

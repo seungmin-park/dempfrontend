@@ -1,5 +1,6 @@
 import { educationFields, durations, validDate } from '@/data/education';
 import type { LocationQuery, LocationQueryRaw } from 'vue-router';
+import type { DeepReadonly } from 'vue';
 import type { AnnouncementFilters } from '@/types/api';
 import { technologyValues } from '@/data/technologies';
 import positions from '@/data/positions';
@@ -31,7 +32,7 @@ export function filtersFromQuery(query: LocationQuery = {}): AnnouncementFilters
     title: text(query.q).trim(),
   };
 }
-export function filtersToQuery(filters: AnnouncementFilters): LocationQueryRaw {
+export function filtersToQuery(filters: DeepReadonly<AnnouncementFilters>): LocationQueryRaw {
   const query: LocationQueryRaw = {};
   if (filters.orderBy && filters.orderBy !== 'DEADLINE') query.orderBy = filters.orderBy;
   if (filters.announcementType) query.type = filters.announcementType;

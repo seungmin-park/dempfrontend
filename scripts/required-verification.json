@@ -54,7 +54,12 @@
     "tests/unit/RecruitmentDeadlineMode.spec.js",
     "tests/unit/SavedAnnouncementsFeature.spec.js",
     "tests/unit/SavedAnnouncementList.spec.js",
-    "tests/unit/useAnnouncementBookmarks.spec.js"
+    "tests/unit/useAnnouncementBookmarks.spec.js",
+    "tests/unit/DeadlineSummary.spec.js",
+    "tests/unit/SearchRelaxation.spec.js",
+    "tests/unit/DeadlineCalendar.spec.js",
+    "tests/unit/RecentAnnouncements.spec.js",
+    "tests/unit/AnnouncementComparison.spec.js"
   ],
   "unitAssertions": [
     {
@@ -160,6 +165,38 @@
     {
       "file": "tests/unit/QuestionDetail.spec.js",
       "title": "상세 진입은 한 번 집계 요청하고 서버 조회수를 그대로 표시한다"
+    },
+    {
+      "file": "tests/unit/AnnouncementEmptyStates.spec.js",
+      "title": "빈 결과에서는 하나만 빼면 공고가 나오는 조건만 제안하고 나머지 선택은 유지한다"
+    },
+    {
+      "file": "tests/unit/AnnouncementEmptyStates.spec.js",
+      "title": "조건을 바꾼 뒤 늦게 도착한 이전 확인 결과는 제안에 섞이지 않는다"
+    },
+    {
+      "file": "tests/unit/DeadlineSummary.spec.js",
+      "title": "남은 날은 보는 사람의 시간대가 아니라 한국 날짜 기준으로 센다"
+    },
+    {
+      "file": "tests/unit/DeadlineSummary.spec.js",
+      "title": "정확한 마감 시각이 없는 공고는 남은 시간을 만들지 않는다"
+    },
+    {
+      "file": "tests/unit/DeadlineCalendar.spec.js",
+      "title": "정확한 마감 시각이 없거나 이미 마감된 공고는 일정 파일을 만들지 않는다"
+    },
+    {
+      "file": "tests/unit/RecentAnnouncements.spec.js",
+      "title": "최근 본 공고는 계정별로 최신순 20개까지 같은 공고 없이 기록한다"
+    },
+    {
+      "file": "tests/unit/AnnouncementComparison.spec.js",
+      "title": "채용과 교육을 함께 비교하면 공통 항목은 나란히, 한쪽에만 있는 항목은 해당 없음으로 보여준다"
+    },
+    {
+      "file": "tests/unit/AnnouncementList.spec.js",
+      "title": "목록 개수는 더 불러올 수 있으면 지금까지 표시한 수, 끝까지 불러오면 전체 수로 구분한다"
     }
   ],
   "e2eTests": [
@@ -538,6 +575,38 @@
     {
       "file": "saved-announcements.spec.js",
       "title": "저장 도중 세션이 만료돼도 재로그인 후 선택한 공고 저장을 이어간다"
+    },
+    {
+      "file": "announcement-return.spec.js",
+      "title": "상세에서 브라우저 뒤로 가기로 돌아오면 불러온 페이지와 누른 공고 위치가 유지된다"
+    },
+    {
+      "file": "announcement-return.spec.js",
+      "title": "상세의 검색 결과로 돌아가기 버튼도 기록을 늘리지 않고 같은 위치로 돌아오며 새로 들어온 목록은 처음부터 보여준다"
+    },
+    {
+      "file": "announcement-detail-actions.spec.js",
+      "title": "390px: 긴 공고를 읽는 중에도 지원 버튼이 화면에 남는다"
+    },
+    {
+      "file": "announcement-detail-actions.spec.js",
+      "title": "1440px: 긴 공고를 읽는 중에도 지원 버튼이 화면에 남는다"
+    },
+    {
+      "file": "announcement-detail-actions.spec.js",
+      "title": "링크 복사·마감 일정 내려받기·관련 면접 질문 이동을 상세에서 바로 할 수 있다"
+    },
+    {
+      "file": "announcement-compare.spec.js",
+      "title": "관심 공고에서 고른 공고를 비교하고 새로고침·열 빼기·돌아가기에서도 선택을 유지한다"
+    },
+    {
+      "file": "announcement-compare.spec.js",
+      "title": "비공개로 바뀐 공고는 그 열에만 이유를 보여주고 나머지 비교는 유지한다"
+    },
+    {
+      "file": "announcement-empty-relaxation.spec.js",
+      "title": "결과가 없을 때 하나만 빼면 공고가 나오는 조건을 제안하고 누르면 나머지 선택을 유지한 채 결과를 보여준다"
     }
   ],
   "browserWarningAttachment": "vue-warnings",

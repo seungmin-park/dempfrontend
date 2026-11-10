@@ -1,4 +1,4 @@
-function responseStatus(error: unknown): unknown {
+export function responseStatus(error: unknown): unknown {
   let status: unknown;
   if (error && typeof error === 'object' && 'response' in error) {
     const response = error.response;
