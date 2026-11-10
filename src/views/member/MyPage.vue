@@ -6,7 +6,7 @@
       <router-link to="/mypage" :aria-current="selectedTab === 'settings' ? 'page' : undefined">계정 설정</router-link>
     </nav>
     <section v-if="passwordChanged" class="account-panel" role="status"><h2>비밀번호를 변경했습니다.</h2><p>모든 기기의 기존 로그인이 만료됐습니다. 새 비밀번호로 다시 로그인해 주세요.</p><router-link class="button button-primary" :to="{ path: '/login', query: { redirect: '/mypage' } }">다시 로그인</router-link></section>
-    <SavedAnnouncements v-else-if="selectedTab === 'saved'" embedded />
+    <SavedAnnouncements v-else-if="selectedTab === 'saved'" embedded :compare-ids="compareIds" @update:compare-ids="updateCompareIds" />
     <p v-else-if="loading" role="status">회원 정보를 불러오는 중입니다.</p>
     <div v-else-if="loadError" role="alert"><p>{{ loadError }}</p><button class="button" data-test="retry-profile" @click="load">다시 시도</button></div>
     <div v-else-if="profile" class="account-settings">
@@ -21,13 +21,22 @@
 </template>
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+import { compareIdsFromQuery } from '@/presentation/announcementComparison';
 import { useStore } from 'vuex';
 import type { RootState } from '@/store/types';
 import { useMemberAccount } from '@/composables/useMemberAccount';
 import SavedAnnouncements from './SavedAnnouncements.vue';
 const route = useRoute();
 const selectedTab = computed(() => route.query.tab === 'saved' ? 'saved' : 'settings');
+const router = useRouter();
+// The comparison selection lives in the URL so reload, back and the compare page's return link keep it.
+const compareIds = computed(() => compareIdsFromQuery(route.query.compare));
+function updateCompareIds(ids: number[]) {
+  const query = { ...route.query };
+  if (ids.length) query.compare = ids.join(','); else delete query.compare;
+  void router.replace({ path: route.path, query });
+}
 const store = useStore<RootState>();
 const { profile, loading, loadError, nickname, nicknameError, nicknameMessage, currentPassword, newPassword,
   confirmPassword, passwordError, passwordChanged, busy, load, saveNickname, savePassword, storeDraft }

@@ -6,7 +6,7 @@ function page() {
     AnnouncementHeader: { template: '<div data-test="live-filters">실제 검색 조건</div>' },
     AnnouncementList: { template: '<div data-test="live-list">실제 공고 목록</div>' },
     RouterLink: true,
-  } } });
+  }, mocks: { $store: { state: { Login: { token: '', username: '' } } } } } });
 }
 
 test('첫 화면은 목업의 커리어 안내와 실제 공고 검색·목록을 함께 표시한다', () => {

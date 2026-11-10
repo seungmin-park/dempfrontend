@@ -121,7 +121,9 @@ test('공고 이벤트 구독은 해제되어 다시 마운트해도 한 번만 
   expect(handlers.size).toBe(1);
   handlers.forEach(handler => handler({ announcementType: 'EMP', positions: [], title: 'Java', career: 0, payment: 0 }));
   await flushPromises();
-  expect(axios.get).toHaveBeenCalledTimes(3);
+  const sizes = axios.get.mock.calls.map(([, options]) => options.params.size);
+  expect(sizes.filter(size => size === 8)).toHaveLength(3);
+  expect(sizes.filter(size => size === 1)).toHaveLength(1);
   second.unmount();
   expect(handlers.size).toBe(0);
 });
@@ -211,8 +213,8 @@ test('스크롤 요청 실패는 자동 반복하지 않고 재시도 버튼으�
 test('열어 둔 모집 중 필터는 재조회로 시작된 공고를 반영하고 재조회 실패에도 기존 목록을 보존한다', async () => {
   vi.useFakeTimers(); vi.setSystemTime(new Date('2030-11-01T00:00:00Z'));
   const item = { id: 91, title: '자동 전환 공고', startedDate: '2030-11-01T09:00:01', deadLineDate: '2030-11-01T09:02:00' };
-  axios.get.mockReset(); axios.get.mockResolvedValueOnce({ data: { content: [], last: true } })
-    .mockResolvedValueOnce({ data: { content: [item], last: true } }).mockRejectedValueOnce(new Error('network'));
+  const listResponses = [() => Promise.resolve({ data: { content: [], last: true } }), () => Promise.resolve({ data: { content: [item], last: true } }), () => Promise.reject(new Error('network'))];
+  axios.get.mockReset(); axios.get.mockImplementation((url, { params }) => params.size === 1 ? Promise.resolve({ data: { content: [], last: true } }) : listResponses.shift()());
   const wrapper = mount(AnnouncementList, { global: { mocks: {
     emitter: { on: vi.fn(), off: vi.fn() }, $route: { query: { status: 'OPEN', q: '자동' } },
     $store: { state: { Login: { token: 'token' } } }, $router: { push: vi.fn() },
@@ -222,9 +224,79 @@ test('열어 둔 모집 중 필터는 재조회로 시작된 공고를 반영하
     await vi.advanceTimersByTimeAsync(30000); await flushPromises();
     expect(wrapper.text()).toContain('자동 전환 공고');
     expect(wrapper.get('[aria-label="현재 모집 상태"]').text()).toBe('모집 중');
-    expect(axios.get.mock.lastCall[1].params).toMatchObject({ recruitmentStatus: 'OPEN', title: '자동', page: 0 });
+    expect(axios.get.mock.calls.filter(([, options]) => options.params.size === 8).at(-1)[1].params).toMatchObject({ recruitmentStatus: 'OPEN', title: '자동', page: 0 });
     await vi.advanceTimersByTimeAsync(30000); await flushPromises();
     expect(wrapper.text()).toContain('자동 전환 공고');
     expect(wrapper.text()).toContain('최신 모집 상태를 확인하지 못했습니다');
   } finally { wrapper.unmount(); vi.useRealTimers(); }
+});
+
+test('목록 개수는 더 불러올 수 있으면 지금까지 표시한 수, 끝까지 불러오면 전체 수로 구분한다', async () => {
+  axios.get.mockReset();
+  axios.get
+    .mockResolvedValueOnce({ data: { content: [{ id: 2, title: '첫 공고' }, { id: 1, title: '둘째 공고' }], last: false } })
+    .mockResolvedValueOnce({ data: { content: [{ id: 0, title: '마지막 공고' }], last: true } });
+  const wrapper = mount(AnnouncementList, { global: { mocks: {
+    emitter: { on: vi.fn(), off: vi.fn() }, $store: { state: { Login: { token: 'token' } } }, $router: { push: vi.fn() },
+  } } });
+  await flushPromises();
+  expect(wrapper.get('.results-heading h2').text()).toBe('공고 목록 지금까지 2개');
+  await wrapper.get('[data-test="load-more"]').trigger('click');
+  await flushPromises();
+  expect(wrapper.get('.results-heading h2').text()).toBe('공고 목록 전체 3개');
+});
+
+const key = 'demp:announcement-list-return';
+const listRequests = () => axios.get.mock.calls.filter(([, options]) => options.params.size === 8).map(([, options]) => options.params.page);
+function mountList(fullPath = '/?languages=JAVA') {
+  return mount(AnnouncementList, { attachTo: document.body, global: { mocks: {
+    emitter: { on: vi.fn(), off: vi.fn() }, $store: { state: { Login: { token: 'token' } } },
+    $route: { path: '/', fullPath, query: { languages: 'JAVA' } }, $router: { push: vi.fn() },
+  } } });
+}
+function mockThreePages() {
+  axios.get.mockReset();
+  axios.get.mockImplementation((url, { params }) => Promise.resolve({ data: { content: [{ id: params.page * 2 + 1, title: `공고 ${params.page * 2 + 1}` }, { id: params.page * 2 + 2, title: `공고 ${params.page * 2 + 2}` }], last: params.page >= 2 } }));
+}
+afterEach(() => { sessionStorage.clear(); history.replaceState(null, ''); });
+
+test('공고를 누르면 지금 목록 기록에 불러온 페이지 수와 누른 공고를 남긴다', async () => {
+  mockThreePages();
+  history.replaceState({ position: 4, forward: null }, '');
+  const wrapper = mountList(); await flushPromises();
+  await wrapper.get('[data-test="load-more"]').trigger('click'); await flushPromises();
+  await wrapper.get('[aria-label="공고 3"]').trigger('click');
+  expect(JSON.parse(sessionStorage.getItem(key))).toEqual({ position: 4, path: '/?languages=JAVA', pages: 2, id: 3 });
+});
+
+test('상세에서 돌아오면 그 페이지까지 다시 불러오고 누른 공고에 포커스를 준다', async () => {
+  mockThreePages();
+  history.replaceState({ position: 4, forward: '/detail/3?languages=JAVA' }, '');
+  sessionStorage.setItem(key, JSON.stringify({ position: 4, path: '/?languages=JAVA', pages: 2, id: 3 }));
+  const wrapper = mountList(); await flushPromises();
+  expect(listRequests()).toEqual([0, 1]);
+  expect(document.activeElement?.getAttribute('aria-label')).toBe('공고 3');
+  expect(sessionStorage.getItem(key)).toBeNull();
+  wrapper.unmount();
+});
+
+test('같은 주소로 새로 들어오거나 다른 목록 기록이면 처음 페이지부터 보여준다', async () => {
+  mockThreePages();
+  sessionStorage.setItem(key, JSON.stringify({ position: 4, path: '/?languages=JAVA', pages: 2, id: 3 }));
+  history.replaceState({ position: 5, forward: null }, '');
+  mountList(); await flushPromises();
+  history.replaceState({ position: 6, forward: '/detail/3' }, '');
+  mountList(); await flushPromises();
+  expect(listRequests()).toEqual([0, 0]);
+  expect(document.activeElement).toBe(document.body);
+});
+
+test('손상되거나 과도한 기록은 무시하고 처음 페이지만 불러온다', async () => {
+  mockThreePages();
+  history.replaceState({ position: 4, forward: '/detail/3' }, '');
+  for (const value of ['{', JSON.stringify({ position: 4, path: '/?languages=JAVA', pages: 500, id: 3 }), JSON.stringify({ position: 4, path: '/?languages=JAVA', pages: '2', id: 3 })]) {
+    sessionStorage.setItem(key, value);
+    mountList(); await flushPromises();
+  }
+  expect(listRequests()).toEqual([0, 0, 0]);
 });

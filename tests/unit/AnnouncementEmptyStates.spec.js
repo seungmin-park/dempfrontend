@@ -60,3 +60,43 @@ it('다음 페이지 실패는 기존 결과를 보존하고 추가 로딩 실�
   expect(wrapper.text()).toContain('유지할 공고');
   expect(wrapper.find('.empty-state').exists()).toBe(false);
 });
+const probe = ([, options]) => options.params.size === 1;
+it('빈 결과에서는 하나만 빼면 공고가 나오는 조건만 제안하고 나머지 선택은 유지한다', async () => {
+  axios.get.mockImplementation((url, { params }) => Promise.resolve({ data: { content: params.size === 1 && params.title === '' ? [{ id: 9 }] : [], last: true } }));
+  const { wrapper, push } = setup({ q: 'Kotlin', languages: 'KOTLIN', positions: 'BACKEND' }); await flushPromises();
+  const buttons = wrapper.findAll('[data-test="empty-relax"]');
+  expect(buttons.map(button => button.text())).toEqual(['검색어 “Kotlin” 빼고 보기']);
+  expect(axios.get.mock.calls.filter(probe).map(([, options]) => options.params.page)).toEqual([0, 0, 0, 0]);
+  await buttons[0].trigger('click');
+  expect(push).toHaveBeenCalledWith({ path: '/', query: { positions: 'BACKEND', languages: 'KOTLIN' } });
+  expect(wrapper.find('[data-test="empty-reset"]').exists()).toBe(true);
+});
+it('조건 확인 요청이 실패하면 제안 없이 기존 전체 해제 경로를 유지한다', async () => {
+  axios.get.mockImplementation((url, { params }) => params.size === 1 ? Promise.reject(new Error('network')) : Promise.resolve({ data: { content: [], last: true } }));
+  const { wrapper } = setup({ q: 'Kotlin', languages: 'KOTLIN' }); await flushPromises();
+  expect(axios.get.mock.calls.filter(probe)).toHaveLength(3);
+  expect(wrapper.findAll('[data-test="empty-relax"]')).toHaveLength(0);
+  expect(wrapper.find('[data-test="empty-reset"]').exists()).toBe(true);
+  expect(wrapper.find('[role="alert"]').exists()).toBe(false);
+});
+it('기본 목록이 빈 경우에는 조건 확인 요청을 보내지 않는다', async () => {
+  axios.get.mockResolvedValue({ data: { content: [], last: true } });
+  setup({}); await flushPromises();
+  expect(axios.get.mock.calls.filter(probe)).toHaveLength(0);
+});
+it('조건을 바꾼 뒤 늦게 도착한 이전 확인 결과는 제안에 섞이지 않는다', async () => {
+  let finishOldProbe;
+  axios.get.mockImplementation((url, { params }) => {
+    if (params.size === 1 && params.title === '' && params.languages === 'KOTLIN') return new Promise(resolve => { finishOldProbe = resolve; });
+    return Promise.resolve({ data: { content: [], last: true } });
+  });
+  const handlers = {};
+  const wrapper = mount(AnnouncementList, { global: { mocks: {
+    emitter: { on: vi.fn((name, handler) => { handlers[name] = handler; }), off: vi.fn() }, $route: { query: { q: 'Kotlin', languages: 'KOTLIN' } }, $router: { push: vi.fn() },
+  } } });
+  await flushPromises();
+  handlers.announcementSearchCondition({ announcementType: '', positions: [], languages: ['JAVA'], career: 0, payment: 0, title: 'Spring', recruitmentStatus: 'ACTIVE' });
+  await flushPromises();
+  finishOldProbe({ data: { content: [{ id: 1 }], last: true } }); await flushPromises();
+  expect(wrapper.findAll('[data-test="empty-relax"]')).toHaveLength(0);
+});

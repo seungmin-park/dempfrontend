@@ -89,7 +89,8 @@ test('목록과 상세의 저장 상태는 재조회로 일치하고 상태 조�
   await expect(page.getByRole('button',{name:'관심 공고 해제',exact:true})).toHaveAttribute('aria-pressed','true');
   await page.getByRole('link',{name:'관심 백엔드 채용',exact:true}).click();
   await expect(page.getByRole('button',{name:'관심 공고 해제',exact:true})).toHaveAttribute('aria-pressed','true');
-  await expect(page.getByText('지원기간 : 2026.01.01 09:00 ~ 2037.10.26 17:00')).toBeVisible();
+  await expect(page.locator('.detail-facts div').filter({ has: page.locator('dt', { hasText: '지원 시작' }) }).locator('dd')).toHaveText('2026.01.01 09:00');
+  await expect(page.locator('.detail-facts div').filter({ has: page.locator('dt', { hasText: '마감' }) }).locator('dd')).toContainText('2037.10.26 17:00 마감');
   await page.getByRole('button',{name:'관심 공고 해제',exact:true}).click();await page.reload();
   await expect(page.getByRole('button',{name:'관심 공고 저장',exact:true})).toHaveAttribute('aria-pressed','false');
 });
@@ -99,7 +100,8 @@ test('수시 채용의 채용 시 마감과 상시 모집은 가상 날짜 없�
   for(const [mode,label] of [['UNTIL_FILLED','채용 시 마감'],['ALWAYS_OPEN','상시 모집']]) {
     await page.route('**/api/announce/detail/71*',route=>route.fulfill({json:{title:'수시 채용',company:{name:'DEMP'},announcementType:'EMP',language:[],startedDate:'2026-01-01T09:00:00',deadLineDate:null,deadlineMode:mode,content:'<p>본문</p>',accessUrl:'https://example.test/posting'}}));
     await page.goto('/detail/71');await expect(page.getByLabel('현재 모집 상태')).toHaveText('모집 중');
-    await expect(page.getByText(`지원기간 : 2026.01.01 09:00 ~ ${label}`)).toBeVisible();
+    await expect(page.locator('.detail-facts div').filter({ has: page.locator('dt', { hasText: '지원 시작' }) }).locator('dd')).toHaveText('2026.01.01 09:00');
+    await expect(page.locator('.detail-facts div').filter({ has: page.locator('dt', { hasText: '마감' }) }).locator('dd')).toHaveText(label);
     await expect(page.getByRole('link',{name:'지원하기',exact:true})).toBeVisible();
     await page.unroute('**/api/announce/detail/71*');
   }

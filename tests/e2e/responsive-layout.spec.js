@@ -89,6 +89,8 @@ for (const width of widths) {
       await page.getByLabel('공고 검색어').fill(longText);
       await page.getByRole('button', { name: '검색', exact: true }).click();
       await expect(page.getByRole('button', { name: `${longText} 조건 해제` })).toBeVisible();
+      // The search clears and reloads the list; measure only the settled cards.
+      await expect(page.locator('.job-grid')).toHaveAttribute('aria-busy', 'false');
       const card = page.locator('.job-card');
       const image = await card.locator('.item-image-box').boundingBox();
       expect(image.width, '카드 이미지가 정보보다 큰 배너를 차지하지 않는다').toBeCloseTo(56, 0);

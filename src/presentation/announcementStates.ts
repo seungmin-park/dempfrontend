@@ -1,4 +1,6 @@
-import { educationFields } from '@/data/education';
+import { educationFields, educationLabel } from '@/data/education';
+import { formatLanguages } from './announcement';
+import { formatPosition } from './positions';
 import type { AnnouncementFilters } from '@/types/api';
 
 export function announcementEmptyState(filters: AnnouncementFilters) {
@@ -21,4 +23,36 @@ export function announcementEmptyState(filters: AnnouncementFilters) {
     description: education ? '전체 공고에서 채용 기회도 둘러보세요.' : filters.announcementType === 'EMP' ? '전체 공고에서 부트캠프·교육과정도 둘러보세요.' : '새 공고가 등록되면 이곳에서 확인할 수 있습니다.',
     action: filters.announcementType ? 'browse' as const : null,
   };
+}
+
+export interface RelaxationCandidate { key: string; label: string; filters: AnnouncementFilters }
+const statusLabels = { OPEN: '모집 중', UPCOMING: '모집 예정', CLOSED: '모집 마감' } as const;
+/** Each candidate drops exactly one condition group so the user's other choices stay intact. */
+export function relaxationCandidates(filters: AnnouncementFilters): RelaxationCandidate[] {
+  const education = filters.announcementType === 'EDU';
+  const candidates: RelaxationCandidate[] = [];
+  const add = (key: string, label: string, change: Partial<AnnouncementFilters>, removed: readonly (keyof AnnouncementFilters)[] = []) => {
+    const next: AnnouncementFilters = { ...filters, ...change };
+    for (const name of removed) delete next[name];
+    candidates.push({ key, label, filters: next });
+  };
+  const title = filters.title.trim();
+  if (title) add('title', `검색어 “${title}” 빼고 보기`, { title: '' });
+  if (filters.languages?.length) add('languages', `기술 스택(${formatLanguages(filters.languages)}) 빼고 보기`, { languages: [] });
+  if (filters.positions.length) add('positions', `직무(${filters.positions.map(formatPosition).join(', ')}) 빼고 보기`, { positions: [] });
+  if (!education && filters.career) add('career', `경력 ${filters.career}년 조건 빼고 보기`, { career: 0 });
+  if (education) {
+    if (filters.tuition) add('tuition', `교육비(${filters.tuition === 'FREE' ? '무료' : '유료'}) 빼고 보기`, { tuition: '' });
+    for (const field of educationFields) {
+      const value = filters[field.key];
+      if (value) add(field.key, `${field.label}(${educationLabel(field.key, value)}) 빼고 보기`, {}, [field.key]);
+    }
+    if (filters.duration) add('duration', '교육 기간 조건 빼고 보기', {}, ['duration']);
+    if (filters.startAfter || filters.startBefore) add('start', '개강일 조건 빼고 보기', {}, ['startAfter', 'startBefore']);
+  }
+  if (!candidates.length && (filters.recruitmentStatus === 'ACTIVE' || !filters.recruitmentStatus)) return [];
+  const status = filters.recruitmentStatus;
+  if (status === 'OPEN' || status === 'UPCOMING' || status === 'CLOSED') add('status', `모집 상태(${statusLabels[status]}) 빼고 보기`, { recruitmentStatus: '' });
+  else if (status === 'ACTIVE') add('status', '마감된 공고까지 보기', { recruitmentStatus: '' });
+  return candidates;
 }

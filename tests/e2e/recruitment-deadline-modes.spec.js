@@ -12,7 +12,8 @@ test('수시 채용의 마감 방식은 가상 날짜 없이 표시하고 지원
   for(const [value,label] of [['UNTIL_FILLED','채용 시 마감'],['ALWAYS_OPEN','상시 모집']]){
     mode=value;await page.goto('/detail/71');
     await expect(page.getByLabel('현재 모집 상태')).toHaveText('모집 중');
-    await expect(page.getByText(`지원기간 : 2026.01.01 09:00 ~ ${label}`)).toBeVisible();
+    await expect(page.locator('.detail-facts div').filter({ has: page.locator('dt', { hasText: '지원 시작' }) }).locator('dd')).toHaveText('2026.01.01 09:00');
+    await expect(page.locator('.detail-facts div').filter({ has: page.locator('dt', { hasText: '마감' }) }).locator('dd')).toHaveText(label);
     await expect(page.getByRole('link',{name:'지원하기',exact:true})).toBeVisible();
   }
 });
